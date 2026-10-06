@@ -21,7 +21,7 @@ backend/target/
 .idea/
 *.iml
 *.iws
-out/
+/out/
 
 # Eclipse
 .apt_generated
@@ -38,6 +38,8 @@ out/
 # Node & Frontend (for later)
 node_modules/
 dist/
+# Environment Variables / Credentials
+.env
 .env.local
 .env.*.local
 
