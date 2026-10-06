@@ -58,45 +58,68 @@ SWD/
 ## 🚀 Hướng dẫn Cài đặt & Khởi chạy Nhanh
 
 ### 1. Yêu cầu Môi trường
-- **Java:** JDK 21 LTS
-- **Cơ sở dữ liệu:** PostgreSQL 18 (Cổng mặc định `5432`)
-- **Maven:** 3.9+ (hoặc Maven tích hợp trong IDE)
+- **Java:** JDK 21 LTS (Khuyến nghị cài đặt qua IntelliJ hoặc Eclipse Temurin 21)
+- **Cơ sở dữ liệu:** PostgreSQL 14+ / 16 / 18 (Cổng mặc định `5432`)
+- **Maven:** 3.9+ (hoặc Maven tích hợp sẵn trong IntelliJ IDEA)
 - **Node.js:** v18+ & npm
 
-### 2. Cấu hình Cơ sở Dữ liệu
-Tạo cơ sở dữ liệu trên PostgreSQL:
+---
+
+### 2. Thiết lập Cơ sở Dữ liệu (Dành cho Thành viên Nhóm)
+
+> 💡 **Lưu ý cốt lõi:** Bạn **KHÔNG CẦN CHẠY BẤT KỲ FILE SQL NÀO BẰNG TAY!**  
+> Dự án sử dụng **Flyway Migration** tự động: khi khởi động backend, hệ thống sẽ tự động tạo đủ 18 bảng, liên kết khóa ngoại và nạp sẵn dữ liệu mẫu cùng các tài khoản thử nghiệm.
+
+#### Bước 2.1: Tạo Database trống trên PostgreSQL
+Mở pgAdmin hoặc công cụ dòng lệnh (psql) và chạy duy nhất lệnh sau:
 ```sql
 CREATE DATABASE aives_db;
 ```
 
-Cấu hình thông tin kết nối qua file `.env` (xem mẫu tại [`.env.example`](.env.example)):
-```bash
-DB_URL=jdbc:postgresql://localhost:5432/aives_db
-DB_USERNAME=postgres
-DB_PASSWORD=123456
-SERVER_PORT=8080
-JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-JWT_EXPIRATION_MS=86400000
-```
+#### Bước 2.2: Cấu hình Mật khẩu kết nối CSDL của máy bạn
+Chọn 1 trong 2 cách sau để cấu hình mật khẩu PostgreSQL máy cục bộ của bạn:
 
-### 3. Khởi chạy Backend
+* **Cách A (Khuyến nghị khi dùng IntelliJ IDEA):**
+  1. Mở file [backend/src/main/resources/application.properties](backend/src/main/resources/application.properties).
+  2. Điền mật khẩu PostgreSQL của máy bạn vào dòng:
+     ```properties
+     spring.datasource.password=mật_khẩu_postgres_của_bạn
+     ```
+  3. *(Hoặc bấm **Edit Configurations...** của ứng dụng Spring Boot trong IntelliJ $\rightarrow$ Thêm vào ô **Environment variables**: `DB_PASSWORD=mật_khẩu_của_bạn`).*
+
+* **Cách B (Nếu khởi chạy từ Terminal / PowerShell):**
+  ```powershell
+  # Gán mật khẩu của máy bạn trước khi chạy
+  $env:DB_PASSWORD = "mật_khẩu_postgres_của_bạn"
+  mvn spring-boot:run -f backend/pom.xml
+  ```
+
+---
+
+### 3. Khởi chạy Backend Server
+Từ thư mục gốc dự án:
 ```bash
 mvn spring-boot:run -f backend/pom.xml
 ```
-* **Flyway** sẽ tự động migrate 18 bảng và nạp vai trò `ADMIN`, `LECTURER`, `STUDENT`.
-* **DataInitializer** tự động cập nhật mật khẩu mã hóa BCrypt cho các tài khoản mẫu.
-* **Swagger UI API:** 👉 **[http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)**
+* Hệ thống sẽ tự động tạo bảng qua Flyway (`V1`, `V2`).
+* Dữ liệu mẫu (môn học, câu hỏi, tài khoản) sẽ được khởi tạo tự động.
+* Truy cập tài liệu API tương tác tại: 👉 **[http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)**
 
-### 4. Khởi chạy Frontend
+---
+
+### 4. Khởi chạy Frontend Portal
+Mở một cửa sổ Terminal mới:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-* Giao diện người dùng sẽ chạy tại: 👉 **[http://localhost:5173](http://localhost:5173)**
-* Proxy ngầm tự động điều hướng các request `/api` sang Backend port `8080`.
+* Giao diện Portal thi vấn đáp sẽ chạy tại: 👉 **[http://localhost:5173](http://localhost:5173)**
+* Mọi request gọi API `/api/*` sẽ được Vite tự động chuyển tiếp tới Backend port `8080`.
 
-### 5. Tài khoản Kiểm thử Mặc định
+---
+
+### 5. Tài khoản Kiểm thử Mặc định (Đã nạp sẵn)
 * **Sinh viên:** `an.tv.se170001@fpt.edu.vn` (hoặc MSSV `an.tv.se170001`) — Mật khẩu: `123456`
 * **Giảng viên:** `gv.nguyen@fpt.edu.vn` — Mật khẩu: `123456`
 * **Quản trị viên:** `admin@aives.edu.vn` — Mật khẩu: `123456`
