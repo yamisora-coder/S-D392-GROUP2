@@ -1,0 +1,35 @@
+.login-page{min-height:100vh;display:grid;place-items:center;padding:24px;background:#f1f4f9}
+.login-card{width:100%;max-width:420px;padding:38px 40px;background:#fff;border:1px solid #e3e8f0;border-radius:16px;box-shadow:0 12px 35px #203b5d12;text-align:center}
+.brand-mark,.brand-small{display:inline-grid;place-items:center;background:#1e5bd1;color:#fff;font-weight:700;box-shadow:0 5px 12px #1e5bd133}
+.brand-mark{width:52px;height:52px;border-radius:13px;font-size:25px}
+.login-card h1{margin:16px 0 5px;font-size:25px;letter-spacing:-.03em}
+.login-subtitle{margin:0 0 30px;color:#718096;font-size:12px}
+.login-card form{text-align:left}
+.login-card label,.modal label{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;color:#435269;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.login-card input,.modal input,.modal select{height:42px;padding:0 12px;border:1px solid #d7dfeb;border-radius:7px;background:#f9fbfd;color:#17263b;font-size:13px;text-transform:none;letter-spacing:0;outline:none}
+.login-card input:focus,.modal input:focus,.modal select:focus{border-color:#2865d8;box-shadow:0 0 0 3px #2865d81a}
+.role-select-wrap{position:relative;display:block}
+.role-select-wrap::after{position:absolute;top:50%;right:14px;content:'⌄';transform:translateY(-55%);color:#6f7e91;font-size:16px;line-height:1;pointer-events:none}
+.login-card .role-select{width:100%;height:44px;padding:0 40px 0 12px;border:1px solid #d7dfeb;border-radius:8px;appearance:none;background:#f9fbfd;color:#17263b;font-size:13px;letter-spacing:0;outline:none;cursor:pointer}
+.login-card .role-select:hover{border-color:#b9c9df;background:#fff}
+.login-card .role-select:focus{border-color:#2865d8;box-shadow:0 0 0 3px #2865d81a}
+.login-options{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-2px 0 18px;color:#718096;font-size:11px}
+.remember-option{display:flex!important;flex-direction:row!important;align-items:center;gap:7px!important;margin:0!important;color:#718096!important;font-size:11px!important;font-weight:500!important;text-transform:none!important;letter-spacing:0!important}
+.remember-option input{width:14px;height:14px;margin:0;accent-color:#1e5bd1}
+.forgot-link{font-size:11px}
+.button{@apply inline-flex min-h-10 items-center justify-center rounded-md border border-transparent px-4 text-xs font-semibold transition duration-150}
+.button.primary{@apply bg-brand text-white shadow-sm}
+.button.primary:hover{background:#1649ae}
+.button.secondary{@apply border-[#d5deea] bg-white text-[#46566b]}
+.button.secondary:hover{background:#f5f8fc}
+.button.full{width:100%;justify-content:center;display:flex;gap:10px}
+.login-divider{display:flex;align-items:center;gap:10px;margin:25px 0 14px;color:#a0aaba;font-size:10px;letter-spacing:.06em}
+.login-divider:before,.login-divider:after{content:'';height:1px;background:#e6eaf0;flex:1}
+.login-help{margin:25px 0 0;padding-top:18px;border-top:1px solid #edf0f4;color:#7c8999;font-size:11px}
+.login-help a{color:#1e5bd1;font-weight:600}
+.form-error{margin:-5px 0 12px;color:#c0393b;font-size:11px}
+.text-link{padding:0;border:0;background:transparent;color:#1e5bd1;font-size:inherit;font-weight:600}
+.text-link:hover{text-decoration:underline}
+.login-language{position:absolute;top:16px;right:18px}
+.login-card{position:relative}
+.register-card{max-width:460px}

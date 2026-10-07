@@ -1,0 +1,12 @@
+@theme {
+  --font-sans: Inter, Arial, sans-serif;
+  --color-brand: #1e5bd1;
+  --color-brand-dark: #1649ae;
+  --color-ink: #132238;
+  --color-muted: #718096;
+}
+:root{font-family:var(--font-sans);color:var(--color-ink);background:#f6f8fc;font-synthesis:none}
+*{box-sizing:border-box}
+body{margin:0}
+button,input,select{font:inherit}
+button{cursor:pointer}
