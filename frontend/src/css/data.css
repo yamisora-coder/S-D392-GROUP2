@@ -1,0 +1,44 @@
+.brand-small{width:35px;height:35px;border-radius:9px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.search-box{display:flex;align-items:center;gap:8px;width:290px;height:38px;padding:0 12px;border:1px solid #dce3ec;border-radius:7px;background:#fff;color:#8290a3}
+.search-box input{width:100%;border:0;outline:0;color:#26364d;font-size:12px}
+.result-count{color:#8a96a6;font-size:11px}
+.table-card{overflow:auto;background:#fff;border:1px solid #e2e8f0;border-radius:10px;box-shadow:0 4px 14px #213b5d0a}
+table{width:100%;border-collapse:collapse;text-align:left}
+th{padding:14px 16px;background:#fafbfd;color:#8290a3;font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+td{padding:15px 16px;border-top:1px solid #edf0f4;color:#415168;font-size:12px;vertical-align:middle}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:#f8fbff}
+td:first-child{color:#172940;font-weight:600}
+.actions-column{width:115px}
+.row-actions{white-space:nowrap}
+.row-actions button{padding:4px 7px;border:0;background:transparent;color:#2865d8;font-size:11px}
+.row-actions button:hover{text-decoration:underline}
+.row-actions .danger-text{color:#c44b51}
+.status{display:inline-block;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:600;color:#1a8153;background:#eaf9f0}
+.status-tạm-khóa,.status-bản-nháp,.status-chờ-duyệt{color:#9a6900;background:#fff5d9}
+.empty-state{text-align:center;padding:45px;color:#8996a6!important;font-weight:400!important}
+.modal-backdrop{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:20px;background:#13223866}
+.modal{position:relative;width:100%;max-width:510px;padding:28px;border-radius:12px;background:#fff;box-shadow:0 18px 45px #13223833}
+.modal label,.modal input,.modal select{min-width:0;max-width:100%}
+.modal h2{margin:0 0 24px;font-size:21px}
+.modal-close{position:absolute;top:12px;right:14px;border:0;background:transparent;color:#8290a3;font-size:23px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 15px}
+.form-grid .wide{grid-column:1/-1}
+.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:10px;padding-top:20px;border-top:1px solid #edf0f4}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.stat-card{padding:24px;background:#fff;border:1px solid #e2e8f0;border-radius:10px}
+.stat-card span,.stat-card small{display:block;color:#8290a3;font-size:12px}
+.stat-card strong{display:block;margin:13px 0 5px;color:#1d5bd1;font-size:35px}
+.stat-card small{font-size:10px}
+.api-error{margin:-14px 0 18px;padding:11px 14px;border:1px solid #f2c5c5;border-radius:7px;color:#a33b3b;background:#fff4f4;font-size:12px}
+.app-footer{display:flex;justify-content:space-between;gap:20px;padding:18px 38px;border-top:1px solid #e3e8ef;color:#8a97a7;font-size:10px;background:#f6f8fc}
+.language-button{padding:6px 9px;border:1px solid #d5deea;border-radius:6px;background:#fff;color:#1e5bd1;font-size:10px;font-weight:700}
+.accent-card{background:linear-gradient(135deg,#eef4ff,#fff)}
+.workflow-steps{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.workflow-steps span{padding:7px 10px;border-radius:6px;color:#2865d8;background:#f0f5ff;font-size:10px;font-weight:600}
+.status-approved{color:#1a8153;background:#eaf9f0}
+.status-draft{color:#9a6900;background:#fff5d9}
+.status-archived{color:#687589;background:#eef1f5}
+.modal textarea{width:100%;padding:10px 12px;border:1px solid #d7dfeb;border-radius:7px;resize:vertical;color:#17263b;font-size:13px;outline:none}
+.modal textarea:focus{border-color:#2865d8;box-shadow:0 0 0 3px #2865d81a}

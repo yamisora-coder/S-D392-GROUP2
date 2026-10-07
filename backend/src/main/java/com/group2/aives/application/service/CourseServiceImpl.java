@@ -22,6 +22,7 @@ public class CourseServiceImpl implements CourseService {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<CourseResponse> getAllCourses() {
         return courseRepository.findAll().stream()
                 .map(this::mapToResponse)
@@ -29,6 +30,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CourseResponse getCourseById(Long id) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học với ID: " + id));
