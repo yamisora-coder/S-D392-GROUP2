@@ -1,5 +1,6 @@
 export { authApi } from './auth'
 export { examApi } from './exams'
+export { gradingApi } from './grading'
 export { questionApi } from './questions'
 export { rubricApi } from './rubrics'
 export { sessionApi } from './sessions'

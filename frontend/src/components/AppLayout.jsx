@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { AppFooter } from './AppFooter'
 import { useLanguage } from '../contexts/LanguageContext'
 
-const lecturerNavigation = [['dashboard', '▦', 'dashboard'], ['exams', '▣', 'exams'], ['questions', '▤', 'questions'], ['sessions', '◷', 'sessions']]
+const lecturerNavigation = [['dashboard', '▦', 'dashboard'], ['exams', '▣', 'exams'], ['questions', '▤', 'questions'], ['sessions', '◷', 'sessions'], ['grading', '✎', 'grading']]
 const adminNavigation = [['dashboard', '▦', 'dashboard'], ['users', '♙', 'users'], ['subjects', '◈', 'subjects']]
 const studentNavigation = [['dashboard', '▦', 'dashboard'], ['student/pre-check', '✓', 'preCheck'], ['student/exam', '◉', 'examRoom'], ['student/report', '▤', 'report']]
 

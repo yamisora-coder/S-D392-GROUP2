@@ -11,6 +11,7 @@ import { LogoutPage } from './pages/LogoutPage'
 import { CrudPage } from './pages/CrudPage'
 import { QuestionBankPage } from './pages/instructor/QuestionBankPage'
 import { SessionPage } from './pages/instructor/SessionPage'
+import { GradingListPage, GradingReviewPage } from './pages/instructor/GradingPage'
 import { LecturerDashboardPage } from './pages/instructor/LecturerDashboardPage'
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage'
 import { StudentPortalPage } from './pages/student/StudentPortalPage'
@@ -34,6 +35,8 @@ function ProtectedRoutes() {
         <Route path="/exams" element={<CrudPage resourceKey="exams" />} />
         <Route path="/questions" element={<QuestionBankPage />} />
         <Route path="/sessions" element={<SessionPage />} />
+        <Route path="/grading" element={<GradingListPage />} />
+        <Route path="/grading/:sessionId" element={<GradingReviewPage />} />
         <Route path="/student/pre-check" element={<PreExamPage />} />
         <Route path="/student/exam" element={<VivaRoomPage />} />
         <Route path="/student/report" element={<StudentReportPage />} />
