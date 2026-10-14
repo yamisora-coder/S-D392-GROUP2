@@ -1,0 +1,354 @@
+<!DOCTYPE html><html lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Cổng thông tin kỳ thi - AIVES Student Portal</title>
+<!-- Tailwind CSS v3 with forms and container-queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- FontAwesome for icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style data-purpose="custom-scrollbar">
+    /* Custom Scrollbar for clean UI */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased">
+<!-- BEGIN: MainLayout -->
+<div class="flex h-screen overflow-hidden">
+<!-- BEGIN: Sidebar -->
+<aside class="w-64 bg-white border-r border-slate-200 flex flex-col z-20" data-purpose="sidebar-navigation">
+<!-- Logo Area -->
+<div class="h-16 flex items-center px-6 border-b border-slate-100">
+<span class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">AIVES</span>
+<span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-blue-50 text-blue-600 rounded">Student</span>
+</div>
+<!-- Navigation Links -->
+<nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+<p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Tổng quan</p>
+<a class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition-colors" href="#">
+<i class="fa-solid fa-house w-5 mr-3 text-slate-400"></i>
+          Tổng quan
+        </a>
+<p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mt-6 mb-2">Kỳ thi</p>
+<a class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-blue-600 bg-blue-50/80" href="#">
+<i class="fa-solid fa-file-lines w-5 mr-3 text-blue-600"></i>
+          Kỳ thi của tôi
+          <span class="ml-auto bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">2</span>
+</a>
+<a class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition-colors" href="#">
+<i class="fa-solid fa-clock-rotate-left w-5 mr-3 text-slate-400"></i>
+          Lịch sử bài thi
+        </a>
+<p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mt-6 mb-2">Hệ thống</p>
+<a class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition-colors" href="#">
+<i class="fa-solid fa-laptop-code w-5 mr-3 text-slate-400"></i>
+          Kiểm tra thiết bị
+        </a>
+<a class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition-colors" href="#">
+<i class="fa-solid fa-gear w-5 mr-3 text-slate-400"></i>
+          Cài đặt
+        </a>
+</nav>
+<!-- User Quick Profile Footer -->
+<div class="p-4 border-t border-slate-100 flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<img alt="Avatar" class="w-9 h-9 rounded-full object-cover border border-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4jUoWXWjj0satU3TF0ZrA0L-Vlr6QXzHn29_oDRUr9fyUz6C85mmtOA7QY2lKXUFNwVjvhyTdUGEkBNZHgpJgoWC75kaewHEeLwcT_dMZyoE007nQzjxSHIt3oa84h3wfYwgItNwFOLFCZ0RFWII_cIpd8HhUakkqy1JLKl_I_4QJ7KNKUW8cJiQzsefnFvAbedDNOVtNRkYYstO7j0y0OQh5cHI6M_icM-MKUasJMwgPj-6IDvYmwTWAp8tqKObN0g">
+<div class="text-sm">
+<p class="font-medium text-slate-700 leading-none">Nguyễn Văn A</p>
+<p class="text-xs text-slate-400 mt-1">SV102938</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors" title="Đăng xuất">
+<i class="fa-solid fa-right-from-bracket"></i>
+</button>
+</div>
+</aside>
+<!-- END: Sidebar -->
+<!-- BEGIN: MainContentWrapper -->
+<div class="flex-1 flex flex-col overflow-hidden">
+<!-- BEGIN: Topbar -->
+<header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 z-10" data-purpose="topbar">
+<!-- Search bar -->
+<div class="relative w-96">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+<i class="fa-solid fa-magnifying-glass text-sm"></i>
+</span>
+<input class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all" placeholder="Tìm kiếm kỳ thi, môn học, tài liệu..." type="text">
+</div>
+<!-- Topbar Right Actions -->
+<div class="flex items-center space-x-5">
+<!-- Notifications -->
+<button class="relative text-slate-400 hover:text-slate-600 transition-colors">
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+<i class="fa-regular fa-bell text-xl"></i>
+</button>
+<div class="h-6 w-px bg-slate-200"></div>
+<!-- Language Dropdown -->
+<div class="flex items-center space-x-2 text-sm font-medium text-slate-600 cursor-pointer">
+<span>Tiếng Việt</span>
+<i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
+</div>
+</div>
+</header>
+<!-- END: Topbar -->
+<!-- BEGIN: ScrollablePageContent -->
+<main class="flex-1 overflow-y-auto p-8 bg-slate-50/50">
+<!-- Page Title & Greeting -->
+<div class="mb-8 flex items-center justify-between">
+<div>
+<h1 class="text-2xl font-bold text-slate-800">Cổng thông tin kỳ thi</h1>
+<p class="text-sm text-slate-500 mt-1">Quản lý lịch thi vấn đáp AI, kiểm tra thiết bị và xem kết quả trực tuyến.</p>
+</div>
+<div class="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium border border-blue-100 flex items-center">
+<i class="fa-regular fa-calendar-days mr-2"></i>
+            Hôm nay: Thứ Ba, 24/10/2023
+          </div>
+</div>
+<!-- BEGIN: UpcomingExamsSection -->
+<section class="mb-10" data-purpose="upcoming-exams">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-lg font-bold text-slate-800 flex items-center">
+<span class="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
+              Kỳ thi sắp diễn ra (Upcoming Exams)
+            </h2>
+<span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">2 ca thi đang chờ</span>
+</div>
+<!-- Exam Cards Grid (Only 2 cards as requested) -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Exam Card 1: Đang mở (Active) -->
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6 flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-emerald-500"></div>
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-600 rounded-full flex items-center">
+<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping mr-1.5"></span>
+                    Đang mở phòng thi
+                  </span>
+<span class="text-xs text-emerald-700 font-medium bg-emerald-50 px-2 py-0.5 rounded">🟢 Thiết bị: Đã kiểm tra sẵn sàng</span>
+</div>
+<h3 class="font-bold text-slate-800 text-base mb-1">Unit 6 Final Exam: English Level 6</h3>
+<p class="text-xs text-slate-500 mb-4">Mã môn: ENG-106 • Hình thức: Vấn đáp AI (AI Viva Exam)</p>
+<div class="space-y-2 text-sm text-slate-600 bg-slate-50 p-3 rounded-lg mb-6">
+<div class="flex justify-between">
+<span class="text-slate-400">Số câu hỏi:</span>
+<span class="font-medium text-slate-700">3 câu chính + hỏi xoáy</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-400">Khung giờ của bạn:</span>
+<span class="font-medium text-blue-600">08:15 - 08:35 (STT: 04)</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-400">Thời lượng:</span>
+<span class="font-medium text-slate-700">20 phút</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-400">Điểm đạt yêu cầu:</span>
+<span class="font-medium text-slate-700">40/50 điểm</span>
+</div>
+</div>
+</div>
+<div class="flex items-center space-x-3 pt-2 border-t border-slate-100">
+<button class="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center">
+<i class="fa-solid fa-laptop mr-1.5 text-slate-500"></i> Kiểm tra thiết bị
+                </button>
+<button class="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center shadow-sm shadow-blue-200">
+<i class="fa-solid fa-right-to-bracket mr-1.5"></i> Vào phòng thi
+                </button>
+</div>
+</div>
+<!-- Exam Card 2: Chưa đến giờ (Upcoming) -->
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6 flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-amber-500"></div>
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="px-2.5 py-1 text-xs font-semibold bg-amber-50 text-amber-600 rounded-full">
+                    Sắp diễn ra
+                  </span>
+<span class="text-xs text-amber-700 font-medium bg-amber-50 px-2 py-0.5 rounded">🟠 Chưa kiểm tra Mic/Cam</span>
+</div>
+<h3 class="font-bold text-slate-800 text-base mb-1">Advanced Database Systems Midterm</h3>
+<p class="text-xs text-slate-500 mb-4">Mã môn: CS-302 • Hình thức: Vấn đáp AI (AI Viva Exam)</p>
+<div class="space-y-2 text-sm text-slate-600 bg-slate-50 p-3 rounded-lg mb-6">
+<div class="flex justify-between">
+<span class="text-slate-400">Số câu hỏi:</span>
+<span class="font-medium text-slate-700">3 câu chính + hỏi xoáy</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-400">Khung giờ của bạn:</span>
+<span class="font-medium text-blue-600">10:20 - 10:40 (STT: 12)</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-400">Thời lượng:</span>
+<span class="font-medium text-slate-700">20 phút</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-400">Điểm đạt yêu cầu:</span>
+<span class="font-medium text-slate-700">40/50 điểm</span>
+</div>
+</div>
+</div>
+<div class="flex items-center space-x-3 pt-2 border-t border-slate-100">
+<button class="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center">
+<i class="fa-solid fa-laptop mr-1.5 text-slate-500"></i> Kiểm tra thiết bị
+                </button>
+<button class="flex-1 py-2 px-3 bg-slate-100 text-slate-400 text-xs font-semibold rounded-lg cursor-not-allowed flex items-center justify-center" disabled="" title="Yêu cầu kiểm tra thiết bị trước khi vào phòng thi">
+<i class="fa-solid fa-lock mr-1.5"></i> Vào phòng thi
+                </button>
+</div>
+</div>
+</div>
+</section>
+<!-- END: UpcomingExamsSection -->
+<!-- BEGIN: ExamHistorySection -->
+<section class="bg-white rounded-xl border border-slate-200 shadow-sm p-6" data-purpose="exam-history">
+<!-- Header and Filters -->
+<div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+<div>
+<h2 class="text-lg font-bold text-slate-800">Lịch sử bài thi đã hoàn thành (Exam History)</h2>
+<p class="text-xs text-slate-500 mt-0.5">Danh sách toàn bộ các bài thi bạn đã tham gia và trạng thái chấm điểm (Human-in-the-loop).</p>
+</div>
+<div class="flex items-center space-x-3">
+<!-- Search inside table -->
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+<i class="fa-solid fa-magnifying-glass text-xs"></i>
+</span>
+<input class="pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-blue-500" placeholder="Tìm tên môn thi..." type="text">
+</div>
+<!-- Status Filter Dropdown -->
+<select class="bg-slate-50 border border-slate-200 rounded-lg text-xs px-3 py-1.5 text-slate-600 focus:outline-none focus:border-blue-500">
+<option value="all">Trạng thái: Tất cả</option>
+<option value="graded">🟢 Đã chốt điểm</option>
+<option value="pending">🟡 Chờ giảng viên duyệt</option>
+<option value="dispute">🔵 Đang khiếu nại / Phúc khảo</option>
+</select>
+</div>
+</div>
+<!-- History Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-slate-200 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+<th class="py-3 px-4">Tên môn / Bài thi</th>
+<th class="py-3 px-4">Trạng thái chấm</th>
+<th class="py-3 px-4">Điểm số</th>
+<th class="py-3 px-4">Xếp loại</th>
+<th class="py-3 px-4">Thời gian làm</th>
+<th class="py-3 px-4">Thời gian nộp</th>
+<th class="py-3 px-4 text-right">Chi tiết</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 text-sm">
+<!-- Row 0: Web Development Fundamentals (Added as requested) -->
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="py-3.5 px-4 font-medium text-slate-800">
+                    Web Development Fundamentals
+                    <span class="block text-xs font-normal text-slate-400">WEB-101</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-600 rounded-full inline-block">🟢 Đã chốt điểm</span>
+</td>
+<td class="py-3.5 px-4 font-semibold text-slate-700">45/50 <span class="text-xs font-normal text-emerald-600">(90%)</span></td>
+<td class="py-3.5 px-4 font-medium text-emerald-600">Tuyệt vời</td>
+<td class="py-3.5 px-4 text-slate-600 text-xs">20 phút</td>
+<td class="py-3.5 px-4 text-slate-500 text-xs">20 Oct 2023, 11:30 AM</td>
+<td class="py-3.5 px-4 text-right">
+<button class="text-blue-600 hover:text-blue-800 font-medium text-xs flex items-center justify-end ml-auto space-x-1" title="Transcript hội thoại, Ghi âm, Phân tích AI theo Rubric và Nhận xét giảng viên">
+<span>Xem chi tiết</span>
+<i class="fa-solid fa-arrow-right text-[10px]"></i>
+</button>
+</td>
+</tr>
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="py-3.5 px-4 font-medium text-slate-800">
+                    English Level 6 - Midterm Test
+                    <span class="block text-xs font-normal text-slate-400">ENG-106</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-600 rounded-full inline-block">🟢 Đã chốt điểm</span>
+</td>
+<td class="py-3.5 px-4 font-semibold text-slate-700">42/50 <span class="text-xs font-normal text-emerald-600">(84%)</span></td>
+<td class="py-3.5 px-4 font-medium text-emerald-600">Excellent</td>
+<td class="py-3.5 px-4 text-slate-600 text-xs">20 phút</td>
+<td class="py-3.5 px-4 text-slate-500 text-xs">09 Nov 2019, 9:00 AM</td>
+<td class="py-3.5 px-4 text-right">
+<button class="text-blue-600 hover:text-blue-800 font-medium text-xs flex items-center justify-end ml-auto space-x-1">
+<span>Xem chi tiết</span>
+<i class="fa-solid fa-arrow-right text-[10px]"></i>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="py-3.5 px-4 font-medium text-slate-800">
+                    Advanced Mathematics - Final Exam
+                    <span class="block text-xs font-normal text-slate-400">MATH-202</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2.5 py-1 text-xs font-semibold bg-amber-50 text-amber-700 rounded-full inline-block">🟡 Chờ giảng viên duyệt (AI đã chấm sơ bộ)</span>
+</td>
+<td class="py-3.5 px-4 font-semibold text-slate-700">35/50 <span class="text-xs font-normal text-blue-600">(68%)</span></td>
+<td class="py-3.5 px-4 font-medium text-blue-600">Average</td>
+<td class="py-3.5 px-4 text-slate-600 text-xs">20 phút</td>
+<td class="py-3.5 px-4 text-slate-500 text-xs">15 Oct 2019, 2:30 PM</td>
+<td class="py-3.5 px-4 text-right">
+<button class="text-blue-600 hover:text-blue-800 font-medium text-xs flex items-center justify-end ml-auto space-x-1">
+<span>Xem chi tiết</span>
+<i class="fa-solid fa-arrow-right text-[10px]"></i>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="py-3.5 px-4 font-medium text-slate-800">
+                    Physics 101 - Practical Quiz
+                    <span class="block text-xs font-normal text-slate-400">PHY-101</span>
+</td>
+<td class="py-3.5 px-4">
+<span class="px-2.5 py-1 text-xs font-semibold bg-blue-50 text-blue-700 rounded-full inline-block">🔵 Đang khiếu nại / Phúc khảo</span>
+</td>
+<td class="py-3.5 px-4 font-semibold text-slate-500 italic">Đang phúc khảo</td>
+<td class="py-3.5 px-4 font-medium text-slate-400">-</td>
+<td class="py-3.5 px-4 text-slate-600 text-xs">20 phút</td>
+<td class="py-3.5 px-4 text-slate-500 text-xs">01 Nov 2023, 10:15 AM</td>
+<td class="py-3.5 px-4 text-right">
+<button class="text-blue-600 hover:text-blue-800 font-medium text-xs flex items-center justify-end ml-auto space-x-1">
+<span>Xem chi tiết</span>
+<i class="fa-solid fa-arrow-right text-[10px]"></i>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="flex items-center justify-between mt-6 pt-4 border-t border-slate-100 text-xs text-slate-500">
+<div>Hiển thị 4 trong tổng số 4 bài thi</div>
+<div class="flex items-center space-x-1">
+<button class="px-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-400 cursor-not-allowed">Trước</button>
+<button class="px-3 py-1.5 border border-blue-500 rounded-lg bg-blue-50 text-blue-600 font-semibold">1</button>
+<button class="px-3 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50">Sau</button>
+</div>
+</div>
+</section>
+<!-- END: ExamHistorySection -->
+</main>
+<!-- END: ScrollablePageContent -->
+</div>
+<!-- END: MainContentWrapper -->
+</div>
+<!-- END: MainLayout -->
+</body></html>

@@ -1,0 +1,857 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter,+sans-serif:wght@100..900&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-dim":"#ccdbf3","outline":"#747686","inverse-on-surface":"#eaf1ff","primary":"#0037b0","on-surface-variant":"#434655","on-secondary-fixed":"#0d1c2e","error-container":"#ffdad6","outline-variant":"#c4c5d7","secondary-container":"#d5e3fc","tertiary":"#004871","on-tertiary-fixed":"#001d32","inverse-primary":"#b7c4ff","surface-tint":"#2151da","on-tertiary":"#ffffff","primary-container":"#1d4ed8","on-error":"#ffffff","on-primary-fixed":"#001551","secondary":"#515f74","surface-container-high":"#dce9ff","surface-container-highest":"#d5e3fc","on-background":"#0d1c2e","on-secondary":"#ffffff","surface-variant":"#d5e3fc","on-primary-container":"#cad3ff","surface-container-low":"#eff4ff","tertiary-fixed":"#cde5ff","on-primary":"#ffffff","secondary-fixed-dim":"#b9c7df","surface-container-lowest":"#ffffff","primary-fixed-dim":"#b7c4ff","on-primary-fixed-variant":"#0039b5","primary-fixed":"#dce1ff","on-secondary-fixed-variant":"#3a485b","surface-container":"#e6eeff","error":"#ba1a1a","on-error-container":"#93000a","background":"#f8f9ff","tertiary-fixed-dim":"#94ccff","on-tertiary-container":"#b3d9ff","surface":"#f8f9ff","inverse-surface":"#233144","surface-bright":"#f8f9ff","secondary-fixed":"#d5e3fc","on-surface":"#0d1c2e","on-secondary-container":"#57657a","tertiary-container":"#006195","on-tertiary-fixed-variant":"#004b74"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-md":"1rem",base:"0.25rem","space-xl":"2rem","space-xs":"0.25rem","space-sm":"0.5rem","space-lg":"1.5rem"},fontFamily:{"headline-md":["\"Inter, sans-serif\""],caption:["\"Inter, sans-serif\""],"headline-lg":["\"Inter, sans-serif\""],"timer-mono":["\"ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace\""],"label-md":["\"Inter, sans-serif\""],"body-sm":["\"Inter, sans-serif\""],"body-md":["\"Inter, sans-serif\""]},fontSize:{"headline-md":["20px",{lineHeight:"28px",fontWeight:"600"}],caption:["12px",{lineHeight:"16px",fontWeight:"500"}],"headline-lg":["28px",{lineHeight:"36px",fontWeight:"700"}],"timer-mono":["22px",{lineHeight:"28px",fontWeight:"700"}],"label-md":["14px",{lineHeight:"20px",fontWeight:"500"}],"body-sm":["13px",{lineHeight:"18px",fontWeight:"400"}],"body-md":["15px",{lineHeight:"22px",fontWeight:"400"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between"><div class="flex flex-col flex-1"><div class="h-16 px-space-lg flex items-center gap-space-sm border-b border-surface-container"><div class="w-9 h-9 rounded-lg bg-primary-container flex items-center justify-center text-on-primary shadow-sm"><span class="material-symbols-outlined text-[20px]">psychology</span></div><div class="flex flex-col"><span class="font-headline-md text-headline-md tracking-tight text-on-surface leading-none">AIVES</span><span class="font-caption text-caption text-secondary mt-base">Viva Portal</span></div></div><div class="px-space-md pt-space-lg"><span class="px-space-sm font-caption text-caption uppercase tracking-wider text-secondary font-semibold">Hệ thống Quản lý</span></div><nav class="flex-1 px-space-md py-space-sm space-y-base" data-active-classes="bg-primary-container text-on-primary font-semibold shadow-sm"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span>Dashboard</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150" data-path="cham-diem-va-duyet" href="#"><span class="material-symbols-outlined text-[20px]">fact_check</span><span>Chấm điểm &amp; Duyệt</span></a><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg transition-all duration-150 bg-primary-container text-on-primary font-semibold shadow-sm" data-path="ngan-hang-va-rubric" href="#"><span class="material-symbols-outlined text-[20px]">menu_book</span><span>Ngân hàng &amp; Rubric</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150" data-path="quan-ly-ky-thi-va-lich" href="#"><span class="material-symbols-outlined text-[20px]">calendar_month</span><span>Quản lý Kỳ thi &amp; Lịch</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150" data-path="bao-cao-va-pho-diem" href="#"><span class="material-symbols-outlined text-[20px]">monitoring</span><span>Báo cáo &amp; Phổ điểm</span></a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all duration-150" data-path="cau-hinh-va-he-thong" href="#"><span class="material-symbols-outlined text-[20px]">admin_panel_settings</span><span>Cấu hình &amp; Hệ thống</span></a></nav></div><div class="p-space-md border-t border-surface-container"><div class="p-space-sm rounded-lg bg-surface-container-low flex items-center justify-between"><div class="flex items-center gap-space-sm"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-200"></span><span class="font-caption text-caption text-on-surface-variant">AIVES v2.4 (AI Viva Online)</span></div></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg"><div class="flex items-center w-96"><div class="relative w-full"><span class="material-symbols-outlined absolute left-3 top-2.5 text-outline text-[18px]">search</span><input class="w-full h-10 pl-9 pr-space-md rounded-lg bg-surface-container-low text-on-surface font-body-sm text-body-sm placeholder:text-outline focus:outline-none focus:ring-1 focus:ring-primary-container transition-all" placeholder="Tìm kiếm thí sinh, ca thi, câu hỏi..." type="text"></div></div><div class="flex items-center gap-space-md"><button class="flex items-center gap-base px-space-sm py-base rounded-lg border border-outline-variant font-caption text-caption text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[16px]">translate</span><span>VIE</span></button><button class="relative w-10 h-10 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-error"></span></button><div class="h-6 w-[1px] bg-outline-variant"></div><div class="flex items-center gap-space-sm pl-base"><div class="text-right hidden sm:block"><div class="font-label-md text-label-md text-on-surface font-semibold">TS. Nguyễn Văn A</div><div class="font-caption text-caption text-secondary">Giảng viên • Ban Khảo thí</div></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-16 bg-surface w-full min-h-screen px-space-lg py-space-lg"><div class="flex flex-col w-full">
+<!-- Dynamic Notification / Toast Hub -->
+<div class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none" id="toastNotification">
+<div class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg bg-inverse-surface text-inverse-on-surface shadow-xl">
+<span class="material-symbols-outlined text-emerald-400 text-[20px]" id="toastIcon">check_circle</span>
+<span class="font-body-sm text-body-sm" id="toastMessage">Thao tác thành công</span>
+</div>
+</div>
+<!-- Header & Context Area -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md mb-space-lg">
+<div>
+<div class="flex items-center gap-space-sm text-secondary font-caption text-caption mb-base">
+<span>Kho lưu trữ học liệu</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span>Học phần Khối Kỹ thuật Máy tính</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary font-semibold">CS201</span>
+</div>
+<div class="flex flex-wrap items-center gap-space-md">
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Ngân hàng Câu hỏi &amp; Thư viện Rubric</h1>
+<div class="flex items-center gap-space-xs px-space-sm py-base rounded-full bg-secondary-container text-on-secondary-container font-caption text-caption font-semibold">
+<span class="material-symbols-outlined text-[16px]">school</span>
+<span>CS201 • Kiến trúc máy tính &amp; Hệ điều hành</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-base">Quản trị ngân hàng vấn đáp trực tiếp, sinh câu hỏi ngữ cảnh sâu qua RAG và cấu hình rubric chấm điểm đa tiêu chí.</p>
+</div>
+<!-- Action Toolbar Right -->
+<div class="flex items-center gap-space-sm self-start lg:self-center">
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container-lowest text-on-surface hover:bg-surface-container-high transition-all shadow-sm font-label-md text-label-md font-semibold" onclick="openManualModal()" type="button">
+<span class="material-symbols-outlined text-secondary text-[20px]">add</span>
+<span>Thêm thủ công</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-primary-container text-on-primary hover:bg-primary transition-all shadow-md font-label-md text-label-md font-semibold" onclick="scrollToRagGenerator()" type="button">
+<span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+<span>Sinh tự động bằng AI (RAG)</span>
+</button>
+</div>
+</div>
+<!-- Primary Tab Switcher (Questions vs Rubrics) -->
+<div class="flex items-center justify-between mb-space-lg border-b border-surface-container pb-base">
+<div class="flex items-center gap-space-sm">
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container-highest text-primary font-label-md text-label-md font-semibold transition-all" id="tabQuestionsBtn" onclick="switchMainTab('questions')">
+<span class="material-symbols-outlined text-[18px]">quiz</span>
+<span>Ngân hàng Câu hỏi Vấn đáp</span>
+<span class="ml-space-xs px-1.5 py-0.5 rounded-full bg-primary text-on-primary font-caption text-caption font-bold">142</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container-high font-label-md text-label-md font-semibold transition-all" id="tabRubricsBtn" onclick="switchMainTab('rubrics')">
+<span class="material-symbols-outlined text-[18px]">rule</span>
+<span>Thư viện Mẫu Rubric</span>
+<span class="ml-space-xs px-1.5 py-0.5 rounded-full bg-surface-container-high text-secondary font-caption text-caption font-bold">18</span>
+</button>
+</div>
+<!-- Active Summary Metric Pill -->
+<div class="hidden sm:flex items-center gap-space-md font-caption text-caption text-secondary">
+<div class="flex items-center gap-base">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span>Đã duyệt: <strong>118</strong></span>
+</div>
+<div class="flex items-center gap-base">
+<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+<span>AI chờ duyệt: <strong>14</strong></span>
+</div>
+<div class="flex items-center gap-base">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span>Bản nháp: <strong>10</strong></span>
+</div>
+</div>
+</div>
+<!-- MAIN TAB 1: QUESTIONS & RAG -->
+<div class="flex flex-col w-full space-y-space-lg" id="sectionQuestions">
+<!-- AI RAG Copilot Box (Interactive Highlight) -->
+<div class="rounded-xl bg-surface-container-lowest p-space-lg shadow-sm relative overflow-hidden transition-all" id="ragGeneratorPanel">
+<div class="absolute -top-12 -right-12 w-64 h-64 rounded-full bg-primary-container/10 blur-3xl pointer-events-none"></div>
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md pb-space-md border-b border-surface-container">
+<div class="flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[26px]">smart_toy</span>
+</div>
+<div>
+<div class="flex items-center gap-space-sm">
+<h2 class="font-headline-md text-headline-md text-on-surface">AI RAG Generator • Sinh câu hỏi bám sát Giáo trình</h2>
+<span class="px-space-xs py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-caption text-caption font-bold tracking-wide uppercase">RAG Engine v3.1</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary mt-base">Tải tài liệu tham khảo để mô hình trích xuất kiến thức, xây dựng kịch bản truy vấn nhiều lớp và tiêu chuẩn rubric định lượng.</p>
+</div>
+</div>
+<button class="flex items-center gap-base font-caption text-caption text-primary hover:underline" id="collapseRagBtn" onclick="toggleRagPanel()" type="button">
+<span id="collapseRagText">Thu gọn bảng tạo</span>
+<span class="material-symbols-outlined text-[16px]" id="collapseRagIcon">expand_less</span>
+</button>
+</div>
+<!-- Config Form Content -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg pt-space-lg" id="ragFormBody">
+<!-- Document Upload & Ingested Knowledge Sources -->
+<div class="lg:col-span-5 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<label class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-base">
+<span class="material-symbols-outlined text-primary text-[18px]">folder_managed</span>
+<span>Tài liệu môn học đã gắn (Vector DB)</span>
+</label>
+<button class="font-caption text-caption text-primary font-semibold hover:underline flex items-center gap-base" onclick="triggerFileUpload()" type="button">
+<span class="material-symbols-outlined text-[14px]">upload_file</span> Tải thêm
+              </button>
+<input class="hidden" id="hiddenFileInput" onchange="handleFileSelected(event)" type="file">
+</div>
+<!-- Uploaded Cards Stack -->
+<div class="space-y-space-xs" id="fileListContainer">
+<div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-error text-[22px]">picture_as_pdf</span>
+<div class="min-w-0">
+<p class="font-label-md text-label-md text-on-surface font-medium truncate">Giao_trinh_He_dieu_hanh_v3.pdf</p>
+<span class="font-caption text-caption text-secondary">14.2 MB • 412 trang indexed • Đã chunking</span>
+</div>
+</div>
+<div class="flex items-center gap-base">
+<span class="material-symbols-outlined text-emerald-600 text-[18px]" title="Sẵn sàng truy vấn">check_circle</span>
+<button class="text-secondary hover:text-error p-1" type="button"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+</div>
+<div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-amber-600 text-[22px]">slideshow</span>
+<div class="min-w-0">
+<p class="font-label-md text-label-md text-on-surface font-medium truncate">Slide_Chuong4_VirtualMemory.pptx</p>
+<span class="font-caption text-caption text-secondary">8.6 MB • 64 slides • Vector search ready</span>
+</div>
+</div>
+<div class="flex items-center gap-base">
+<span class="material-symbols-outlined text-emerald-600 text-[18px]">check_circle</span>
+<button class="text-secondary hover:text-error p-1" type="button"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+</div>
+</div>
+</div>
+<!-- Semantic Search Similarity Indicator -->
+<div class="mt-space-md p-space-sm rounded-lg bg-secondary-container/40 flex items-center justify-between">
+<span class="font-caption text-caption text-on-secondary-container">Chỉ số bao phủ Corpus ngữ nghĩa:</span>
+<span class="font-caption text-caption font-bold text-primary">94.8% toàn bài thi</span>
+</div>
+</div>
+<!-- Generation Parameter Controls -->
+<div class="lg:col-span-7 flex flex-col justify-between">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Chapter selection -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface font-semibold mb-base">Chương / Topic trọng tâm</label>
+<select class="w-full h-10 px-space-sm rounded-lg bg-surface-container-low text-on-surface font-body-sm text-body-sm focus:outline-none focus:bg-surface-container-lowest focus:shadow-sm" id="ragTopicSelect">
+<option value="virtual-memory">Chương 4: Bộ nhớ ảo &amp; Phân trang (TLB)</option>
+<option value="cpu-scheduling">Chương 3: CPU Scheduling &amp; Điều phối tiến trình</option>
+<option value="deadlock">Chương 5: Bế tắc tài nguyên (Deadlock &amp; Banker)</option>
+<option value="file-system">Chương 6: Hệ thống tập tin &amp; Quản lý I/O</option>
+</select>
+</div>
+<!-- Question count -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface font-semibold mb-base">Số lượng câu đề xuất</label>
+<div class="grid grid-cols-3 gap-base">
+<button class="rag-count-btn h-10 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-md text-label-md font-semibold" onclick="selectCount(1, this)" type="button">1 câu</button>
+<button class="rag-count-btn h-10 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md font-semibold" onclick="selectCount(3, this)" type="button">3 câu</button>
+<button class="rag-count-btn h-10 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-md text-label-md font-semibold" onclick="selectCount(5, this)" type="button">5 câu</button>
+</div>
+</div>
+<!-- Bloom taxonomy profile -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface font-semibold mb-base">Phân bổ Mức độ Bloom</label>
+<select class="w-full h-10 px-space-sm rounded-lg bg-surface-container-low text-on-surface font-body-sm text-body-sm focus:outline-none focus:bg-surface-container-lowest">
+<option>1 Hiểu + 2 Phân tích/Vận dụng</option>
+<option>2 Nhớ + 1 Hiểu (Cơ bản)</option>
+<option>Toàn bộ Vận dụng cao / Tình huống</option>
+<option>Cân bằng 4 mức Bloom</option>
+</select>
+</div>
+<!-- Follow-up probe depth -->
+<div>
+<label class="block font-label-md text-label-md text-on-surface font-semibold mb-base flex items-center justify-between">
+<span>Độ sâu hỏi xoáy (Follow-up)</span>
+<span class="text-primary font-bold" id="depthValLabel">2 lượt</span>
+</label>
+<div class="flex items-center gap-space-sm h-10">
+<input class="w-full accent-primary-container" id="depthRange" max="4" min="1" oninput="document.getElementById('depthValLabel').innerText = this.value + ' lượt'" type="range" value="2">
+<span class="font-caption text-caption text-secondary shrink-0">1-4 cấp</span>
+</div>
+</div>
+</div>
+<!-- Bottom trigger button -->
+<div class="mt-space-lg flex items-center justify-between pt-space-md border-t border-surface-container">
+<span class="font-caption text-caption text-secondary flex items-center gap-base">
+<span class="material-symbols-outlined text-[16px]">info</span>
+              Tự động kèm câu hỏi phụ phản biện và thang chấm 100% định lượng
+            </span>
+<button class="flex items-center gap-space-xs px-space-lg py-space-sm rounded-lg bg-primary-container text-on-primary hover:bg-primary shadow-md font-label-md text-label-md font-bold transition-all" id="startRagGenerationBtn" onclick="runRagGeneration()" type="button">
+<span class="material-symbols-outlined text-[20px]" id="genIcon">auto_awesome</span>
+<span id="genText">Bắt đầu sinh câu hỏi &amp; Rubric tự động</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Filter & Search Toolbar for Question Bank -->
+<div class="rounded-xl bg-surface-container-lowest p-space-md shadow-sm flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-space-md">
+<!-- Multi-attribute Search Field -->
+<div class="relative flex-1 min-w-[280px]">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-outline text-[18px]">search</span>
+<input class="w-full h-10 pl-9 pr-space-md rounded-lg bg-surface-container-low text-on-surface font-body-sm text-body-sm focus:outline-none focus:bg-surface-container-lowest transition-all" id="questionSearchInput" onkeyup="filterQuestions()" placeholder="Tìm kiếm từ khóa câu hỏi, khái niệm (VD: Paging, TLB, SJF, Semaphore)..." type="text">
+</div>
+<!-- Filters Row -->
+<div class="flex flex-wrap items-center gap-space-sm">
+<!-- Filter: Topic -->
+<div class="flex items-center gap-base">
+<span class="font-caption text-caption text-secondary hidden md:inline">Topic:</span>
+<select class="h-10 px-space-sm rounded-lg bg-surface-container-low text-on-surface font-body-sm text-body-sm focus:outline-none" id="filterTopic" onchange="filterQuestions()">
+<option value="ALL">Tất cả chương</option>
+<option value="VIRTUAL_MEM">Bộ nhớ ảo &amp; Paging</option>
+<option value="CPU_SCHED">CPU Scheduling</option>
+<option value="PROCESS">Tiến trình &amp; Đồng bộ</option>
+</select>
+</div>
+<!-- Filter: Bloom -->
+<div class="flex items-center gap-base">
+<span class="font-caption text-caption text-secondary hidden md:inline">Bloom:</span>
+<select class="h-10 px-space-sm rounded-lg bg-surface-container-low text-on-surface font-body-sm text-body-sm focus:outline-none" id="filterBloom" onchange="filterQuestions()">
+<option value="ALL">Mọi mức độ</option>
+<option value="HIỂU">Hiểu</option>
+<option value="VẬN DỤNG">Vận dụng / Phân tích</option>
+<option value="NHỚ">Nhớ</option>
+</select>
+</div>
+<!-- Filter: Status -->
+<div class="flex items-center gap-base">
+<span class="font-caption text-caption text-secondary hidden md:inline">Trạng thái:</span>
+<select class="h-10 px-space-sm rounded-lg bg-surface-container-low text-on-surface font-body-sm text-body-sm focus:outline-none" id="filterStatus" onchange="filterQuestions()">
+<option value="ALL">Tất cả trạng thái</option>
+<option value="OFFICIAL">Chính thức (Approved)</option>
+<option value="AI_PENDING">AI Đề xuất (Chờ duyệt)</option>
+<option value="DRAFT">Bản nháp</option>
+</select>
+</div>
+<button class="h-10 px-space-sm rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-secondary text-[18px] flex items-center justify-center transition-colors" onclick="resetFilters()" title="Đặt lại bộ lọc" type="button">
+<span class="material-symbols-outlined">restart_alt</span>
+</button>
+</div>
+</div>
+<!-- Questions Bank List / Cards -->
+<div class="space-y-space-md" id="questionCardList">
+<!-- ITEM 1: OFFICIAL QUESTION -->
+<article class="question-item rounded-xl bg-surface-container-lowest p-space-lg shadow-sm hover:shadow-md transition-all" data-bloom="HIỂU" data-status="OFFICIAL" data-topic="VIRTUAL_MEM">
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-sm pb-space-sm border-b border-surface-container">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="px-space-sm py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-caption text-caption font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Đã duyệt chính thức
+            </span>
+<span class="font-caption text-caption text-secondary font-timer-mono">Mã: CS201-Q042</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high text-on-surface font-caption text-caption font-semibold">Chương 4: Bộ nhớ ảo</span>
+<span class="px-space-xs py-0.5 rounded bg-secondary-container text-on-secondary-container font-caption text-caption">Bloom: Hiểu &amp; Phân tích</span>
+</div>
+<div class="flex items-center gap-space-md text-secondary font-caption text-caption">
+<span>Thang điểm: <strong class="text-on-surface font-semibold">4.0 điểm</strong></span>
+<span>•</span>
+<span>Thời lượng trả lời gợi ý: <strong>4 phút</strong></span>
+<div class="flex items-center gap-base ml-space-sm">
+<button class="text-secondary hover:text-primary p-1" type="button"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+<button class="text-secondary hover:text-primary p-1" type="button"><span class="material-symbols-outlined text-[18px]">content_copy</span></button>
+<button class="text-secondary hover:text-error p-1" type="button"><span class="material-symbols-outlined text-[18px]">archive</span></button>
+</div>
+</div>
+</div>
+<!-- Question Body Content -->
+<div class="py-space-md">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-space-xs">
+            Trình bày cơ chế Phân trang (Paging) và nguyên nhân gây Phân mảnh nội vi (Internal Fragmentation)?
+          </h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Mô tả cấu trúc bảng trang (Page Table), cách thức chuyển đổi từ địa chỉ logic (Logical Address) sang địa chỉ vật lý (Physical Address). Tại sao việc chọn Page size quá lớn lại gây lãng phí ô nhớ?
+          </p>
+<!-- Follow-up Questions (AI Adaptive probes) -->
+<div class="mt-space-md p-space-sm rounded-lg bg-surface-container-low flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">psychology_alt</span>
+<div class="text-on-surface">
+<span class="font-label-md text-label-md font-semibold">Bộ câu hỏi phụ hỏi xoáy (Follow-up probes 2 lượt):</span>
+<ul class="list-disc list-inside mt-base space-y-1 font-body-sm text-body-sm text-secondary">
+<li><span class="text-on-surface">Lượt 1:</span> Nếu Page Size là 4KB và tiến trình yêu cầu 13KB, hãy tính chính xác dung lượng bị lãng phí do phân mảnh nội vi?</li>
+<li><span class="text-on-surface">Lượt 2:</span> Tại sao chúng ta không đặt Page Size thật nhỏ (ví dụ 32 bytes) để triệt tiêu hoàn toàn phân mảnh nội vi?</li>
+</ul>
+</div>
+</div>
+<!-- Mandatory Keywords Tags -->
+<div class="mt-space-md flex flex-wrap items-center gap-space-xs">
+<span class="font-caption text-caption text-secondary uppercase font-semibold">Từ khóa bắt buộc AI chấm điểm:</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-caption text-caption font-semibold">#page size</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-caption text-caption font-semibold">#frame</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-caption text-caption font-semibold">#offset</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-caption text-caption font-semibold">#trống thừa</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-caption text-caption font-semibold">#page table entry</span>
+</div>
+</div>
+<!-- Attached Rubric Criteria Preview -->
+<div class="mt-space-xs pt-space-sm border-t border-surface-container">
+<div class="flex items-center justify-between cursor-pointer" onclick="toggleDetails('rubric-details-1', 'icon-toggle-1')">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[18px]">fact_check</span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">Rubric đánh giá chi tiết (3 Tiêu chuẩn định lượng • 4.0đ)</span>
+</div>
+<span class="material-symbols-outlined text-secondary text-[18px] transition-transform" id="icon-toggle-1">expand_more</span>
+</div>
+<div class="hidden mt-space-sm grid grid-cols-1 md:grid-cols-3 gap-space-sm" id="rubric-details-1">
+<div class="p-space-sm rounded-lg bg-surface-container-low">
+<div class="flex justify-between items-center mb-base">
+<span class="font-label-md text-label-md font-semibold text-on-surface">1. Nguyên lý phân trang</span>
+<span class="font-caption text-caption font-bold text-primary">1.5đ</span>
+</div>
+<p class="font-caption text-caption text-secondary">Nêu đúng cơ chế tách địa chỉ logic thành Page Number (p) và Offset (d), vai trò Page Table Base Register (PTBR).</p>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low">
+<div class="flex justify-between items-center mb-base">
+<span class="font-label-md text-label-md font-semibold text-on-surface">2. Phân mảnh nội vi</span>
+<span class="font-caption text-caption font-bold text-primary">1.5đ</span>
+</div>
+<p class="font-caption text-caption text-secondary">Giải thích rõ phần dư ở frame cuối cùng khi dung lượng tiến trình không chia hết cho kích thước trang.</p>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low">
+<div class="flex justify-between items-center mb-base">
+<span class="font-label-md text-label-md font-semibold text-on-surface">3. Phản biện câu hỏi phụ</span>
+<span class="font-caption text-caption font-bold text-primary">1.0đ</span>
+</div>
+<p class="font-caption text-caption text-secondary">Tính đúng 3KB lãng phí và giải thích được chi phí kích thước bảng trang khi page size quá nhỏ.</p>
+</div>
+</div>
+</div>
+</article>
+<!-- ITEM 2: AI GENERATED - PENDING REVIEW (FEATURED) -->
+<article class="question-item rounded-xl bg-surface-container-lowest p-space-lg shadow-sm hover:shadow-md transition-all" data-bloom="VẬN DỤNG" data-status="AI_PENDING" data-topic="VIRTUAL_MEM" id="aiGeneratedQuestionCard">
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-sm pb-space-sm border-b border-surface-container">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="px-space-sm py-0.5 rounded-full bg-amber-100 text-amber-900 font-caption text-caption font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-amber-600">magic_button</span> AI vừa sinh • Chờ duyệt
+            </span>
+<span class="font-caption text-caption text-secondary font-timer-mono">Mã: CS201-AI-902</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high text-on-surface font-caption text-caption font-semibold">Chương 4: Bộ nhớ ảo &amp; TLB</span>
+<span class="px-space-xs py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-caption text-caption font-semibold">Bloom: Vận dụng cao</span>
+</div>
+<!-- Quick Action Buttons for AI Question -->
+<div class="flex items-center gap-space-xs">
+<button class="flex items-center gap-base px-space-md py-1.5 rounded-lg bg-emerald-600 text-white font-label-md text-label-md font-semibold hover:bg-emerald-700 transition-colors shadow-sm" onclick="approveQuestion('CS201-AI-902')" type="button">
+<span class="material-symbols-outlined text-[16px]">done</span> Duyệt vào ngân hàng
+            </button>
+<button class="flex items-center gap-base px-space-sm py-1.5 rounded-lg bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-container-highest transition-colors" onclick="editModalTrigger()" type="button">
+<span class="material-symbols-outlined text-[16px]">tune</span> Sửa
+            </button>
+<button class="flex items-center gap-base px-space-sm py-1.5 rounded-lg bg-error-container text-on-error-container font-label-md text-label-md hover:bg-red-200 transition-colors" onclick="rejectQuestion('CS201-AI-902')" type="button">
+<span class="material-symbols-outlined text-[16px]">delete_sweep</span> Loại bỏ
+            </button>
+</div>
+</div>
+<div class="py-space-md">
+<div class="flex items-start justify-between gap-space-md">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-space-xs">
+                Phân tích cơ chế Translation Lookaside Buffer (TLB) Miss và các bước xử lý ngắt phần cứng?
+              </h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                Trình bày sự khác biệt giữa TLB hit và TLB miss. Thí sinh phải vẽ sơ đồ tư duy giải thích chuỗi sự kiện: từ lúc CPU phát sinh địa chỉ logic, tra cứu cache TLB, đến khi tải PTE từ RAM vào TLB và thực thi lại câu lệnh (Instruction Restart).
+              </p>
+</div>
+<div class="hidden md:flex flex-col items-end shrink-0 pl-space-md">
+<span class="font-caption text-caption text-secondary">Trích xuất từ:</span>
+<span class="font-caption text-caption font-semibold text-primary">Slide_Chuong4 (trang 24-29)</span>
+<span class="mt-base px-space-xs py-0.5 rounded bg-emerald-100 text-emerald-800 font-caption text-caption font-bold">RAG Match: 98%</span>
+</div>
+</div>
+<!-- Follow-up Questions for AI Item -->
+<div class="mt-space-md p-space-sm rounded-lg bg-surface-container-low flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">psychology_alt</span>
+<div class="text-on-surface">
+<span class="font-label-md text-label-md font-semibold">Kịch bản hỏi mở rộng (Follow-up logic):</span>
+<ul class="list-disc list-inside mt-base space-y-1 font-body-sm text-body-sm text-secondary">
+<li><span class="text-on-surface">Lượt 1:</span> Nếu xảy ra Page Fault ngay sau khi TLB Miss, thứ tự ưu tiên xử lý của Hệ điều hành và MMU diễn ra như thế nào?</li>
+<li><span class="text-on-surface">Lượt 2:</span> Tại sao khi thực hiện Context Switch giữa hai Process, OS thường phải Flush toàn bộ TLB hoặc dùng ASID (Address Space Identifier)?</li>
+</ul>
+</div>
+</div>
+<div class="mt-space-md flex flex-wrap items-center gap-space-xs">
+<span class="font-caption text-caption text-secondary uppercase font-semibold">Tiêu chí đối sánh AI:</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-caption text-caption font-semibold">#TLB Hit/Miss</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-caption text-caption font-semibold">#Effective Access Time (EAT)</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-caption text-caption font-semibold">#Page Table Walk</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-caption text-caption font-semibold">#ASID Flush</span>
+</div>
+</div>
+<!-- AI Rubric Embedded for Approval -->
+<div class="mt-space-xs pt-space-sm border-t border-surface-container">
+<div class="flex items-center justify-between cursor-pointer" onclick="toggleDetails('rubric-details-2', 'icon-toggle-2')">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[18px]">balance</span>
+<span class="font-label-md text-label-md font-semibold text-on-surface">Rubric do AI đề xuất tự động (Tổng điểm: 3.5đ)</span>
+</div>
+<span class="material-symbols-outlined text-secondary text-[18px] transition-transform" id="icon-toggle-2">expand_more</span>
+</div>
+<div class="hidden mt-space-sm grid grid-cols-1 md:grid-cols-3 gap-space-sm" id="rubric-details-2">
+<div class="p-space-sm rounded-lg bg-surface-container-low">
+<div class="flex justify-between items-center mb-base">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Quy trình TLB Miss</span>
+<span class="font-caption text-caption font-bold text-primary">1.5đ</span>
+</div>
+<p class="font-caption text-caption text-secondary">Nêu đúng việc MMU tra cứu TLB thất bại, phải thực hiện Page Walk truy cập RAM, cập nhật TLB.</p>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low">
+<div class="flex justify-between items-center mb-base">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Công thức EAT</span>
+<span class="font-caption text-caption font-bold text-primary">1.0đ</span>
+</div>
+<p class="font-caption text-caption text-secondary">Viết và phân tích đúng công thức tính thời gian truy cập hiệu dụng theo tỷ lệ hit ratio α.</p>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low">
+<div class="flex justify-between items-center mb-base">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Context Switch &amp; ASID</span>
+<span class="font-caption text-caption font-bold text-primary">1.0đ</span>
+</div>
+<p class="font-caption text-caption text-secondary">Nêu chuẩn xác rủi ro sai lệch địa chỉ khi đổi tiến trình và giải pháp TLB Invalidation / ASID.</p>
+</div>
+</div>
+</div>
+</article>
+<!-- ITEM 3: OFFICIAL QUESTION 2 -->
+<article class="question-item rounded-xl bg-surface-container-lowest p-space-lg shadow-sm hover:shadow-md transition-all" data-bloom="VẬN DỤNG" data-status="OFFICIAL" data-topic="CPU_SCHED">
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-sm pb-space-sm border-b border-surface-container">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="px-space-sm py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-caption text-caption font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Đã duyệt chính thức
+            </span>
+<span class="font-caption text-caption text-secondary font-timer-mono">Mã: CS201-Q019</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high text-on-surface font-caption text-caption font-semibold">Chương 3: CPU Scheduling</span>
+<span class="px-space-xs py-0.5 rounded bg-secondary-container text-on-secondary-container font-caption text-caption">Bloom: Phân tích &amp; So sánh</span>
+</div>
+<div class="flex items-center gap-space-md text-secondary font-caption text-caption">
+<span>Thang điểm: <strong class="text-on-surface font-semibold">3.5 điểm</strong></span>
+<span>•</span>
+<span>Thời lượng: <strong>3.5 phút</strong></span>
+<div class="flex items-center gap-base ml-space-sm">
+<button class="text-secondary hover:text-primary p-1" type="button"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+<button class="text-secondary hover:text-primary p-1" type="button"><span class="material-symbols-outlined text-[18px]">content_copy</span></button>
+<button class="text-secondary hover:text-error p-1" type="button"><span class="material-symbols-outlined text-[18px]">archive</span></button>
+</div>
+</div>
+</div>
+<div class="py-space-md">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-space-xs">
+            So sánh giải pháp Round Robin (RR) và Shortest Job First (SJF) trong lập lịch CPU khi có ràng buộc thời gian thực?
+          </h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Đánh giá theo các chỉ số: Thời gian chờ trung bình (Average Waiting Time), Thời gian đáp ứng (Response Time), và hiện tượng Bỏ đói tiến trình (Starvation). Trong môi trường hệ thống nhúng (Embedded RTOS), thuật toán nào được ưu tiên hơn và vì sao?
+          </p>
+<div class="mt-space-md flex flex-wrap items-center gap-space-xs">
+<span class="font-caption text-caption text-secondary uppercase font-semibold">Thuật ngữ cốt lõi:</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-caption text-caption font-semibold">#Time Quantum</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-caption text-caption font-semibold">#Preemptive SJF</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-caption text-caption font-semibold">#Starvation</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-caption text-caption font-semibold">#Deadline Guarantees</span>
+</div>
+</div>
+<div class="mt-space-xs pt-space-sm border-t border-surface-container flex items-center justify-between text-secondary font-caption text-caption">
+<span>Rubric: <strong>Tiêu chuẩn Đánh giá Thuật toán Hệ điều hành (v2)</strong></span>
+<span class="text-primary font-medium cursor-pointer hover:underline">Xem 3 tiêu chí rubric đính kèm →</span>
+</div>
+</article>
+</div>
+<!-- Pagination & Bulk Bar -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col sm:flex-row items-center justify-between gap-space-md">
+<div class="font-body-sm text-body-sm text-secondary">
+        Hiển thị <span class="font-semibold text-on-surface">1 - 3</span> trong tổng số <span class="font-semibold text-on-surface">142</span> câu hỏi môn học
+      </div>
+<div class="flex items-center gap-space-xs">
+<button class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors disabled:opacity-50" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-9 h-9 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-semibold" type="button">1</button>
+<button class="w-9 h-9 rounded-lg hover:bg-surface-container text-on-surface font-label-md text-label-md" type="button">2</button>
+<button class="w-9 h-9 rounded-lg hover:bg-surface-container text-on-surface font-label-md text-label-md" type="button">3</button>
+<span class="px-1 text-secondary">...</span>
+<button class="w-9 h-9 rounded-lg hover:bg-surface-container text-on-surface font-label-md text-label-md" type="button">48</button>
+<button class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- MAIN TAB 2: RUBRIC LIBRARY (Reusable Standards) -->
+<div class="hidden flex-col w-full space-y-space-lg" id="sectionRubrics">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md p-space-lg rounded-xl bg-surface-container-lowest shadow-sm">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Thư viện Tiêu chí Chấm Điểm Chuẩn Hóa</h2>
+<p class="font-body-sm text-body-sm text-secondary mt-base">Tái sử dụng các mẫu Rubric đã hiệu chuẩn để AI Examiner và Giảng viên đồng bộ thang điểm vấn đáp.</p>
+</div>
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-primary-container text-on-primary hover:bg-primary font-label-md text-label-md font-semibold shadow-sm transition-all self-start sm:self-auto" onclick="showNewRubricToast()" type="button">
+<span class="material-symbols-outlined text-[18px]">post_add</span>
+<span>Tạo Mẫu Rubric Mới</span>
+</button>
+</div>
+<!-- Rubric Template Grid Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+<!-- Rubric Card 1: Core Content Precision -->
+<div class="rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<span class="px-space-xs py-0.5 rounded bg-blue-100 text-blue-900 font-caption text-caption font-bold">Trọng số: 50%</span>
+<span class="font-caption text-caption text-secondary font-timer-mono">RUB-CS-01</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Độ chính xác Nội dung &amp; Bản chất Kỹ thuật</h3>
+<p class="font-body-sm text-body-sm text-secondary mt-space-xs">
+            Đánh giá mức độ hiểu sâu sắc về kiến trúc phần cứng, thứ tự chu trình lệnh và logic xử lý của hệ điều hành.
+          </p>
+<div class="mt-space-md space-y-space-xs">
+<div class="p-space-sm rounded-lg bg-surface-container-low flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface">Xuất sắc (90-100%)</span>
+<span class="font-caption text-caption font-bold text-emerald-600">Đầy đủ &amp; Sâu</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface">Đạt yêu cầu (60-89%)</span>
+<span class="font-caption text-caption text-secondary">Đúng cơ chế chính</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface">Chưa đạt (&lt;60%)</span>
+<span class="font-caption text-caption text-error">Nhầm lẫn khái niệm</span>
+</div>
+</div>
+</div>
+<div class="mt-space-lg pt-space-sm border-t border-surface-container flex items-center justify-between">
+<span class="font-caption text-caption text-secondary">Áp dụng: <strong>112 câu hỏi</strong></span>
+<button class="text-primary font-label-md text-label-md hover:underline font-semibold" type="button">Tùy biến</button>
+</div>
+</div>
+<!-- Rubric Card 2: Terminology -->
+<div class="rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<span class="px-space-xs py-0.5 rounded bg-indigo-100 text-indigo-900 font-caption text-caption font-bold">Trọng số: 30%</span>
+<span class="font-caption text-caption font-timer-mono">RUB-CS-02</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Thuật ngữ Chuyên ngành Chuẩn xác</h3>
+<p class="font-body-sm text-body-sm text-secondary mt-space-xs">
+            Khả năng sử dụng các thuật ngữ Computer Science quốc tế (Interrupt vector, Context switch, Atomic operation, Thrashing).
+          </p>
+<div class="mt-space-md space-y-space-xs">
+<div class="p-space-sm rounded-lg bg-surface-container-low flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface">Chuẩn quốc tế (100%)</span>
+<span class="font-caption text-caption font-bold text-emerald-600">Đúng ngữ cảnh</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface">Việt hóa / Dung thứ (75%)</span>
+<span class="font-caption text-caption text-secondary">Diễn giải tương đương</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface">Dùng sai từ (&lt;50%)</span>
+<span class="font-caption text-caption text-error">Sai ngữ nghĩa</span>
+</div>
+</div>
+</div>
+<div class="mt-space-lg pt-space-sm border-t border-surface-container flex items-center justify-between">
+<span class="font-caption text-caption text-secondary">Áp dụng: <strong>96 câu hỏi</strong></span>
+<button class="text-primary font-label-md text-label-md hover:underline font-semibold" type="button">Tùy biến</button>
+</div>
+</div>
+<!-- Rubric Card 3: Realtime Reflex & Fluency -->
+<div class="rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<span class="px-space-xs py-0.5 rounded bg-emerald-100 text-emerald-900 font-caption text-caption font-bold">Trọng số: 20%</span>
+<span class="font-caption text-caption font-timer-mono">RUB-CS-03</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Phản xạ Vấn đáp &amp; Độ trôi chảy</h3>
+<p class="font-body-sm text-body-sm text-secondary mt-space-xs">
+            Thời gian phản hồi trước câu hỏi mở, khả năng suy luận trực diện không vòng vo, logic bảo vệ quan điểm phản biện.
+          </p>
+<div class="mt-space-md space-y-space-xs">
+<div class="p-space-sm rounded-lg bg-surface-container-low flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface">Phản ứng tức thì (&lt;5s)</span>
+<span class="font-caption text-caption font-bold text-emerald-600">Trôi chảy, mạch lạc</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface">Cần suy nghĩ (5s - 15s)</span>
+<span class="font-caption text-caption text-secondary">Có ngập ngừng nhẹ</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface">Mất tập trung (&gt;20s)</span>
+<span class="font-caption text-caption text-error">Chờ nhắc nhở</span>
+</div>
+</div>
+</div>
+<div class="mt-space-lg pt-space-sm border-t border-surface-container flex items-center justify-between">
+<span class="font-caption text-caption text-secondary">Áp dụng: <strong>Tất cả ca thi</strong></span>
+<button class="text-primary font-label-md text-label-md hover:underline font-semibold" type="button">Tùy biến</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Manual Question Modal -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm hidden" id="manualQuestionModal">
+<div class="w-full max-w-2xl bg-surface-container-lowest rounded-xl shadow-2xl p-space-lg m-space-md">
+<div class="flex items-center justify-between pb-space-sm border-b border-surface-container">
+<h3 class="font-headline-md text-headline-md text-on-surface">Thêm câu hỏi vấn đáp thủ công</h3>
+<button class="text-secondary hover:text-on-surface p-1" onclick="closeManualModal()" type="button">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="py-space-md space-y-space-md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface font-semibold mb-base">Nội dung câu hỏi chính</label>
+<textarea class="w-full p-space-sm rounded-lg bg-surface-container-low text-on-surface font-body-sm text-body-sm focus:outline-none focus:ring-1 focus:ring-primary" id="manualQuestionText" placeholder="Nhập đề bài câu hỏi..." rows="3"></textarea>
+</div>
+<div class="grid grid-cols-2 gap-space-md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface font-semibold mb-base">Chương học phần</label>
+<select class="w-full h-10 px-space-sm rounded-lg bg-surface-container-low text-on-surface font-body-sm text-body-sm">
+<option>Chương 4: Bộ nhớ ảo &amp; Paging</option>
+<option>Chương 3: CPU Scheduling</option>
+<option>Chương 2: Cấu trúc Hệ điều hành</option>
+</select>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface font-semibold mb-base">Thang điểm cơ bản</label>
+<input class="w-full h-10 px-space-sm rounded-lg bg-surface-container-low text-on-surface font-body-sm text-body-sm" step="0.5" type="number" value="4.0">
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface font-semibold mb-base">Từ khóa bắt buộc AI chấm (Phân cách bởi dấu phẩy)</label>
+<input class="w-full h-10 px-space-sm rounded-lg bg-surface-container-low text-on-surface font-body-sm text-body-sm" placeholder="page size, frame, MMU, hit ratio" type="text">
+</div>
+</div>
+<div class="flex items-center justify-end gap-space-sm pt-space-sm border-t border-surface-container">
+<button class="px-space-md py-space-sm rounded-lg text-secondary font-label-md text-label-md hover:bg-surface-container-high transition-colors" onclick="closeManualModal()" type="button">Hủy</button>
+<button class="px-space-md py-space-sm rounded-lg bg-primary text-on-primary font-label-md text-label-md font-semibold hover:bg-primary-container transition-colors" onclick="saveManualQuestion()" type="button">Lưu vào Ngân hàng</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Tab Switching Logic
+  function switchMainTab(tab) {
+    const qSec = document.getElementById('sectionQuestions');
+    const rSec = document.getElementById('sectionRubrics');
+    const qBtn = document.getElementById('tabQuestionsBtn');
+    const rBtn = document.getElementById('tabRubricsBtn');
+
+    if (tab === 'questions') {
+      qSec.classList.remove('hidden');
+      rSec.classList.add('hidden');
+      qBtn.className = 'flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container-highest text-primary font-label-md text-label-md font-semibold transition-all';
+      rBtn.className = 'flex items-center gap-space-xs px-space-md py-space-sm rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container-high font-label-md text-label-md font-semibold transition-all';
+    } else {
+      qSec.classList.add('hidden');
+      rSec.classList.remove('hidden');
+      rBtn.className = 'flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container-highest text-primary font-label-md text-label-md font-semibold transition-all';
+      qBtn.className = 'flex items-center gap-space-xs px-space-md py-space-sm rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container-high font-label-md text-label-md font-semibold transition-all';
+    }
+  }
+
+  // Toggle Collapse of RAG Panel
+  function toggleRagPanel() {
+    const body = document.getElementById('ragFormBody');
+    const txt = document.getElementById('collapseRagText');
+    const icon = document.getElementById('collapseRagIcon');
+    if (body.classList.contains('hidden')) {
+      body.classList.remove('hidden');
+      txt.innerText = 'Thu gọn bảng tạo';
+      icon.innerText = 'expand_less';
+    } else {
+      body.classList.add('hidden');
+      txt.innerText = 'Mở rộng bảng tạo';
+      icon.innerText = 'expand_more';
+    }
+  }
+
+  function scrollToRagGenerator() {
+    switchMainTab('questions');
+    const el = document.getElementById('ragGeneratorPanel');
+    el.scrollIntoView({ behavior: 'smooth' });
+    const form = document.getElementById('ragFormBody');
+    if (form.classList.contains('hidden')) toggleRagPanel();
+  }
+
+  // Rubric Collapsible Toggle
+  function toggleDetails(elementId, iconId) {
+    const el = document.getElementById(elementId);
+    const ic = document.getElementById(iconId);
+    if (el.classList.contains('hidden')) {
+      el.classList.remove('hidden');
+      if (ic) ic.innerText = 'expand_less';
+    } else {
+      el.classList.add('hidden');
+      if (ic) ic.innerText = 'expand_more';
+    }
+  }
+
+  // Question Count Selector
+  function selectCount(count, btn) {
+    const buttons = document.querySelectorAll('.rag-count-btn');
+    buttons.forEach(b => {
+      b.className = 'rag-count-btn h-10 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-md text-label-md font-semibold';
+    });
+    btn.className = 'rag-count-btn h-10 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md font-semibold';
+  }
+
+  // Toast Functionality
+  function showToast(msg, icon = 'check_circle') {
+    const toast = document.getElementById('toastNotification');
+    const msgEl = document.getElementById('toastMessage');
+    const iconEl = document.getElementById('toastIcon');
+    msgEl.innerText = msg;
+    iconEl.innerText = icon;
+    toast.classList.remove('opacity-0', 'translate-y-20');
+    toast.classList.add('opacity-100', 'translate-y-0');
+    setTimeout(() => {
+      toast.classList.remove('opacity-100', 'translate-y-0');
+      toast.classList.add('opacity-0', 'translate-y-20');
+    }, 3200);
+  }
+
+  // Approve AI Question
+  function approveQuestion(code) {
+    const card = document.getElementById('aiGeneratedQuestionCard');
+    if (card) {
+      card.setAttribute('data-status', 'OFFICIAL');
+      const badge = card.querySelector('.text-amber-900');
+      if (badge) {
+        badge.className = 'px-space-sm py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-caption text-caption font-bold flex items-center gap-1';
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Đã duyệt chính thức';
+      }
+      showToast(`Đã duyệt mã câu hỏi ${code} vào Ngân hàng chính thức!`);
+    }
+  }
+
+  // Reject / Remove AI Question
+  function rejectQuestion(code) {
+    const card = document.getElementById('aiGeneratedQuestionCard');
+    if (card) {
+      card.style.opacity = '0';
+      card.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        card.remove();
+        showToast(`Đã loại bỏ câu hỏi ${code}`, 'delete');
+      }, 250);
+    }
+  }
+
+  // Simulated AI RAG Generation Runner
+  function runRagGeneration() {
+    const btn = document.getElementById('startRagGenerationBtn');
+    const genIcon = document.getElementById('genIcon');
+    const genText = document.getElementById('genText');
+
+    btn.disabled = true;
+    genIcon.innerText = 'sync';
+    genIcon.classList.add('animate-spin');
+    genText.innerText = 'Đang phân tích vector & trích xuất Bloom...';
+
+    setTimeout(() => {
+      btn.disabled = false;
+      genIcon.innerText = 'auto_awesome';
+      genIcon.classList.remove('animate-spin');
+      genText.innerText = 'Bắt đầu sinh câu hỏi & Rubric tự động';
+      showToast('Đã trích xuất và sinh thêm 3 câu hỏi mới kèm Rubric theo ngữ cảnh tài liệu!', 'auto_awesome');
+    }, 1800);
+  }
+
+  // File Upload Handlers
+  function triggerFileUpload() {
+    document.getElementById('hiddenFileInput').click();
+  }
+
+  function handleFileSelected(e) {
+    if (e.target.files && e.target.files[0]) {
+      const fileName = e.target.files[0].name;
+      const container = document.getElementById('fileListContainer');
+      const newCard = document.createElement('div');
+      newCard.className = 'flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors';
+      newCard.innerHTML = `
+        <div class="flex items-center gap-space-sm min-w-0">
+          <span class="material-symbols-outlined text-primary text-[22px]">description</span>
+          <div class="min-w-0">
+            <p class="font-label-md text-label-md text-on-surface font-medium truncate">${fileName}</p>
+            <span class="font-caption text-caption text-secondary">Vừa tải lên • Đang vector hóa</span>
+          </div>
+        </div>
+        <span class="material-symbols-outlined text-amber-500 text-[18px] animate-spin">sync</span>
+      `;
+      container.appendChild(newCard);
+      showToast(`Đang phân tích ngữ nghĩa: ${fileName}`);
+    }
+  }
+
+  // Filtering System
+  function filterQuestions() {
+    const query = document.getElementById('questionSearchInput').value.toLowerCase();
+    const topic = document.getElementById('filterTopic').value;
+    const bloom = document.getElementById('filterBloom').value;
+    const status = document.getElementById('filterStatus').value;
+
+    const items = document.querySelectorAll('.question-item');
+    items.forEach(item => {
+      const text = item.innerText.toLowerCase();
+      const itemTopic = item.getAttribute('data-topic');
+      const itemBloom = item.getAttribute('data-bloom');
+      const itemStatus = item.getAttribute('data-status');
+
+      const matchesSearch = text.includes(query);
+      const matchesTopic = (topic === 'ALL' || itemTopic === topic);
+      const matchesBloom = (bloom === 'ALL' || itemBloom === bloom);
+      const matchesStatus = (status === 'ALL' || itemStatus === status);
+
+      if (matchesSearch && matchesTopic && matchesBloom && matchesStatus) {
+        item.classList.remove('hidden');
+      } else {
+        item.classList.add('hidden');
+      }
+    });
+  }
+
+  function resetFilters() {
+    document.getElementById('questionSearchInput').value = '';
+    document.getElementById('filterTopic').value = 'ALL';
+    document.getElementById('filterBloom').value = 'ALL';
+    document.getElementById('filterStatus').value = 'ALL';
+    filterQuestions();
+    showToast('Đã đặt lại bộ lọc', 'filter_alt');
+  }
+
+  // Manual Modal Dialog
+  function openManualModal() {
+    document.getElementById('manualQuestionModal').classList.remove('hidden');
+  }
+
+  function closeManualModal() {
+    document.getElementById('manualQuestionModal').classList.add('hidden');
+  }
+
+  function saveManualQuestion() {
+    const val = document.getElementById('manualQuestionText').value.trim();
+    if (!val) {
+      alert('Vui lòng nhập nội dung câu hỏi!');
+      return;
+    }
+    closeManualModal();
+    showToast('Đã thêm câu hỏi thủ công vào danh sách nháp!', 'check_circle');
+  }
+
+  function showNewRubricToast() {
+    showToast('Mở trình thiết lập bảng rubric ma trận mới');
+  }
+
+  function editModalTrigger() {
+    showToast('Đang mở bộ sửa đổi câu hỏi & từ khóa', 'tune');
+  }
+</script></main></div></body></html>

@@ -8,4 +8,6 @@ import java.util.List;
 public interface UserService {
     List<UserResponse> getUsersByRole(Role role);
     List<UserResponse> getAllUsers();
+    UserResponse registerUser(com.group2.aives.dto.request.RegisterRequest request);
+    UserResponse updateUserRole(String idOrCode, Role role);
 }

@@ -28,4 +28,19 @@ public class UserController {
         }
         return ResponseEntity.ok(userService.getAllUsers());
     }
+
+    @PostMapping("/register")
+    @Operation(summary = "Đăng ký tài khoản người dùng mới (Lưu trực tiếp vào PostgreSQL)")
+    public ResponseEntity<UserResponse> register(@RequestBody @jakarta.validation.Valid com.group2.aives.dto.request.RegisterRequest request) {
+        return ResponseEntity.ok(userService.registerUser(request));
+    }
+
+    @PutMapping("/{idOrCode}/role")
+    @Operation(summary = "Quản trị viên cập nhật vai trò (Role: ADMIN, INSTRUCTOR, STUDENT) của người dùng")
+    public ResponseEntity<UserResponse> updateUserRole(
+            @PathVariable String idOrCode,
+            @RequestBody @jakarta.validation.Valid com.group2.aives.dto.request.UpdateRoleRequest request
+    ) {
+        return ResponseEntity.ok(userService.updateUserRole(idOrCode, request.getRole()));
+    }
 }
