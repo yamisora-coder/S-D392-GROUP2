@@ -1,5 +1,6 @@
 package com.group2.aives.application.service;
 
+import com.group2.aives.application.dto.request.ChangePasswordRequest;
 import com.group2.aives.application.dto.request.LoginRequest;
 import com.group2.aives.application.dto.request.RegisterRequest;
 import com.group2.aives.application.dto.response.AuthResponse;
@@ -123,8 +124,8 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thông tin người dùng với email: " + email));
 
-        RoleEnum primaryRole = user.getRoles().isEmpty() 
-                ? RoleEnum.STUDENT 
+        RoleEnum primaryRole = user.getRoles().isEmpty()
+                ? RoleEnum.STUDENT
                 : user.getRoles().iterator().next().getRoleName();
 
         return UserResponse.builder()
@@ -135,5 +136,24 @@ public class AuthServiceImpl implements AuthService {
                 .isActive(user.getIsActive())
                 .createdAt(user.getCreatedAt())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(String email, ChangePasswordRequest request) {
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            throw new BadRequestException("Mật khẩu mới và xác nhận mật khẩu không khớp");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản"));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            throw new BadRequestException("Mật khẩu hiện tại không chính xác");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        log.info("Người dùng {} đã đổi mật khẩu thành công", email);
     }
 }

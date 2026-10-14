@@ -12,4 +12,5 @@ public interface SessionService {
     SessionResponse createSession(SessionRequest request);
     SessionResponse finalizeGrade(Long sessionId, GradeSubmissionRequest request);
     void deleteSession(Long sessionId);
+    String exportTranscriptCsv(Long sessionId);
 }

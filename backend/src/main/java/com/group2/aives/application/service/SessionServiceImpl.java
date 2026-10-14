@@ -6,17 +6,23 @@ import com.group2.aives.application.dto.response.SessionResponse;
 import com.group2.aives.domain.model.Exam;
 import com.group2.aives.domain.model.ExamSession;
 import com.group2.aives.domain.model.FinalGrade;
+import com.group2.aives.domain.model.SessionTurn;
+import com.group2.aives.domain.model.Transcript;
 import com.group2.aives.domain.model.User;
 import com.group2.aives.application.port.out.ExamRepository;
 import com.group2.aives.application.port.out.ExamSessionRepository;
 import com.group2.aives.application.port.out.FinalGradeRepository;
+import com.group2.aives.application.port.out.SessionTurnRepository;
+import com.group2.aives.application.port.out.TranscriptRepository;
 import com.group2.aives.application.port.out.UserRepository;
 import com.group2.aives.application.port.in.SessionService;
+import com.group2.aives.domain.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +34,8 @@ public class SessionServiceImpl implements SessionService {
     private final ExamRepository examRepository;
     private final UserRepository userRepository;
     private final FinalGradeRepository finalGradeRepository;
+    private final SessionTurnRepository sessionTurnRepository;
+    private final TranscriptRepository transcriptRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -100,6 +108,42 @@ public class SessionServiceImpl implements SessionService {
             throw new RuntimeException("Không tìm thấy ca thi với ID: " + sessionId);
         }
         sessionRepository.deleteById(sessionId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String exportTranscriptCsv(Long sessionId) {
+        ExamSession session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ca thi ID: " + sessionId));
+
+        List<SessionTurn> turns = sessionTurnRepository.findBySession_SessionIdOrderBySequenceNumberAsc(sessionId);
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        StringBuilder csv = new StringBuilder();
+        csv.append("STT,Loai_luot,Cau_hoi,Cau_tra_loi,Thoi_gian_tra_loi_giay,Thoi_diem\n");
+
+        for (SessionTurn turn : turns) {
+            Transcript tr = transcriptRepository.findByTurn_TurnId(turn.getTurnId()).orElse(null);
+            String answer   = tr != null ? tr.getSttText().replace("\"", "\"\"") : "";
+            String duration = tr != null && tr.getAnswerDurationSeconds() != null
+                    ? String.valueOf(tr.getAnswerDurationSeconds()) : "";
+            String time     = turn.getCreatedAt() != null ? turn.getCreatedAt().format(fmt) : "";
+            String question = turn.getQuestionText().replace("\"", "\"\"");
+
+            csv.append(turn.getSequenceNumber()).append(",")
+               .append(turn.getTurnType().name()).append(",")
+               .append("\"").append(question).append("\",")
+               .append("\"").append(answer).append("\",")
+               .append(duration).append(",")
+               .append(time).append("\n");
+        }
+
+        String studentName = session.getStudent() != null ? session.getStudent().getFullName() : "unknown";
+        String examTitle   = session.getExam() != null ? session.getExam().getTitle() : "unknown";
+        String header = "# Ca thi: " + examTitle + " | Sinh vien: " + studentName
+                + " | Bat dau: " + (session.getStartedAt() != null ? session.getStartedAt().format(fmt) : "") + "\n";
+
+        return header + csv;
     }
 
     private SessionResponse mapToResponse(ExamSession session) {

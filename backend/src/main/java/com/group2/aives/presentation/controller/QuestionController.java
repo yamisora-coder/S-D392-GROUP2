@@ -10,8 +10,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -62,5 +64,18 @@ public class QuestionController {
     @Operation(summary = "Thay đổi trạng thái câu hỏi (DRAFT, PENDING_REVIEW, APPROVED, REJECTED)")
     public ResponseEntity<QuestionResponse> updateStatus(@PathVariable Long id, @RequestParam QuestionStatus status) {
         return ResponseEntity.ok(questionService.updateStatus(id, status));
+    }
+
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Nhập hàng loạt câu hỏi từ file CSV",
+               description = "Định dạng CSV (có header): question_text,sample_answer,bloom_level,difficulty\n"
+                           + "Bloom level: REMEMBER|UNDERSTAND|APPLY|ANALYZE|EVALUATE|CREATE\n"
+                           + "Câu hỏi được import ở trạng thái PENDING_REVIEW.")
+    public ResponseEntity<List<QuestionResponse>> importCsv(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam Long courseId,
+            @RequestParam Long rubricId) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(questionService.importFromCsv(file, courseId, rubricId));
     }
 }

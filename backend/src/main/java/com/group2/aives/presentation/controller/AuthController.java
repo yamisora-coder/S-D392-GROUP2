@@ -1,5 +1,6 @@
 package com.group2.aives.presentation.controller;
 
+import com.group2.aives.application.dto.request.ChangePasswordRequest;
 import com.group2.aives.application.dto.request.LoginRequest;
 import com.group2.aives.application.dto.request.RegisterRequest;
 import com.group2.aives.application.dto.response.AuthResponse;
@@ -53,5 +54,18 @@ public class AuthController {
     @Operation(summary = "Đăng xuất khỏi hệ thống", description = "Xác nhận kết thúc phiên làm việc trên client")
     public ResponseEntity<ApiResponse<Void>> logout() {
         return ResponseEntity.ok(ApiResponse.ok("Đăng xuất thành công!", null));
+    }
+
+    @PutMapping("/change-password")
+    @Operation(summary = "Đổi mật khẩu", description = "Người dùng đang đăng nhập tự đổi mật khẩu của mình")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("Chưa đăng nhập hoặc phiên làm việc đã hết hạn"));
+        }
+        authService.changePassword(userDetails.getUsername(), request);
+        return ResponseEntity.ok(ApiResponse.ok("Đổi mật khẩu thành công!", null));
     }
 }

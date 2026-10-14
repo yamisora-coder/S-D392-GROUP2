@@ -23,8 +23,12 @@ public class ExamController {
     private final ExamService examService;
 
     @GetMapping
-    @Operation(summary = "Lấy danh sách tất cả kỳ thi")
-    public ResponseEntity<List<ExamResponse>> getAllExams() {
+    @Operation(summary = "Lấy danh sách kỳ thi (có thể lọc theo môn học)")
+    public ResponseEntity<List<ExamResponse>> getAllExams(
+            @RequestParam(required = false) Long courseId) {
+        if (courseId != null) {
+            return ResponseEntity.ok(examService.getExamsByCourse(courseId));
+        }
         return ResponseEntity.ok(examService.getAllExams());
     }
 

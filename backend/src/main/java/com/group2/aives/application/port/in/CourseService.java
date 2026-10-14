@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface CourseService {
     List<CourseResponse> getAllCourses();
+    List<CourseResponse> searchCourses(String keyword);
     CourseResponse getCourseById(Long id);
     CourseResponse createCourse(CourseRequest request);
     CourseResponse updateCourse(Long id, CourseRequest request);

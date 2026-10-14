@@ -14,13 +14,22 @@ import com.group2.aives.application.port.out.QuestionRepository;
 import com.group2.aives.application.port.out.RubricRepository;
 import com.group2.aives.application.port.out.UserRepository;
 import com.group2.aives.application.port.in.QuestionService;
+import com.group2.aives.domain.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+@Slf4j
 
 @Service
 @RequiredArgsConstructor
@@ -150,6 +159,89 @@ public class QuestionServiceImpl implements QuestionService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy câu hỏi với ID: " + id));
         question.setStatus(status);
         return mapToResponse(questionRepository.save(question));
+    }
+
+    @Override
+    @Transactional
+    public List<QuestionResponse> importFromCsv(MultipartFile file, Long courseId, Long rubricId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học ID: " + courseId));
+        Rubric rubric = rubricRepository.findById(rubricId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Rubric ID: " + rubricId));
+
+        List<QuestionResponse> imported = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+
+            String header = reader.readLine(); // bỏ dòng tiêu đề
+            if (header == null) throw new BadRequestException("File CSV trống");
+
+            String line;
+            int lineNum = 1;
+            while ((line = reader.readLine()) != null) {
+                lineNum++;
+                if (line.isBlank()) continue;
+
+                // Định dạng CSV: question_text,sample_answer,bloom_level,difficulty
+                String[] parts = parseCsvLine(line);
+                if (parts.length < 1 || parts[0].isBlank()) {
+                    log.warn("Bỏ qua dòng {} rỗng", lineNum);
+                    continue;
+                }
+
+                BloomLevel bloom = BloomLevel.REMEMBER;
+                if (parts.length >= 3 && !parts[2].isBlank()) {
+                    try { bloom = BloomLevel.valueOf(parts[2].trim().toUpperCase()); }
+                    catch (IllegalArgumentException e) { log.warn("Mức Bloom không hợp lệ tại dòng {}: {}", lineNum, parts[2]); }
+                }
+
+                short difficulty = 1;
+                if (parts.length >= 4 && !parts[3].isBlank()) {
+                    try { difficulty = Short.parseShort(parts[3].trim()); }
+                    catch (NumberFormatException e) { log.warn("Độ khó không hợp lệ tại dòng {}: {}", lineNum, parts[3]); }
+                }
+
+                Question question = Question.builder()
+                        .course(course)
+                        .rubric(rubric)
+                        .questionText(parts[0].trim())
+                        .sampleAnswer(parts.length >= 2 ? parts[1].trim() : null)
+                        .bloomLevel(bloom)
+                        .difficulty(difficulty)
+                        .sourceType(QuestionSource.IMPORTED)
+                        .status(QuestionStatus.PENDING_REVIEW)
+                        .build();
+
+                imported.add(mapToResponse(questionRepository.save(question)));
+            }
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi đọc file CSV: " + e.getMessage(), e);
+        }
+
+        log.info("Import CSV hoàn tất: {} câu hỏi từ file {}", imported.size(), file.getOriginalFilename());
+        return imported;
+    }
+
+    // Tách dòng CSV đơn giản (hỗ trợ trường bao bởi dấu ngoặc kép)
+    private String[] parseCsvLine(String line) {
+        List<String> fields = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        boolean inQuotes = false;
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == '"') {
+                inQuotes = !inQuotes;
+            } else if (c == ',' && !inQuotes) {
+                fields.add(sb.toString());
+                sb.setLength(0);
+            } else {
+                sb.append(c);
+            }
+        }
+        fields.add(sb.toString());
+        return fields.toArray(new String[0]);
     }
 
     private QuestionResponse mapToResponse(Question question) {

@@ -31,6 +31,15 @@ public class ExamServiceImpl implements ExamService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<ExamResponse> getExamsByCourse(Long courseId) {
+        return examRepository.findAll().stream()
+                .filter(e -> e.getCourse() != null && e.getCourse().getCourseId().equals(courseId))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public ExamResponse getExamById(Long id) {
         Exam exam = examRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy kỳ thi với ID: " + id));

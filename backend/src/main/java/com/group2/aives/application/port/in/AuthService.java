@@ -1,5 +1,6 @@
 package com.group2.aives.application.port.in;
 
+import com.group2.aives.application.dto.request.ChangePasswordRequest;
 import com.group2.aives.application.dto.request.LoginRequest;
 import com.group2.aives.application.dto.request.RegisterRequest;
 import com.group2.aives.application.dto.response.AuthResponse;
@@ -12,4 +13,6 @@ public interface AuthService {
     AuthResponse register(RegisterRequest request);
 
     UserResponse getCurrentUser(String email);
+
+    void changePassword(String email, ChangePasswordRequest request);
 }

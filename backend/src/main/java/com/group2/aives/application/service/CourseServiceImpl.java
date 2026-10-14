@@ -31,6 +31,17 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<CourseResponse> searchCourses(String keyword) {
+        String kw = keyword == null ? "" : keyword.trim().toLowerCase();
+        return courseRepository.findAll().stream()
+                .filter(c -> c.getCourseCode().toLowerCase().contains(kw)
+                          || c.getCourseName().toLowerCase().contains(kw))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public CourseResponse getCourseById(Long id) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học với ID: " + id));

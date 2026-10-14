@@ -4,6 +4,7 @@ import com.group2.aives.application.dto.request.QuestionRequest;
 import com.group2.aives.application.dto.response.QuestionResponse;
 import com.group2.aives.domain.enums.BloomLevel;
 import com.group2.aives.domain.enums.QuestionStatus;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -14,4 +15,5 @@ public interface QuestionService {
     QuestionResponse updateQuestion(Long id, QuestionRequest request);
     void deleteQuestion(Long id);
     QuestionResponse updateStatus(Long id, QuestionStatus status);
+    List<QuestionResponse> importFromCsv(MultipartFile file, Long courseId, Long rubricId);
 }

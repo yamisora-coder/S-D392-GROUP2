@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface ExamService {
     List<ExamResponse> getAllExams();
+    List<ExamResponse> getExamsByCourse(Long courseId);
     ExamResponse getExamById(Long id);
     ExamResponse createExam(ExamRequest request);
     ExamResponse updateExam(Long id, ExamRequest request);

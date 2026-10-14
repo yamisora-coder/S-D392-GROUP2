@@ -23,8 +23,12 @@ public class CourseController {
     private final CourseService courseService;
 
     @GetMapping
-    @Operation(summary = "Lấy danh sách tất cả môn học")
-    public ResponseEntity<List<CourseResponse>> getAllCourses() {
+    @Operation(summary = "Lấy danh sách môn học (có thể tìm kiếm theo tên hoặc mã môn)")
+    public ResponseEntity<List<CourseResponse>> getAllCourses(
+            @RequestParam(required = false) String search) {
+        if (search != null && !search.isBlank()) {
+            return ResponseEntity.ok(courseService.searchCourses(search));
+        }
         return ResponseEntity.ok(courseService.getAllCourses());
     }
 

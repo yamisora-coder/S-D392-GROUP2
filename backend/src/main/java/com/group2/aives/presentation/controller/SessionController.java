@@ -8,10 +8,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -54,5 +58,17 @@ public class SessionController {
     public ResponseEntity<Void> deleteSession(@PathVariable Long sessionId) {
         sessionService.deleteSession(sessionId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{sessionId}/transcript.csv")
+    @Operation(summary = "Xuất transcript hội thoại của ca thi ra file CSV")
+    public ResponseEntity<byte[]> exportTranscript(@PathVariable Long sessionId) {
+        String csv = sessionService.exportTranscriptCsv(sessionId);
+        byte[] bytes = csv.getBytes(StandardCharsets.UTF_8);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv; charset=UTF-8"));
+        headers.setContentDisposition(ContentDisposition.attachment()
+                .filename("transcript_session_" + sessionId + ".csv", StandardCharsets.UTF_8).build());
+        return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
     }
 }
