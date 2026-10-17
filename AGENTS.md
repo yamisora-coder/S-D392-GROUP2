@@ -21,7 +21,7 @@ AIVES là hệ thống khảo thí thông minh được xây dựng nhằm hỗ 
 ## 2. Thứ bậc Chân lý của Tài liệu Dự án (Priority Order)
 
 Khi làm việc trên dự án này, mọi lập trình viên và AI Agent bắt buộc phải tuân thủ nghiêm ngặt thứ tự ưu tiên chân lý:
-1. **Thiết kế Cơ sở Dữ liệu Chuẩn:** (`docs/database.md`, `backend/src/main/resources/db/migration/V1__initial_schema.sql`).
+1. **Thiết kế Cơ sở Dữ liệu Chuẩn:** (`docs/database.md`, các migration `backend/src/main/resources/db/migration/V1__initial_schema.sql`, `V2__seed_master_roles.sql`, `V3__add_course_document_content_table.sql`).
 2. **Đặc tả Ca sử dụng & Luồng Nghiệp vụ:** (`docs/use-cases.md`).
 3. **Hợp đồng REST API & Đặc tả AI:** (`docs/api-contract.md`, `docs/ai-specification.md`).
 4. **Mã nguồn Hiện có đang chạy:** (Baseline đang hoạt động).
@@ -32,11 +32,13 @@ Khi làm việc trên dự án này, mọi lập trình viên và AI Agent bắt
 
 ## 3. Ngăn xếp Công nghệ & Môi trường Hệ thống
 
-- **Backend:** Java 21 LTS, Spring Boot 3.3.4 (Spring Data JPA, Hibernate ORM 6.5, Spring Validation, SpringDoc OpenAPI 2.6.0).
-- **Cơ sở dữ liệu:** PostgreSQL 18 (`aives_db`), cổng kết nối mặc định `5432`.
-- **Công cụ Build:** Apache Maven 3.9+.
-- **Frontend (Mục tiêu):** React / Vite / TypeScript (Sẽ triển khai trong các giai đoạn tiếp theo).
-- **Dịch vụ AI / Giọng nói (Mục tiêu):** TBD (Chờ nhóm lựa chọn: OpenAI / Spring AI / Gemini / Web Speech API).
+- **Backend:** Java 17 / Java 21 LTS, Spring Boot 3.3.4 (Spring Data JPA, Hibernate ORM 6.5, Spring Validation, SpringDoc OpenAPI 2.6.0).
+- **Cơ sở dữ liệu:** PostgreSQL 15+ (`aives_db`), cổng kết nối mặc định `5432`.
+- **Công cụ Build:** Apache Maven 3.8+.
+- **Frontend:** React 19, Vite, JavaScript (JSX), Modern Responsive CSS, Google Material Symbols (Bao gồm đầy đủ 3 Portals: Admin, Giảng viên, Sinh viên; Wizard kiểm tra thiết bị & Phòng thi Viva).
+- **Dịch vụ AI & Giọng nói:**
+  - **AI LLM Engine:** OpenAI API (`OpenAiClient.java` tại `infrastructure.ai` phục vụ RAG sinh câu hỏi, phỏng vấn viva đào sâu và chấm điểm Rubric).
+  - **Giọng nói & Âm thanh:** Web Speech API (TTS phát âm câu hỏi & STT nhận diện câu trả lời thí sinh trên trình duyệt) tích hợp ghi âm Audio.
 
 ---
 
@@ -50,6 +52,7 @@ Khi làm việc trên dự án này, mọi lập trình viên và AI Agent bắt
    - `SERVER_PORT` (mặc định: `8080`)
    - `JWT_SECRET` (chuỗi khóa bí mật ký token HMAC-SHA, tối thiểu 256-bit — bắt buộc cho module Auth)
    - `JWT_EXPIRATION_MS` (thời hạn sống của JWT token tính bằng mili-giây, mặc định: `86400000` = 24 giờ)
+   - `OPENAI_API_KEY` (khóa API OpenAI cho module RAG, sinh câu hỏi và chấm thi tự động)
 3. **Vệ sinh Git:** Mật khẩu thực tế chỉ được lưu trong file `.env` cục bộ (đã được bỏ qua bởi `.gitignore`). Chỉ có file `.env.example` chứa các giá trị mẫu giả định mới được đưa lên Git.
 4. **Cấm các Thao tác Git Phá hủy:** Không dùng `git reset --hard`, `git push --force` hoặc xóa nhánh khi chưa có sự đồng ý rõ ràng.
 
