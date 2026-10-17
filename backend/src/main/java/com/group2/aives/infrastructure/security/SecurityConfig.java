@@ -42,8 +42,8 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Public auth endpoints
-                .requestMatchers("/api/auth/**").permitAll()
+                // Public auth & registration endpoints
+                .requestMatchers("/api/auth/**", "/api/users/register").permitAll()
                 // Swagger / OpenAPI docs
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 // OPTIONS preflight

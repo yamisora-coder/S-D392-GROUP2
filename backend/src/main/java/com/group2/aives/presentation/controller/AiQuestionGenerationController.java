@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,7 @@ import java.util.List;
      description = "Giảng viên dùng AI sinh câu hỏi từ tài liệu môn học (RAG), gắn nhãn thang Bloom & Rubric. " +
                    "Câu hỏi sinh ra ở trạng thái PENDING_REVIEW — giảng viên duyệt qua PATCH /api/questions/{id}/status.")
 @CrossOrigin(origins = "*")
+@PreAuthorize("hasAnyRole('LECTURER', 'ADMIN')")
 public class AiQuestionGenerationController {
 
     private final AiQuestionGenerationService aiQuestionGenerationService;
@@ -33,7 +35,7 @@ public class AiQuestionGenerationController {
     public ResponseEntity<QuestionGenerationRequestResponse> generateQuestions(
             @Valid @RequestBody GenerateQuestionsRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUser().getUserId();
+        Long userId = (userDetails != null && userDetails.getUser() != null) ? userDetails.getUser().getUserId() : 1L;
         QuestionGenerationRequestResponse response = aiQuestionGenerationService.generateQuestions(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

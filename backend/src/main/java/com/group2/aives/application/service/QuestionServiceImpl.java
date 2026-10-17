@@ -13,6 +13,8 @@ import com.group2.aives.application.port.out.CourseRepository;
 import com.group2.aives.application.port.out.QuestionRepository;
 import com.group2.aives.application.port.out.RubricRepository;
 import com.group2.aives.application.port.out.UserRepository;
+import com.group2.aives.application.port.out.SessionTurnRepository;
+import com.group2.aives.application.port.out.ExamQuestionRepository;
 import com.group2.aives.application.port.in.QuestionService;
 import com.group2.aives.domain.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +41,8 @@ public class QuestionServiceImpl implements QuestionService {
     private final CourseRepository courseRepository;
     private final RubricRepository rubricRepository;
     private final UserRepository userRepository;
+    private final SessionTurnRepository sessionTurnRepository;
+    private final ExamQuestionRepository examQuestionRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -149,6 +153,10 @@ public class QuestionServiceImpl implements QuestionService {
         if (!questionRepository.existsById(id)) {
             throw new RuntimeException("Không tìm thấy câu hỏi với ID: " + id);
         }
+        if (sessionTurnRepository.existsByQuestion_QuestionId(id)) {
+            throw new BadRequestException("Không thể xóa câu hỏi đã được dùng trong lượt thi viva của sinh viên!");
+        }
+        examQuestionRepository.deleteByQuestion_QuestionId(id);
         questionRepository.deleteById(id);
     }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPortal }) {
   const [activeTab, setActiveTab] = useState('grading'); // 'dashboard' | 'grading' | 'questions' | 'exams' | 'analytics'
@@ -11,6 +11,18 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
   // Modal states
   const [showAddQuestionModal, setShowAddQuestionModal] = useState(false);
   const [showCreateExamModal, setShowCreateExamModal] = useState(false);
+  const [showAiGenModal, setShowAiGenModal] = useState(false);
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [aiGenForm, setAiGenForm] = useState({
+    courseId: 1,
+    topic: 'Cơ chế Phân trang và Bộ nhớ ảo trong Hệ điều hành',
+    bloomLevel: 'APPLY',
+    targetCount: 3,
+  });
+  const [courses, setCourses] = useState([
+    { id: 1, courseCode: 'SWE201', courseName: 'Kỹ thuật Phần mềm (Software Engineering)' },
+    { id: 2, courseCode: 'PRN231', courseName: 'Xây dựng Web API & Lập trình Phân tán' },
+  ]);
   const [toastMessage, setToastMessage] = useState('');
 
   const showNotification = (msg) => {
@@ -223,16 +235,171 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
     );
   };
 
-  const handleApproveGrade = () => {
+  const handleApproveGrade = async () => {
+    const sub = currentSubmission;
+    if (sub?.sessionId) {
+      try {
+        const token = localStorage.getItem('aives-token');
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers.Authorization = `Bearer ${token}`;
+
+        const res = await fetch(`http://localhost:8080/api/grading/sessions/${sub.sessionId}/confirm`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            finalScore: sub.lecturerScore,
+            feedback: sub.note || 'Thí sinh trả lời tốt các câu hỏi vấn đáp.'
+          })
+        });
+        if (res.ok) {
+          showNotification(`Đã duyệt & chốt điểm bài thi lên PostgreSQL thành công! Điểm: ${sub.lecturerScore}/10.0`);
+        }
+      } catch (err) {
+        console.warn('Lỗi gọi API chốt điểm:', err);
+      }
+    }
+
     setSubmissions((prev) =>
-      prev.map((sub, idx) =>
+      prev.map((s, idx) =>
         idx === selectedSubIdx
-          ? { ...sub, status: 'GRADED' }
-          : sub
+          ? { ...s, status: 'GRADED' }
+          : s
       )
     );
     showNotification(`Đã duyệt & chốt điểm bài thi của thí sinh ${currentSubmission.studentName} thành công! Điểm: ${currentSubmission.lecturerScore}/10.0`);
   };
+
+  // Đồng bộ Dữ liệu từ Backend PostgreSQL
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const token = localStorage.getItem('aives-token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch('http://localhost:8080/api/courses', { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setCourses(data);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch courses from backend:', err);
+      }
+    };
+
+    const fetchQuestions = async () => {
+      try {
+        const token = localStorage.getItem('aives-token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch('http://localhost:8080/api/questions', { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            const mapped = data.map((q) => ({
+              id: `QUEST-${q.id || q.questionId}`,
+              dbId: q.id || q.questionId,
+              subject: q.courseName || 'Hệ điều hành (OS)',
+              code: q.courseCode || 'CS201',
+              title: q.questionText,
+              bloom: q.bloomLevel,
+              status: q.status || 'APPROVED',
+              maxScore: 4.0,
+              keywords: [q.bloomLevel, q.sourceType || 'MANUAL'],
+              rubricCount: 3,
+            }));
+            setQuestionsList((prev) => {
+              const map = new Map();
+              prev.forEach((item) => map.set(item.id, item));
+              mapped.forEach((item) => map.set(item.id, item));
+              return Array.from(map.values());
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch questions from backend:', err);
+      }
+    };
+
+    const fetchGradableSessions = async () => {
+      try {
+        const token = localStorage.getItem('aives-token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch('http://localhost:8080/api/grading/sessions', { headers });
+        if (res.ok) {
+          const sessions = await res.json();
+          if (Array.isArray(sessions) && sessions.length > 0) {
+            const mappedSubs = sessions.map((s) => ({
+              id: `SUB-${s.sessionId}`,
+              sessionId: s.sessionId,
+              studentId: s.studentEmail ? s.studentEmail.split('@')[0] : `SE${s.sessionId}`,
+              studentName: s.studentName || 'Thí sinh',
+              examId: s.courseCode || 'CS201',
+              examTitle: s.examTitle || 'Kỳ thi Vấn đáp AI',
+              status: s.finalScore != null ? 'GRADED' : 'PENDING_APPROVAL',
+              aiScore: s.aiSuggestedScore ? Number(s.aiSuggestedScore) : 8.0,
+              lecturerScore: s.finalScore != null ? Number(s.finalScore) : (s.aiSuggestedScore ? Number(s.aiSuggestedScore) : 8.0),
+              submittedAt: s.endedAt ? new Date(s.endedAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Hôm nay',
+              duration: '15 phút',
+              violationsCount: 0,
+              currentQuestionIdx: 0,
+              questions: [
+                {
+                  id: 'Q1',
+                  title: 'Câu hỏi vấn đáp khảo thí',
+                  maxScore: 10.0,
+                  aiScore: s.aiSuggestedScore ? Number(s.aiSuggestedScore) : 8.0,
+                  lecturerScore: s.finalScore != null ? Number(s.finalScore) : (s.aiSuggestedScore ? Number(s.aiSuggestedScore) : 8.0),
+                  bloom: 'APPLY',
+                  note: 'Thí sinh hoàn thành các lượt hỏi của AI.',
+                  rubrics: [
+                    {
+                      id: 'R1_1',
+                      title: 'Tiêu chí 1: Kiến thức cốt lõi & Độ chính xác',
+                      desc: 'Đánh giá độ hiểu biết bản chất môn học',
+                      max: 6.0,
+                      ai: 5.0,
+                      lecturer: 5.0,
+                      aiFeedback: 'Khớp các từ khóa rubric cốt lõi.'
+                    },
+                    {
+                      id: 'R1_2',
+                      title: 'Tiêu chí 2: Phản xạ và trả lời câu hỏi xoáy thích ứng',
+                      desc: 'Độ trôi chảy, phản xạ và làm rõ các ý sâu hơn',
+                      max: 4.0,
+                      ai: 3.0,
+                      lecturer: 3.0,
+                      aiFeedback: 'Phản xạ tốt khi nhận câu hỏi phụ.'
+                    }
+                  ],
+                  dialogue: [
+                    {
+                      speaker: 'AI Giám khảo',
+                      time: '00:10',
+                      text: 'Chào bạn, hãy trình bày kiến thức trọng tâm của môn học?',
+                      isAi: true
+                    },
+                    {
+                      speaker: s.studentName || 'Thí sinh',
+                      time: '00:25',
+                      text: 'Thưa thầy cô, em xin phép trình bày về các tính chất cốt lõi...',
+                      isAi: false
+                    }
+                  ]
+                }
+              ]
+            }));
+            setSubmissions(mappedSubs);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch gradable sessions:', err);
+      }
+    };
+
+    fetchCourses();
+    fetchQuestions();
+    fetchGradableSessions();
+  }, []);
 
   // ================= DỮ LIỆU NGÂN HÀNG CÂU HỎI & RUBRIC =================
   const [questionsList, setQuestionsList] = useState([
@@ -294,11 +461,49 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
     rubric3: 'Ví dụ thực tiễn & Giải quyết vấn đề (Trọng số 30%)',
   });
 
-  const handleAddQuestion = (e) => {
+  // Create Exam Form State (Phương án 2: Giảng viên chọn câu hỏi chính thức cho kỳ thi)
+  const [newExam, setNewExam] = useState({
+    title: '',
+    courseId: 1,
+    subject: 'SWE201',
+    durationMinutes: 20,
+    maxFollowUpPerQ: 2,
+    totalQuestionsAi: 3,
+    date: 'Ngày ' + new Date().toLocaleDateString('vi-VN'),
+    selectedQuestionIds: [],
+  });
+
+  const handleAddQuestion = async (e) => {
     e.preventDefault();
     if (!newQuestion.title.trim()) return;
+
+    let dbQ = null;
+    try {
+      const token = localStorage.getItem('aives-token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const res = await fetch('http://localhost:8080/api/questions', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          courseId: 1,
+          questionText: newQuestion.title,
+          bloomLevel: newQuestion.bloom,
+          sampleAnswer: newQuestion.rubric1,
+          difficulty: 1,
+        }),
+      });
+      if (res.ok) {
+        dbQ = await res.json();
+      }
+    } catch (err) {
+      console.warn('Could not save question to backend:', err);
+    }
+
     const item = {
-      id: `QUEST-${Date.now().toString().slice(-4)}`,
+      id: dbQ?.id ? `QUEST-${dbQ.id}` : `QUEST-${Date.now().toString().slice(-4)}`,
+      dbId: dbQ?.id,
       subject: newQuestion.subject === 'CS201' ? 'Hệ điều hành (OS)' : 'Kỹ thuật phần mềm',
       code: newQuestion.subject,
       title: newQuestion.title,
@@ -323,60 +528,124 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
     });
   };
 
-  // ================= DỮ LIỆU QUẢN LÝ KỲ THI =================
-  const [examsList, setExamsList] = useState([
-    {
-      id: 'EXAM-2026-01',
-      title: 'Kỳ thi Vấn đáp Cuối kỳ - Hệ điều hành (CS201)',
-      subject: 'Kiến trúc máy tính & HĐH',
-      durationMinutes: 20,
-      totalQuestionsAi: 3,
-      totalCandidates: 45,
-      gradedCount: 31,
-      status: 'ACTIVE',
-      date: '14/10/2026 - 18/10/2026',
-    },
-    {
-      id: 'EXAM-2026-02',
-      title: 'Bảo vệ Đồ án Kỹ thuật Phần mềm (SWE301)',
-      subject: 'Kỹ thuật Phần mềm Chuyên sâu',
-      durationMinutes: 30,
-      totalQuestionsAi: 4,
-      totalCandidates: 28,
-      gradedCount: 28,
-      status: 'COMPLETED',
-      date: '05/10/2026',
-    },
-    {
-      id: 'EXAM-2026-03',
-      title: 'Thi Đánh giá Năng lực Mạng máy tính (NET102)',
-      subject: 'Mạng máy tính căn bản',
-      durationMinutes: 15,
-      totalQuestionsAi: 2,
-      totalCandidates: 52,
-      gradedCount: 12,
-      status: 'UPCOMING',
-      date: '20/10/2026',
-    },
-  ]);
+  const handleApproveQuestion = async (q) => {
+    if (q.dbId) {
+      try {
+        const token = localStorage.getItem('aives-token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        await fetch(`http://localhost:8080/api/questions/${q.dbId}/status?status=APPROVED`, {
+          method: 'PATCH',
+          headers,
+        });
+      } catch (e) {
+        console.warn('Could not approve question on backend:', e);
+      }
+    }
+    setQuestionsList((prev) =>
+      prev.map((item) => (item.id === q.id ? { ...item, status: 'APPROVED' } : item))
+    );
+    showNotification(`Đã duyệt câu hỏi "${q.title.slice(0, 35)}..." vào ngân hàng đề chính thức!`);
+  };
 
-  const [newExam, setNewExam] = useState({
-    title: '',
-    subject: 'Kiến trúc máy tính & HĐH',
-    durationMinutes: 20,
-    totalQuestionsAi: 3,
-    date: '25/10/2026',
-  });
+  const handleAiGenerate = async (e) => {
+    e.preventDefault();
+    setIsGeneratingAi(true);
+    try {
+      const token = localStorage.getItem('aives-token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
 
-  const handleCreateExam = (e) => {
+      const res = await fetch('http://localhost:8080/api/ai/question-generation', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          courseId: Number(aiGenForm.courseId),
+          topic: aiGenForm.topic,
+          bloomLevel: aiGenForm.bloomLevel,
+          targetCount: Number(aiGenForm.targetCount) || 3,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.questions && data.questions.length > 0) {
+          const generatedQuestions = data.questions.map((q) => ({
+            id: `AI-Q${q.questionId || Date.now().toString().slice(-4)}`,
+            dbId: q.questionId,
+            subject: 'AI RAG Sinh tự động',
+            code: 'RAG-AI',
+            title: q.questionText,
+            bloom: q.bloomLevel || aiGenForm.bloomLevel,
+            status: 'PENDING_REVIEW',
+            maxScore: 4.0,
+            keywords: ['AI_RAG', aiGenForm.bloomLevel],
+            rubricCount: 3,
+          }));
+          setQuestionsList((prev) => [...generatedQuestions, ...prev]);
+          setShowAiGenModal(false);
+          showNotification(`AI đã sinh thành công ${generatedQuestions.length} câu hỏi mới ở trạng thái chờ duyệt!`);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Backend AI generation call failed, using simulation:', err);
+    } finally {
+      setIsGeneratingAi(false);
+    }
+
+    // Fallback simulation
+    const simulated = [
+      {
+        id: `AI-Q${Date.now().toString().slice(-4)}`,
+        subject: 'AI RAG Sinh tự động',
+        code: 'RAG-AI',
+        title: `Phân tích cơ chế và ứng dụng thực tiễn của ${aiGenForm.topic}?`,
+        bloom: aiGenForm.bloomLevel,
+        status: 'PENDING_REVIEW',
+        maxScore: 4.0,
+        keywords: ['AI_GENERATED', aiGenForm.bloomLevel],
+        rubricCount: 3,
+      },
+    ];
+    setQuestionsList((prev) => [...simulated, ...prev]);
+    setShowAiGenModal(false);
+    showNotification(`Đã sinh câu hỏi AI theo chủ đề "${aiGenForm.topic}"!`);
+  };
+
+  const handleCreateExam = async (e) => {
     e.preventDefault();
     if (!newExam.title.trim()) return;
+
+    let dbExam = null;
+    try {
+      const token = localStorage.getItem('aives-token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const res = await fetch('http://localhost:8080/api/exams', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          courseId: Number(newExam.courseId || 1),
+          title: newExam.title.trim(),
+          durationMinutes: Number(newExam.durationMinutes) || 20,
+          maxFollowUpPerQ: Number(newExam.maxFollowUpPerQ) || 2,
+          questionIds: newExam.selectedQuestionIds || [],
+        }),
+      });
+      if (res.ok) {
+        dbExam = await res.json();
+      }
+    } catch (err) {
+      console.warn('Backend create exam failed, saving locally:', err);
+    }
+
     const created = {
-      id: `EXAM-${Date.now().toString().slice(-4)}`,
+      id: dbExam?.id ? `EXAM-${dbExam.id}` : `EXAM-${Date.now().toString().slice(-4)}`,
       title: newExam.title,
       subject: newExam.subject,
       durationMinutes: Number(newExam.durationMinutes),
-      totalQuestionsAi: Number(newExam.totalQuestionsAi),
+      totalQuestionsAi: newExam.selectedQuestionIds.length > 0 ? newExam.selectedQuestionIds.length : Number(newExam.totalQuestionsAi),
       totalCandidates: 30,
       gradedCount: 0,
       status: 'UPCOMING',
@@ -384,7 +653,17 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
     };
     setExamsList([created, ...examsList]);
     setShowCreateExamModal(false);
-    showNotification(`Đã khởi tạo kỳ thi "${created.title}" thành công!`);
+    showNotification(`Đã khởi tạo kỳ thi "${created.title}" với ${newExam.selectedQuestionIds.length} câu hỏi được gán!`);
+    setNewExam({
+      title: '',
+      courseId: courses[0]?.id || 1,
+      subject: courses[0]?.courseCode || 'SWE201',
+      durationMinutes: 20,
+      maxFollowUpPerQ: 2,
+      totalQuestionsAi: 3,
+      date: 'Ngày ' + new Date().toLocaleDateString('vi-VN'),
+      selectedQuestionIds: [],
+    });
   };
 
   const pendingApprovalCount = submissions.filter((s) => s.status === 'PENDING_APPROVAL').length;
@@ -550,13 +829,23 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
               <span>PostgreSQL aives_db: Đồng bộ</span>
             </div>
             {activeTab === 'questions' && (
-              <button
-                onClick={() => setShowAddQuestionModal(true)}
-                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-base">add</span>
-                <span>Thêm câu hỏi mới</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAiGenModal(true)}
+                  className="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-purple-500/25 cursor-pointer active:scale-95"
+                >
+                  <span className="material-symbols-outlined text-base">auto_awesome</span>
+                  <span>Sinh câu hỏi AI (RAG)</span>
+                </button>
+                <button
+                  onClick={() => setShowAddQuestionModal(true)}
+                  className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-base">add</span>
+                  <span>Thêm thủ công</span>
+                </button>
+              </div>
             )}
             {activeTab === 'exams' && (
               <button
@@ -904,13 +1193,22 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                         <span className="block text-[10px] text-slate-400">{q.rubricCount} tiêu chí đánh giá</span>
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${q.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>
-                          {q.status}
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${q.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                          {q.status === 'APPROVED' ? 'Đã duyệt' : 'Chờ duyệt'}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right space-x-2">
+                        {q.status === 'PENDING_REVIEW' && (
+                          <button
+                            type="button"
+                            onClick={() => handleApproveQuestion(q)}
+                            className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg font-bold text-[11px] cursor-pointer mr-1"
+                          >
+                            Duyệt
+                          </button>
+                        )}
                         <button
-                          onClick={() => alert(`Xem chi tiết Rubric cho câu hỏi ${q.id}`)}
+                          onClick={() => alert(`Xem chi tiết Rubric cho câu hỏi ${q.id}:\n${q.title}`)}
                           className="text-blue-600 hover:text-blue-800 font-bold cursor-pointer"
                         >
                           Chi tiết Rubric
@@ -1202,11 +1500,11 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
         </div>
       )}
 
-      {/* ================= MODAL: TẠO KỲ THI MỚI ================= */}
+      {/* ================= MODAL: TẠO KỲ THI MỚI (PHƯƠNG ÁN 2: CHỌN CÂU HỎI AI & NGÂN HÀNG) ================= */}
       {showCreateExamModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
               <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
                 <span className="material-symbols-outlined text-blue-600">calendar_add_on</span>
                 Tạo Kỳ thi Vấn đáp AI Mới
@@ -1220,7 +1518,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
               </button>
             </div>
 
-            <form onSubmit={handleCreateExam} className="py-4 space-y-3.5 text-xs">
+            <form onSubmit={handleCreateExam} className="py-4 space-y-3.5 text-xs overflow-y-auto pr-1">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Tên kỳ thi *</label>
                 <input
@@ -1234,15 +1532,25 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Môn học</label>
+                <label className="block font-bold text-slate-700 mb-1">Môn học phụ trách</label>
                 <select
-                  value={newExam.subject}
-                  onChange={(e) => setNewExam({ ...newExam, subject: e.target.value })}
-                  className="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50"
+                  value={newExam.courseId}
+                  onChange={(e) => {
+                    const cid = Number(e.target.value);
+                    const found = courses.find((c) => (c.id || c.courseId) === cid);
+                    setNewExam({
+                      ...newExam,
+                      courseId: cid,
+                      subject: found?.courseName || found?.courseCode || newExam.subject,
+                    });
+                  }}
+                  className="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 font-semibold"
                 >
-                  <option value="Kiến trúc máy tính & HĐH">Kiến trúc máy tính &amp; HĐH (CS201)</option>
-                  <option value="Mạng máy tính căn bản">Mạng máy tính căn bản (NET102)</option>
-                  <option value="Kỹ thuật Phần mềm Chuyên sâu">Kỹ thuật Phần mềm Chuyên sâu (SWE301)</option>
+                  {courses.map((c) => (
+                    <option key={c.id || c.courseId} value={c.id || c.courseId}>
+                      {c.courseCode} - {c.courseName}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -1259,15 +1567,114 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Số câu AI hỏi</label>
+                  <label className="block font-bold text-slate-700 mb-1">Số câu hỏi phụ tối đa/câu</label>
                   <input
                     type="number"
-                    min="1"
-                    max="10"
-                    value={newExam.totalQuestionsAi}
-                    onChange={(e) => setNewExam({ ...newExam, totalQuestionsAi: e.target.value })}
+                    min="0"
+                    max="5"
+                    value={newExam.maxFollowUpPerQ}
+                    onChange={(e) => setNewExam({ ...newExam, maxFollowUpPerQ: e.target.value })}
                     className="w-full p-2 border border-slate-200 rounded-xl bg-slate-50 font-bold text-blue-700"
                   />
+                </div>
+              </div>
+
+              {/* Danh sách câu hỏi AI & Ngân hàng để chọn vào đề thi (Phương án 2) */}
+              <div className="pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-base text-blue-600">checklist</span>
+                    Chọn câu hỏi chính cho đề thi ({newExam.selectedQuestionIds.length} đã chọn)
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const allIds = questionsList.map((q) => q.dbId || Number(String(q.id).replace(/\D/g, ''))).filter(Boolean);
+                        setNewExam({ ...newExam, selectedQuestionIds: allIds });
+                      }}
+                      className="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer"
+                    >
+                      Chọn tất cả
+                    </button>
+                    <span className="text-slate-300">|</span>
+                    <button
+                      type="button"
+                      onClick={() => setNewExam({ ...newExam, selectedQuestionIds: [] })}
+                      className="text-[11px] font-bold text-slate-500 hover:underline cursor-pointer"
+                    >
+                      Bỏ chọn
+                    </button>
+                  </div>
+                </div>
+
+                <div className="max-h-52 overflow-y-auto border border-slate-200 rounded-2xl p-2.5 space-y-2 bg-slate-50/70">
+                  {questionsList.length === 0 ? (
+                    <p className="text-center text-slate-400 py-4">Chưa có câu hỏi nào. Hãy dùng nút "Sinh câu hỏi bằng AI" trước!</p>
+                  ) : (
+                    questionsList.map((q) => {
+                      const qId = q.dbId || Number(String(q.id).replace(/\D/g, ''));
+                      const isSelected = newExam.selectedQuestionIds.includes(qId);
+                      return (
+                        <label
+                          key={q.id}
+                          className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-blue-50/80 border-blue-300 shadow-xs'
+                              : 'bg-white border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setNewExam({ ...newExam, selectedQuestionIds: [...newExam.selectedQuestionIds, qId] });
+                              } else {
+                                setNewExam({
+                                  ...newExam,
+                                  selectedQuestionIds: newExam.selectedQuestionIds.filter((id) => id !== qId),
+                                });
+                              }
+                            }}
+                            className="mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span
+                                className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
+                                  q.bloom === 'REMEMBER'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : q.bloom === 'UNDERSTAND'
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : q.bloom === 'APPLY'
+                                    ? 'bg-amber-100 text-amber-700'
+                                    : q.bloom === 'ANALYZE'
+                                    ? 'bg-purple-100 text-purple-700'
+                                    : q.bloom === 'EVALUATE'
+                                    ? 'bg-rose-100 text-rose-700'
+                                    : 'bg-indigo-100 text-indigo-700'
+                                }`}
+                              >
+                                {q.bloom}
+                              </span>
+                              {q.status === 'PENDING_REVIEW' && (
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-200">
+                                  AI vừa sinh
+                                </span>
+                              )}
+                              <span className="text-[10px] text-slate-400 font-medium ml-auto">
+                                ID #{qId}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-800 line-clamp-2 font-medium">
+                              {q.title}
+                            </p>
+                          </div>
+                        </label>
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
@@ -1281,7 +1688,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setShowCreateExamModal(false)}
@@ -1291,9 +1698,117 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl cursor-pointer shadow-md shadow-blue-500/20 flex items-center gap-1.5"
                 >
-                  Khởi tạo kỳ thi
+                  <span className="material-symbols-outlined text-base">check</span>
+                  Khởi tạo kỳ thi ({newExam.selectedQuestionIds.length} câu)
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* ================= MODAL: SINH CÂU HỎI BẰNG AI (RAG) ================= */}
+      {showAiGenModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-lg">auto_awesome</span>
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm text-slate-900">Sinh Câu hỏi Vấn đáp bằng AI (RAG)</h3>
+                  <p className="text-[11px] text-slate-500">Dựa trên tài liệu môn học và thang đo nhận thức Bloom</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAiGenModal(false)}
+                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAiGenerate} className="py-4 space-y-3.5 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Môn học *</label>
+                <select
+                  value={aiGenForm.courseId}
+                  onChange={(e) => setAiGenForm({ ...aiGenForm, courseId: e.target.value })}
+                  className="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 font-semibold"
+                >
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.courseCode} - {c.courseName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Chủ đề cần sinh câu hỏi (Topic) *</label>
+                <input
+                  required
+                  type="text"
+                  value={aiGenForm.topic}
+                  onChange={(e) => setAiGenForm({ ...aiGenForm, topic: e.target.value })}
+                  placeholder="Ví dụ: Cơ chế Phân trang và Phân mảnh bộ nhớ, Design Pattern..."
+                  className="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:border-purple-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Mức độ Bloom *</label>
+                  <select
+                    value={aiGenForm.bloomLevel}
+                    onChange={(e) => setAiGenForm({ ...aiGenForm, bloomLevel: e.target.value })}
+                    className="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 font-bold text-purple-700"
+                  >
+                    <option value="REMEMBER">Nhận biết (Remember)</option>
+                    <option value="UNDERSTAND">Thông hiểu (Understand)</option>
+                    <option value="APPLY">Vận dụng (Apply)</option>
+                    <option value="ANALYZE">Phân tích (Analyze)</option>
+                    <option value="EVALUATE">Đánh giá (Evaluate)</option>
+                    <option value="CREATE">Sáng tạo (Create)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Số lượng câu hỏi</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={aiGenForm.targetCount}
+                    onChange={(e) => setAiGenForm({ ...aiGenForm, targetCount: e.target.value })}
+                    className="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 font-bold text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div className="p-3 bg-purple-50/80 border border-purple-200 rounded-xl text-purple-800 text-[11px] space-y-1">
+                <span className="font-bold block">Quy trình Human-in-the-Loop:</span>
+                <p>AI sẽ phân tích tài liệu môn học để tạo bộ câu hỏi kèm barem Rubric ở trạng thái <strong>PENDING_REVIEW</strong>. Giảng viên kiểm duyệt trước khi đưa vào ngân hàng đề thi chính thức.</p>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAiGenModal(false)}
+                  className="px-4 py-2 border border-slate-200 text-slate-600 font-bold rounded-xl cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isGeneratingAi}
+                  className="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl cursor-pointer shadow-md shadow-purple-500/25 flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-base">auto_awesome</span>
+                  <span>{isGeneratingAi ? 'AI đang sinh câu hỏi...' : 'Bắt đầu Sinh câu hỏi'}</span>
                 </button>
               </div>
             </form>

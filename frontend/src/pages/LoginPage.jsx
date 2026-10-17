@@ -60,6 +60,30 @@ export default function LoginPage({ onNavigate, onLoginSuccess }) {
     setErrorMessage('');
   };
 
+  const handleQuickLogin = async (id, pwd, role) => {
+    setEmailOrId(id);
+    setPassword(pwd);
+    setSelectedRole(role);
+    setLoading(true);
+    setErrorMessage('');
+    try {
+      const res = await mockAuthService.login({ emailOrId: id, password: pwd });
+      if (res.success) {
+        onLoginSuccess(res.user);
+      }
+    } catch (err) {
+      // Fallback
+      onLoginSuccess({
+        id: id,
+        fullName: role === 'admin' ? 'Quản trị viên Hệ thống' : role === 'instructor' ? 'ThS. Nguyễn Văn Giảng' : 'Trần Hoàng Phúc',
+        email: id.includes('@') ? id : `${id.toLowerCase()}@fpt.edu.vn`,
+        role: role === 'admin' ? 'ADMIN' : role === 'instructor' ? 'INSTRUCTOR' : 'STUDENT',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden bg-slate-900/5">
       {/* Animated Ambient Glow Blobs */}
@@ -332,15 +356,7 @@ export default function LoginPage({ onNavigate, onLoginSuccess }) {
         <div className="grid grid-cols-3 gap-2 mb-6">
           <button
             type="button"
-            onClick={() =>
-              onLoginSuccess({
-                id: 'SE180123',
-                fullName: 'Trần Hoàng Phúc',
-                email: 'phuctran5635@gmail.com',
-                role: 'STUDENT',
-                department: 'Khoa Công nghệ Thông tin',
-              })
-            }
+            onClick={() => handleQuickLogin('SE180123', 'Password@123', 'student')}
             className="py-2.5 px-2 border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-blue-50/60 hover:border-blue-300 transition-all duration-200 flex items-center justify-center space-x-1 shadow-2xs hover:shadow-xs cursor-pointer active:scale-[0.99]"
           >
             <i className="fa-solid fa-graduation-cap text-blue-600 text-xs"></i>
@@ -349,15 +365,7 @@ export default function LoginPage({ onNavigate, onLoginSuccess }) {
 
           <button
             type="button"
-            onClick={() =>
-              onLoginSuccess({
-                id: 'GV001',
-                fullName: 'ThS. Nguyễn Văn Giảng',
-                email: 'gv.nguyen@fpt.edu.vn',
-                role: 'INSTRUCTOR',
-                department: 'Bộ môn Kỹ thuật Phần mềm',
-              })
-            }
+            onClick={() => handleQuickLogin('gv.nguyen@fpt.edu.vn', 'Password@123', 'instructor')}
             className="py-2.5 px-2 border border-indigo-200/90 rounded-xl text-xs font-semibold text-indigo-800 bg-indigo-50/60 hover:bg-indigo-100/70 hover:border-indigo-300 transition-all duration-200 flex items-center justify-center space-x-1 shadow-2xs hover:shadow-xs cursor-pointer active:scale-[0.99]"
           >
             <i className="fa-solid fa-chalkboard-user text-indigo-600 text-xs"></i>
@@ -366,15 +374,7 @@ export default function LoginPage({ onNavigate, onLoginSuccess }) {
 
           <button
             type="button"
-            onClick={() =>
-              onLoginSuccess({
-                id: 'ADMIN01',
-                fullName: 'Quản trị viên Hệ thống',
-                email: 'admin@aives.edu.vn',
-                role: 'ADMIN',
-                department: 'Phòng Khảo thí & Đảm bảo Chất lượng',
-              })
-            }
+            onClick={() => handleQuickLogin('admin@aives.edu.vn', 'Password@123', 'admin')}
             className="py-2.5 px-2 border border-amber-200/90 rounded-xl text-xs font-semibold text-amber-800 bg-amber-50/60 hover:bg-amber-100/70 hover:border-amber-300 transition-all duration-200 flex items-center justify-center space-x-1 shadow-2xs hover:shadow-xs cursor-pointer active:scale-[0.99]"
           >
             <i className="fa-solid fa-shield-halved text-amber-600 text-xs"></i>

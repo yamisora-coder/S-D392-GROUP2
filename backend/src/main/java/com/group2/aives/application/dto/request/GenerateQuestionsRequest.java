@@ -28,6 +28,7 @@ public class GenerateQuestionsRequest {
     // Nếu null thì AI sẽ tự chọn phân bổ mức Bloom phù hợp
     private BloomLevel bloomLevel;
 
+    @Builder.Default
     @Min(value = 1, message = "Số câu hỏi tối thiểu là 1")
     @Max(value = 20, message = "Số câu hỏi tối đa là 20")
     private Integer questionCount = 5;

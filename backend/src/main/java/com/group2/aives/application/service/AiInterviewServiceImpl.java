@@ -41,8 +41,14 @@ public class AiInterviewServiceImpl implements AiInterviewService {
     public InterviewTurnResponse startSession(Long sessionId) {
         ExamSession session = getSessionOrThrow(sessionId);
 
-        if (!"ONGOING".equals(session.getStatus())) {
-            throw new RuntimeException("Phiên thi đã kết thúc hoặc không ở trạng thái có thể bắt đầu.");
+        if ("COMPLETED".equals(session.getStatus())) {
+            throw new RuntimeException("Phiên thi đã kết thúc.");
+        }
+
+        if ("SCHEDULED".equals(session.getStatus()) || session.getStatus() == null) {
+            session.setStatus("ONGOING");
+            session.setStartedAt(LocalDateTime.now());
+            session = examSessionRepository.save(session);
         }
 
         List<SessionTurn> existingTurns = sessionTurnRepository
@@ -191,6 +197,19 @@ public class AiInterviewServiceImpl implements AiInterviewService {
                 .stream()
                 .map(t -> buildTurnResponse(t, session, null))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public InterviewTurnResponse finishSession(Long sessionId) {
+        ExamSession session = getSessionOrThrow(sessionId);
+        session.setStatus("COMPLETED");
+        if (session.getEndedAt() == null) {
+            session.setEndedAt(LocalDateTime.now());
+        }
+        examSessionRepository.save(session);
+        log.info("Phiên {} được kết thúc theo yêu cầu từ client.", sessionId);
+        return buildCompleteResponse(session);
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

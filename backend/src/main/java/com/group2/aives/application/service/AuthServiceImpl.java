@@ -85,8 +85,8 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Email này đã được sử dụng trong hệ thống: " + email);
         }
 
-        // Lấy vai trò (mặc định STUDENT nếu không truyền)
-        RoleEnum targetRoleEnum = request.getRole() != null ? request.getRole() : RoleEnum.STUDENT;
+        // Đăng ký công khai luôn luôn cố định vai trò STUDENT để phòng chống leo thang đặc quyền
+        RoleEnum targetRoleEnum = RoleEnum.STUDENT;
         Role targetRole = roleRepository.findByRoleName(targetRoleEnum)
                 .orElseGet(() -> roleRepository.save(Role.builder().roleName(targetRoleEnum).build()));
 

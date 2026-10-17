@@ -91,15 +91,55 @@ export const mockAuthService = {
 
   // Đăng nhập
   login: async ({ emailOrId, password }) => {
-    // Giả lập độ trễ mạng nhẹ cho animation mượt mà
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    const users = getStoredUsers();
-    const cleanKey = (emailOrId || '').trim().toLowerCase();
+    const cleanKey = (emailOrId || '').trim();
     const cleanPwd = (password || '').trim();
 
+    // 1. Thử gọi API Backend Spring Boot /api/auth/login để xác thực thật và nhận JWT
+    try {
+      const response = await fetch('http://localhost:8080/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: cleanKey,
+          password: cleanPwd,
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (response.ok && result.data?.token) {
+        const authData = result.data;
+        const primaryRole = (authData.roles && authData.roles.length > 0)
+          ? authData.roles[0]
+          : 'STUDENT';
+        const role = primaryRole === 'LECTURER' ? 'INSTRUCTOR' : primaryRole;
+
+        const loggedInUser = {
+          id: authData.email.split('@')[0],
+          dbId: authData.userId,
+          fullName: authData.fullName,
+          email: authData.email,
+          role: role,
+          roles: authData.roles,
+          token: authData.token,
+        };
+
+        localStorage.setItem('aives-token', authData.token);
+        localStorage.setItem(STORAGE_CURRENT_USER_KEY, JSON.stringify(loggedInUser));
+        return { success: true, user: loggedInUser };
+      } else if (!response.ok && result.message) {
+        // Backend có phản hồi nhưng báo sai mật khẩu / tài khoản
+        console.warn('Backend trả về thông báo:', result.message);
+      }
+    } catch (networkErr) {
+      console.warn('Backend chưa phản hồi hoặc chưa chạy, chuyển sang kiểm tra LocalStorage mock:', networkErr.message);
+    }
+
+    // 2. Fallback sang LocalStorage nếu Backend offline
+    const users = getStoredUsers();
+    const cleanKeyLower = cleanKey.toLowerCase();
     const user = users.find(u => 
-      (u.email?.toLowerCase() === cleanKey || u.id?.toLowerCase() === cleanKey)
+      (u.email?.toLowerCase() === cleanKeyLower || u.id?.toLowerCase() === cleanKeyLower)
     );
 
     if (!user) {
@@ -110,49 +150,58 @@ export const mockAuthService = {
       throw new Error('Mật khẩu không chính xác! Vui lòng thử lại.');
     }
 
-    // Lưu phiên đăng nhập
     localStorage.setItem(STORAGE_CURRENT_USER_KEY, JSON.stringify(user));
     return { success: true, user };
   },
 
   // Đăng ký tài khoản mới (Gọi trực tiếp Backend API lưu vào PostgreSQL, đồng thời đồng bộ LocalStorage)
   register: async (userData) => {
-    const newUser = {
-      ...userData,
-      createdAt: new Date().toISOString()
+    const cleanRole = userData.role || 'STUDENT';
+    const targetRole = cleanRole === 'INSTRUCTOR' ? 'LECTURER' : cleanRole;
+    const reqBody = {
+      fullName: userData.fullName,
+      email: userData.email,
+      password: userData.password,
+      confirmPassword: userData.confirmPassword || userData.password,
+      code: userData.id || userData.code,
+      studentCode: userData.id || userData.code,
+      role: targetRole,
     };
 
+    let savedDbUser = null;
     // 1. Thử gọi trực tiếp API Backend Spring Boot để lưu vào PostgreSQL
     try {
-      const response = await fetch('http://localhost:8080/api/users/register', {
+      const response = await fetch('http://localhost:8080/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          code: userData.id,
-          fullName: userData.fullName,
-          email: userData.email,
-          password: userData.password,
-          role: userData.role || 'STUDENT'
-        }),
+        body: JSON.stringify(reqBody),
       });
 
-      if (response.ok) {
-        const savedDbUser = await response.json();
-        // Cập nhật ID từ DB nếu có
-        newUser.dbId = savedDbUser.id;
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        if (errorData.message) {
-          throw new Error(errorData.message);
+      const resData = await response.json().catch(() => ({}));
+      if (response.ok && resData.data) {
+        savedDbUser = resData.data;
+        if (savedDbUser.token) {
+          localStorage.setItem('aives-token', savedDbUser.token);
         }
+      } else if (!response.ok && resData.message) {
+        throw new Error(resData.message);
       }
     } catch (networkErr) {
-      console.warn('Backend PostgreSQL chưa chạy hoặc không phản hồi, lưu vào bộ nhớ trình duyệt:', networkErr.message);
+      if (networkErr.message && !networkErr.message.includes('Failed to fetch')) {
+        throw networkErr;
+      }
+      console.warn('Backend PostgreSQL chưa chạy, lưu tạm vào bộ nhớ trình duyệt:', networkErr.message);
     }
 
     // 2. Lưu vào LocalStorage để người dùng đăng nhập và trải nghiệm ngay
+    const newUser = {
+      ...userData,
+      dbId: savedDbUser?.userId || savedDbUser?.id,
+      createdAt: new Date().toISOString(),
+    };
+
     const users = getStoredUsers();
     const updatedUsers = [newUser, ...users.filter(u => u.id !== newUser.id && u.email !== newUser.email)];
     saveStoredUsers(updatedUsers);
@@ -173,6 +222,17 @@ export const mockAuthService = {
 
   // Đăng xuất
   logout: () => {
+    const token = localStorage.getItem('aives-token');
+    if (token) {
+      fetch('http://localhost:8080/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      }).catch(() => {});
+    }
+    localStorage.removeItem('aives-token');
     localStorage.removeItem(STORAGE_CURRENT_USER_KEY);
   },
 
@@ -214,11 +274,13 @@ export const mockAuthService = {
 
     // Đồng bộ với Backend Spring Boot API (PostgreSQL) nếu đang chạy
     try {
+      const token = localStorage.getItem('aives-token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
       const response = await fetch(`http://localhost:8080/api/users/${encodeURIComponent(cleanId)}/role`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({ role: newRole }),
       });
       if (response.ok) {

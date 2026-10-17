@@ -26,6 +26,9 @@ public class ExamRequest {
     @Min(value = 0, message = "Số câu hỏi đào sâu không âm")
     private Integer maxFollowUpPerQ = 2;
 
+    @Builder.Default
+    private java.util.List<Long> questionIds = new java.util.ArrayList<>();
+
     // Helper compatibility aliases
     public Long getSubjectId() {
         return courseId;

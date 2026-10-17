@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,7 @@ import java.util.List;
                    "(điểm mạnh, điểm yếu, ý còn thiếu). Giảng viên xem transcript đầy đủ, điều chỉnh " +
                    "và quyết định điểm cuối cùng (Human-in-the-loop).")
 @CrossOrigin(origins = "*")
+@PreAuthorize("hasAnyRole('LECTURER', 'ADMIN')")
 public class AiGradingController {
 
     private final AiGradingService aiGradingService;
@@ -65,7 +67,7 @@ public class AiGradingController {
         return ResponseEntity.ok(aiGradingService.regradeTurn(sessionId, turnId, username(user)));
     }
 
-    @PutMapping("/sessions/{sessionId}/final-grade")
+    @RequestMapping(value = {"/sessions/{sessionId}/final-grade", "/sessions/{sessionId}/confirm"}, method = {RequestMethod.PUT, RequestMethod.POST})
     @Operation(summary = "Giảng viên chốt điểm cuối cùng (Human-in-the-loop)",
                description = "Điểm thang 0–10, có thể khác điểm AI đề xuất. Người chốt là tài khoản đang đăng nhập " +
                              "(trường confirmedById trong body bị bỏ qua). Chỉ chốt được khi ca thi đã hoàn thành.")

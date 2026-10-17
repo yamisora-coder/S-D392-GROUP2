@@ -28,6 +28,15 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
+    @ExceptionHandler({
+        org.springframework.security.access.AccessDeniedException.class,
+        org.springframework.security.authorization.AuthorizationDeniedException.class
+    })
+    public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error("Bạn không có quyền thực hiện thao tác này (403 Forbidden)."));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();

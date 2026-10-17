@@ -10,6 +10,92 @@ export default function VivaRoomModal({ isOpen, onClose, exam, currentUser }) {
 
   const videoRef = useRef(null);
   const timerRef = useRef(null);
+  const recognitionRef = useRef(null);
+
+  const [liveTurn, setLiveTurn] = useState(null);
+  const [liveTranscript, setLiveTranscript] = useState('');
+  const [submittingAnswer, setSubmittingAnswer] = useState(false);
+  const [micError, setMicError] = useState(false);
+
+  const speakText = (text) => {
+    if (!('speechSynthesis' in window) || !text) return;
+    try {
+      window.speechSynthesis.cancel();
+      const clean = text.replace(/["“”]/g, '');
+      const utter = new SpeechSynthesisUtterance(clean);
+      utter.lang = 'vi-VN';
+      utter.rate = 1.0;
+      window.speechSynthesis.speak(utter);
+    } catch (e) {
+      console.warn('TTS error:', e);
+    }
+  };
+
+  const startListening = () => {
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+      setMicError(true);
+      return;
+    }
+    try {
+      const rec = new SpeechRec();
+      rec.lang = 'vi-VN';
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.onresult = (event) => {
+        let full = '';
+        for (let i = 0; i < event.results.length; i++) {
+          full += event.results[i][0].transcript;
+        }
+        if (full) {
+          setLiveTranscript(full);
+          setMicError(false);
+        }
+      };
+      rec.onerror = (e) => {
+        console.warn('STT Error:', e);
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+          setMicError(true);
+        }
+      };
+      rec.start();
+      recognitionRef.current = rec;
+    } catch (err) {
+      console.warn('SpeechRec start failed:', err);
+      setMicError(true);
+    }
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch (e) {}
+      recognitionRef.current = null;
+    }
+  };
+
+  const startBackendSession = async (sessionId) => {
+    try {
+      const token = localStorage.getItem('aives-token');
+      const res = await fetch(`http://localhost:8080/api/interview/sessions/${sessionId}/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      });
+      if (res.ok) {
+        const turn = await res.json();
+        setLiveTurn(turn);
+        if (turn.timeLimitSeconds) {
+          setTimer(turn.timeLimitSeconds);
+        }
+        speakText(turn.questionText);
+      }
+    } catch (err) {
+      console.warn('Could not start live backend session, falling back to local flow:', err);
+      speakText(questions[0].text);
+    }
+  };
 
   const questions = [
     {
@@ -42,16 +128,30 @@ export default function VivaRoomModal({ isOpen, onClose, exam, currentUser }) {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isOpen, examSubmitted]);
 
+  const handleSubmitStepRef = useRef();
+
   useEffect(() => {
     if (isOpen) {
       setTimer(100);
       setIsAnswering(true);
       setShowExitWarningModal(false);
       setExamSubmitted(false);
+      setLiveTranscript('');
       startWebcam();
+      startListening();
+
+      if (exam?.sessionId) {
+        startBackendSession(exam.sessionId);
+      } else {
+        speakText(questions[0].text);
+      }
+
       timerRef.current = setInterval(() => {
         setTimer((prev) => {
           if (prev <= 1) {
+            if (handleSubmitStepRef.current) {
+              handleSubmitStepRef.current();
+            }
             return 100;
           }
           return prev - 1;
@@ -59,11 +159,15 @@ export default function VivaRoomModal({ isOpen, onClose, exam, currentUser }) {
       }, 1000);
     } else {
       stopWebcam();
+      stopListening();
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       if (timerRef.current) clearInterval(timerRef.current);
     }
 
     return () => {
       stopWebcam();
+      stopListening();
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [isOpen]);
@@ -103,15 +207,69 @@ export default function VivaRoomModal({ isOpen, onClose, exam, currentUser }) {
   const handleConfirmExit = () => {
     setShowExitWarningModal(false);
     stopWebcam();
+    stopListening();
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     onClose();
   };
 
   const handleSubmitExam = () => {
     setExamSubmitted(true);
-    alert('Chúc mừng bạn đã hoàn thành bài thi vấn đáp AI!\nBài thi đã được ghi nhận và gửi đến Hội đồng Khảo thí.');
     stopWebcam();
+    stopListening();
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    alert('Chúc mừng bạn đã hoàn thành bài thi vấn đáp AI!\nBài thi đã được ghi nhận và gửi đến Hội đồng Khảo thí.');
     onClose();
   };
+
+  const handleSubmitStep = async () => {
+    if (submittingAnswer) return;
+    if (exam?.sessionId && liveTurn?.turnId) {
+      setSubmittingAnswer(true);
+      try {
+        const token = localStorage.getItem('aives-token');
+        const res = await fetch(`http://localhost:8080/api/interview/sessions/${exam.sessionId}/turns/${liveTurn.turnId}/submit`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({ sttText: liveTranscript || currentQ.transcript })
+        });
+        if (res.ok) {
+          const nextTurn = await res.json();
+          if (nextTurn.nextAction === 'SESSION_COMPLETED' || nextTurn.sessionStatus === 'COMPLETED') {
+            await fetch(`http://localhost:8080/api/interview/sessions/${exam.sessionId}/finish`, {
+              method: 'POST',
+              headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+            }).catch(() => {});
+            handleSubmitExam();
+            return;
+          }
+          setLiveTurn(nextTurn);
+          setLiveTranscript('');
+          setTimer(nextTurn.timeLimitSeconds || 100);
+          speakText(nextTurn.questionText);
+          return;
+        }
+      } catch (e) {
+        console.warn('Backend turn submit failed, continuing client flow:', e);
+      } finally {
+        setSubmittingAnswer(false);
+      }
+    }
+
+    // Client/Mock progression fallback
+    if (currentQuestionIndex < 2) {
+      const nextIdx = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIdx);
+      setTimer(100);
+      setLiveTranscript('');
+      speakText(questions[nextIdx].text);
+    } else {
+      handleSubmitExam();
+    }
+  };
+  handleSubmitStepRef.current = handleSubmitStep;
 
   if (!isOpen) return null;
 
@@ -215,10 +373,10 @@ export default function VivaRoomModal({ isOpen, onClose, exam, currentUser }) {
           {/* Question Section */}
           <div className="flex flex-col items-center text-center px-4 pt-1">
             <span className="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full w-fit mx-auto uppercase tracking-wide">
-              {currentQ.round}
+              {liveTurn ? `CÂU ${liveTurn.sequenceNumber || currentQuestionIndex + 1} • ${liveTurn.turnType === 'FOLLOW_UP' ? 'HỎI XOÁY THÍCH ỨNG (ADAPTIVE FOLLOW-UP)' : 'CÂU HỎI CHÍNH (MAIN QUESTION)'}` : currentQ.round}
             </span>
             <h2 className="text-lg md:text-xl font-bold text-slate-900 text-center max-w-2xl mx-auto leading-relaxed pt-3">
-              {currentQ.text}
+              {liveTurn?.questionText || currentQ.text}
             </h2>
 
             {/* Dynamic Soundwave Visualizer */}
@@ -235,60 +393,70 @@ export default function VivaRoomModal({ isOpen, onClose, exam, currentUser }) {
             </div>
 
             <div className="flex items-center justify-center gap-3 mb-2">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-600 text-xs font-semibold">
-                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                <span>Micro đang thu âm trả lời</span>
-              </div>
+              {micError ? (
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold">
+                  <span className="material-symbols-outlined text-sm">mic_off</span>
+                  <span>Chưa nhận được tín hiệu micro (Có thể gõ trực tiếp bên dưới)</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-600 text-xs font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                  <span>Micro đang thu âm trả lời</span>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Realtime STT Transcript Box */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 max-w-3xl mx-auto w-full text-left">
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 max-w-3xl mx-auto w-full text-left">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-base text-blue-600">record_voice_over</span>
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  Bản ghi giọng nói thời gian thực (Speech-to-Text)
+                  Nội dung câu trả lời (Speech-to-Text / Soạn thảo trực tiếp)
                 </span>
               </div>
-              <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                Độ tin cậy: 98.6%
+              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                Tự động nhận diện STT
               </span>
             </div>
-            <p className="text-slate-800 text-sm md:text-base leading-relaxed">
-              {currentQ.transcript}
-              <span className="inline-block w-0.5 h-4 ml-0.5 bg-blue-600 align-middle animate-pulse"></span>
-            </p>
+            <textarea
+              rows={3}
+              value={liveTranscript}
+              onChange={(e) => setLiveTranscript(e.target.value)}
+              placeholder="Nói vào micro để AI tự động chuyển thành văn bản, hoặc bạn có thể gõ / chỉnh sửa câu trả lời trực tiếp tại đây..."
+              className="w-full bg-white border border-slate-200 rounded-xl p-3 text-slate-800 text-sm leading-relaxed focus:outline-none focus:border-blue-500 shadow-2xs resize-none"
+            />
           </div>
 
           {/* Bottom Step Actions */}
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
             <div className="text-xs text-slate-500 font-semibold">
-              Câu hỏi <span className="text-blue-600 font-bold">{currentQuestionIndex + 1}</span> trên 3
+              {liveTurn ? (
+                <span>Lượt thi: <strong className="text-blue-600">#{liveTurn.sequenceNumber || currentQuestionIndex + 1}</strong></span>
+              ) : (
+                <span>Câu hỏi <strong className="text-blue-600 font-bold">{currentQuestionIndex + 1}</strong> trên 3</span>
+              )}
             </div>
             <div className="flex gap-2">
-              {currentQuestionIndex < 2 ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentQuestionIndex((prev) => prev + 1);
-                    setTimer(100);
-                  }}
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-sm flex items-center gap-1.5 cursor-pointer transition-all"
-                >
-                  <span>Chuyển câu tiếp theo</span>
-                  <span className="material-symbols-outlined text-base">arrow_forward</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleSubmitExam}
-                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-500/25 flex items-center gap-1.5 cursor-pointer transition-all"
-                >
-                  <span className="material-symbols-outlined text-base">check</span>
-                  <span>Nộp bài &amp; Kết thúc</span>
-                </button>
-              )}
+              <button
+                type="button"
+                disabled={submittingAnswer}
+                onClick={handleSubmitStep}
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-sm flex items-center gap-1.5 cursor-pointer transition-all disabled:opacity-50"
+              >
+                {submittingAnswer ? (
+                  <>
+                    <span className="material-symbols-outlined text-base animate-spin">progress_activity</span>
+                    <span>AI đang phân tích câu trả lời...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{currentQuestionIndex < 2 && liveTurn?.nextAction !== 'SESSION_COMPLETE' ? 'Nộp câu trả lời & Tiếp tục' : 'Nộp bài & Hoàn thành'}</span>
+                    <span className="material-symbols-outlined text-base">arrow_forward</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

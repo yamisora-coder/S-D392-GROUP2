@@ -119,6 +119,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public UserResponse toggleActive(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng ID: " + id));
+        user.setIsActive(user.getIsActive() == null || !user.getIsActive());
+        return mapToResponse(userRepository.save(user));
+    }
+
+    @Override
+    @Transactional
     public UserResponse updateUserRole(String idOrCode, RoleEnum role) {
         if (role == null) {
             throw new BadRequestException("Vai trò (Role) không được để trống!");

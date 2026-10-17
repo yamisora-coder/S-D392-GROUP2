@@ -18,6 +18,8 @@ public class ExamResponse {
     private Integer durationMinutes;
     private Integer maxFollowUpPerQ;
     private int sessionCount;
+    private int questionCount;
+    private java.util.List<Long> questionIds;
     private LocalDateTime createdAt;
 
     // Helper compatibility aliases

@@ -18,4 +18,7 @@ public interface AiInterviewService {
 
     /** Lấy toàn bộ lịch sử các lượt hỏi trong phiên */
     List<InterviewTurnResponse> getSessionTurns(Long sessionId);
+
+    /** Kết thúc phiên vấn đáp và lưu thời điểm hoàn thành */
+    InterviewTurnResponse finishSession(Long sessionId);
 }

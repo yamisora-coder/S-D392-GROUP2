@@ -25,7 +25,7 @@ public class OpenAiClient {
     @Value("${ai.gemini.api-key:}")
     private String apiKey;
 
-    @Value("${ai.gemini.model:gemini-2.0-flash}")
+    @Value("${ai.gemini.model:gemini-3.8-flash}")
     private String model;
 
     @Value("${ai.gemini.max-tokens:3000}")

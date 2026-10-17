@@ -31,7 +31,9 @@ export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStude
   useEffect(() => {
     const syncBackend = async () => {
       try {
-        const res = await fetch('http://localhost:8080/api/users');
+        const token = localStorage.getItem('aives-token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch('http://localhost:8080/api/users', { headers });
         if (res.ok) {
           const dbUsers = await res.json();
           if (Array.isArray(dbUsers) && dbUsers.length > 0) {
@@ -39,17 +41,18 @@ export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStude
               const userMap = new Map();
               prev.forEach((u) => userMap.set((u.id || u.email).toLowerCase(), u));
               dbUsers.forEach((dbU) => {
-                const key = (dbU.code || dbU.email).toLowerCase();
+                const key = (dbU.code || dbU.email || String(dbU.id)).toLowerCase();
                 const existing = userMap.get(key) || {};
+                const normalizedRole = dbU.role === 'LECTURER' ? 'INSTRUCTOR' : dbU.role;
                 userMap.set(key, {
                   ...existing,
-                  id: dbU.code || dbU.id,
+                  id: dbU.code || `US${dbU.id}`,
                   dbId: dbU.id,
                   fullName: dbU.fullName,
                   email: dbU.email,
-                  role: dbU.role,
+                  role: normalizedRole,
                   department: existing.department || 'Bộ môn / Khoa FPT',
-                  status: existing.status || 'ACTIVE',
+                  status: dbU.isActive === false ? 'LOCKED' : (existing.status || 'ACTIVE'),
                   lastLogin: existing.lastLogin || 'Gần đây',
                 });
               });
@@ -159,20 +162,38 @@ export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStude
     setSelectedModalRole(user.role);
   };
 
-  const handleToggleStatus = (id) => {
+  const handleToggleStatus = async (user) => {
+    const id = user.id;
     mockAuthService.toggleUserStatus(id);
+    const newStatus = user.status === 'ACTIVE' ? 'LOCKED' : 'ACTIVE';
     setUsers((prev) =>
       prev.map((u) => {
         if (u.id !== id) return u;
-        const newStatus = u.status === 'ACTIVE' ? 'LOCKED' : 'ACTIVE';
-        showNotification(`Đã ${newStatus === 'ACTIVE' ? 'mở khóa' : 'khóa'} tài khoản ${u.fullName}!`);
         return { ...u, status: newStatus };
       })
     );
+    showNotification(`Đã ${newStatus === 'ACTIVE' ? 'mở khóa' : 'khóa'} tài khoản ${user.fullName}!`);
+
+    // Call backend if dbId exists
+    if (user.dbId) {
+      try {
+        const token = localStorage.getItem('aives-token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        await fetch(`http://localhost:8080/api/users/${user.dbId}/toggle-active`, {
+          method: 'PATCH',
+          headers,
+        });
+      } catch (err) {
+        console.warn('Backend toggle-active error:', err);
+      }
+    }
   };
 
   const filteredUsers = users.filter((u) => {
-    const matchRole = roleFilter === 'ALL' || u.role === roleFilter;
+    const matchRole =
+      roleFilter === 'ALL' ||
+      u.role === roleFilter ||
+      (roleFilter === 'INSTRUCTOR' && (u.role === 'INSTRUCTOR' || u.role === 'LECTURER'));
     const matchSearch =
       u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -409,7 +430,7 @@ export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStude
               <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
                 <span className="text-xs text-slate-500 font-medium">Giảng viên (INSTRUCTOR)</span>
                 <p className="text-2xl font-extrabold text-indigo-600 mt-1">
-                  {users.filter((u) => u.role === 'INSTRUCTOR').length}
+                  {users.filter((u) => u.role === 'INSTRUCTOR' || u.role === 'LECTURER').length}
                 </p>
                 <span className="text-[10px] text-slate-400 mt-1 block">Quyền chấm &amp; duyệt điểm</span>
               </div>
@@ -473,14 +494,14 @@ export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStude
                       <td className="py-3.5 px-4">
                         <div className="relative inline-flex items-center">
                           <select
-                            value={u.role}
+                            value={u.role === 'LECTURER' ? 'INSTRUCTOR' : u.role}
                             onChange={(e) => handleRoleChange(u, e.target.value)}
                             disabled={isUpdatingRole}
                             title="Bấm để gán vai trò trực tiếp"
                             className={`text-[11px] font-bold rounded-lg px-2.5 py-1.5 pr-6 border cursor-pointer transition-all duration-150 shadow-2xs focus:outline-none focus:ring-2 appearance-none ${
                               u.role === 'ADMIN'
                                 ? 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100 focus:ring-amber-500/20'
-                                : u.role === 'INSTRUCTOR'
+                                : (u.role === 'INSTRUCTOR' || u.role === 'LECTURER')
                                 ? 'bg-indigo-50 text-indigo-900 border-indigo-300 hover:bg-indigo-100 focus:ring-indigo-500/20'
                                 : 'bg-blue-50 text-blue-900 border-blue-300 hover:bg-blue-100 focus:ring-blue-500/20'
                             }`}
@@ -520,7 +541,7 @@ export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStude
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleToggleStatus(u.id)}
+                            onClick={() => handleToggleStatus(u)}
                             className={`px-2.5 py-1 rounded-lg font-bold text-[11px] border transition-all cursor-pointer active:scale-95 ${
                               u.status === 'ACTIVE'
                                 ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'

@@ -134,7 +134,89 @@ export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdm
     },
   ];
 
-  const filteredHistory = initialHistory.filter((item) => {
+  const [examHistory, setExamHistory] = useState(initialHistory);
+
+  useEffect(() => {
+    const fetchStudentSessions = async () => {
+      try {
+        const token = localStorage.getItem('aives-token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch('http://localhost:8080/api/sessions', { headers });
+        if (res.ok) {
+          const sessions = await res.json();
+          if (Array.isArray(sessions) && sessions.length > 0) {
+            const mySessions = sessions.filter(
+              (s) =>
+                !currentUser?.dbId ||
+                s.studentId === currentUser.dbId ||
+                (s.studentEmail && s.studentEmail.toLowerCase() === currentUser.email?.toLowerCase())
+            );
+            const targetSessions = mySessions;
+            const activeOrScheduled = targetSessions.filter(
+              (s) => s.status !== 'COMPLETED'
+            );
+            const completed = targetSessions.filter(
+              (s) => s.status === 'COMPLETED'
+            );
+
+            if (activeOrScheduled.length > 0) {
+              setUpcomingExams(
+                activeOrScheduled.map((s) => ({
+                  id: String(s.id),
+                  sessionId: s.id,
+                  examId: s.examId,
+                  title: s.examTitle || `Kỳ thi Vấn đáp #${s.examId}`,
+                  subjectCode: s.courseCode || 'SWE201',
+                  format: 'Vấn đáp AI',
+                  status: s.status === 'ONGOING' ? 'active' : 'upcoming',
+                  statusLabel: s.status === 'ONGOING' ? 'Đang mở phòng thi' : 'Sắp diễn ra',
+                  deviceStatus: '🟢 Sẵn sàng',
+                  questionsCount: '2 câu chính + hỏi xoáy AI',
+                  timeSlot: s.scheduledStartTime
+                    ? new Date(s.scheduledStartTime).toLocaleTimeString('vi-VN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : '14:00 - 14:20',
+                  duration: '15 phút',
+                  passingScore: '5.0/10.0 điểm',
+                  canEnter: true,
+                  deviceChecked: true,
+                }))
+              );
+            }
+
+            if (completed.length > 0) {
+              const mappedCompleted = completed.map((s) => ({
+                id: `SES-${s.id}`,
+                title: s.examTitle || `Kỳ thi Vấn đáp #${s.examId}`,
+                code: s.courseCode || 'SWE201',
+                status: s.finalScore != null ? 'graded' : 'pending',
+                statusText: s.finalScore != null ? '🟢 Đã chốt điểm' : '🟡 Chờ giảng viên duyệt',
+                statusBadgeClass:
+                  s.finalScore != null ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-700',
+                score: s.finalScore != null ? `${s.finalScore}/10` : 'Chờ duyệt',
+                percentage: s.finalScore != null ? `${Number(s.finalScore) * 10}%` : null,
+                rating: s.finalScore >= 8 ? 'Giỏi' : s.finalScore >= 5 ? 'Đạt' : 'Cần cải thiện',
+                ratingClass: s.finalScore >= 8 ? 'text-emerald-600' : 'text-blue-600',
+                duration: '15 phút',
+                submittedAt: s.endedAt
+                  ? new Date(s.endedAt).toLocaleDateString('vi-VN')
+                  : 'Hôm nay',
+                feedback: s.lecturerFeedback || 'Hệ thống đã ghi nhận bài thi.',
+              }));
+              setExamHistory((prev) => [...mappedCompleted, ...prev]);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Lỗi lấy danh sách ca thi từ backend:', err);
+      }
+    };
+    fetchStudentSessions();
+  }, [currentUser]);
+
+  const filteredHistory = examHistory.filter((item) => {
     const matchesFilter =
       historyFilter === 'all' || item.status === historyFilter;
     const matchesSearch =

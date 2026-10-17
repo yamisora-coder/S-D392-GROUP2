@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface SessionTurnRepository extends JpaRepository<SessionTurn, Long> {
     List<SessionTurn> findBySession_SessionIdOrderBySequenceNumberAsc(Long sessionId);
+    boolean existsByQuestion_QuestionId(Long questionId);
 }

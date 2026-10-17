@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,7 @@ public class UserController {
     private final AuthService authService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @Operation(summary = "Lấy danh sách người dùng (có thể lọc theo vai trò: ADMIN, LECTURER, STUDENT)")
     public ResponseEntity<List<UserResponse>> getUsers(@RequestParam(required = false) RoleEnum role) {
         if (role != null) {
@@ -44,6 +46,7 @@ public class UserController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Tạo tài khoản mới (Admin thực hiện)")
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(request));
@@ -63,6 +66,7 @@ public class UserController {
     }
 
     @PutMapping("/{idOrCode}/role")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Quản trị viên cập nhật vai trò (Role: ADMIN, LECTURER, STUDENT) của người dùng")
     public ResponseEntity<UserResponse> updateUserRole(
             @PathVariable String idOrCode,
@@ -72,12 +76,14 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Cập nhật thông tin người dùng (Admin thực hiện)")
     public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequest request) {
         return ResponseEntity.ok(userService.updateUser(id, request));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Xóa tài khoản người dùng (Admin thực hiện)")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
@@ -85,6 +91,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/toggle-active")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Kích hoạt / Khóa tài khoản người dùng")
     public ResponseEntity<UserResponse> toggleActive(@PathVariable Long id) {
         return ResponseEntity.ok(userService.toggleActive(id));

@@ -19,4 +19,17 @@ public class SubmitAnswerRequest {
 
     // Thời gian sinh viên trả lời (giây)
     private Integer answerDurationSeconds;
+
+    // Helper compatibility setters for flexible client submissions
+    public void setStudentAnswer(String studentAnswer) {
+        if (this.sttText == null || this.sttText.isBlank()) {
+            this.sttText = studentAnswer;
+        }
+    }
+
+    public void setTranscript(String transcript) {
+        if (this.sttText == null || this.sttText.isBlank()) {
+            this.sttText = transcript;
+        }
+    }
 }

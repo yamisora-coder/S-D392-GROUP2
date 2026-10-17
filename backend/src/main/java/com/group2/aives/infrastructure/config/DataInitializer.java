@@ -57,11 +57,64 @@ public class DataInitializer implements CommandLineRunner {
         if (courseRepository.count() > 0) {
             log.info("Dữ liệu đã tồn tại trong CSDL aives_db. Cập nhật mật khẩu chuẩn BCrypt cho các tài khoản test...");
             userRepository.findAll().forEach(u -> {
-                if (!passwordEncoder.matches("123456", u.getPasswordHash())) {
-                    u.setPasswordHash(passwordEncoder.encode("123456"));
+                if (!passwordEncoder.matches("Password@123", u.getPasswordHash())) {
+                    u.setPasswordHash(passwordEncoder.encode("Password@123"));
                     userRepository.save(u);
                 }
             });
+
+            Role lecturerRole = roleRepository.findByRoleName(RoleEnum.LECTURER)
+                    .orElseGet(() -> roleRepository.save(Role.builder().roleName(RoleEnum.LECTURER).build()));
+            Role studentRole = roleRepository.findByRoleName(RoleEnum.STUDENT)
+                    .orElseGet(() -> roleRepository.save(Role.builder().roleName(RoleEnum.STUDENT).build()));
+
+            User lecturerAives = userRepository.findByEmail("lecturer@aives.edu.vn").orElseGet(() ->
+                    userRepository.save(User.builder()
+                            .email("lecturer@aives.edu.vn")
+                            .fullName("ThS. Giảng viên Khảo thí")
+                            .passwordHash(passwordEncoder.encode("Password@123"))
+                            .roles(Set.of(lecturerRole))
+                            .isActive(true)
+                            .build())
+            );
+
+            User studentAives = userRepository.findByEmail("student@aives.edu.vn").orElseGet(() ->
+                    userRepository.save(User.builder()
+                            .email("student@aives.edu.vn")
+                            .fullName("Sinh viên Nguyễn Văn An")
+                            .passwordHash(passwordEncoder.encode("Password@123"))
+                            .roles(Set.of(studentRole))
+                            .isActive(true)
+                            .build())
+            );
+
+            Exam exam = examRepository.findAll().stream().findFirst().orElse(null);
+            if (exam != null && examSessionRepository.findByStudent_UserId(studentAives.getUserId()).isEmpty()) {
+                // Ca thi đang mở cho sinh viên
+                examSessionRepository.save(ExamSession.builder()
+                        .exam(exam)
+                        .student(studentAives)
+                        .startedAt(LocalDateTime.now())
+                        .status("SCHEDULED")
+                        .build());
+
+                // Ca thi đã hoàn tất cho sinh viên
+                ExamSession completedSession = examSessionRepository.save(ExamSession.builder()
+                        .exam(exam)
+                        .student(studentAives)
+                        .startedAt(LocalDateTime.now().minusDays(2))
+                        .endedAt(LocalDateTime.now().minusDays(2).plusMinutes(20))
+                        .status("COMPLETED")
+                        .build());
+
+                finalGradeRepository.save(FinalGrade.builder()
+                        .session(completedSession)
+                        .confirmedBy(lecturerAives)
+                        .finalScore(new BigDecimal("9.00"))
+                        .lecturerFeedback("Thí sinh trả lời xuất sắc cả câu hỏi chính lẫn câu hỏi phụ Bloom.")
+                        .build());
+            }
+
             return;
         }
 
@@ -75,38 +128,47 @@ public class DataInitializer implements CommandLineRunner {
         Role studentRole = roleRepository.findByRoleName(RoleEnum.STUDENT)
                 .orElseGet(() -> roleRepository.save(Role.builder().roleName(RoleEnum.STUDENT).build()));
 
+        String defaultPasswordHash = passwordEncoder.encode("Password@123");
+
         // 2. Tạo Users mẫu
         User admin = userRepository.save(User.builder()
                 .email("admin@aives.edu.vn")
-                .passwordHash("$2a$10$e8Z4J8qB7rN6r5Wf2o8M2.YF3k6.b0u8A1s8q9v0w1x2y3z4a5b6c")
+                .passwordHash(defaultPasswordHash)
                 .fullName("Quản trị viên Hệ thống")
                 .roles(Set.of(adminRole))
                 .build());
 
         User lecturer = userRepository.save(User.builder()
                 .email("gv.nguyen@fpt.edu.vn")
-                .passwordHash("$2a$10$e8Z4J8qB7rN6r5Wf2o8M2.YF3k6.b0u8A1s8q9v0w1x2y3z4a5b6c")
+                .passwordHash(defaultPasswordHash)
                 .fullName("ThS. Nguyễn Văn Giảng")
                 .roles(Set.of(lecturerRole))
                 .build());
 
+        User studentPhuc = userRepository.save(User.builder()
+                .email("phuctran5635@gmail.com")
+                .passwordHash(defaultPasswordHash)
+                .fullName("Trần Hoàng Phúc")
+                .roles(Set.of(studentRole))
+                .build());
+
         User student1 = userRepository.save(User.builder()
                 .email("an.tv.se170001@fpt.edu.vn")
-                .passwordHash("$2a$10$e8Z4J8qB7rN6r5Wf2o8M2.YF3k6.b0u8A1s8q9v0w1x2y3z4a5b6c")
+                .passwordHash(defaultPasswordHash)
                 .fullName("Trần Văn An")
                 .roles(Set.of(studentRole))
                 .build());
 
         User student2 = userRepository.save(User.builder()
                 .email("binh.lt.se170002@fpt.edu.vn")
-                .passwordHash("$2a$10$e8Z4J8qB7rN6r5Wf2o8M2.YF3k6.b0u8A1s8q9v0w1x2y3z4a5b6c")
+                .passwordHash(defaultPasswordHash)
                 .fullName("Lê Thị Bình")
                 .roles(Set.of(studentRole))
                 .build());
 
         User student3 = userRepository.save(User.builder()
                 .email("cuong.pm.se170003@fpt.edu.vn")
-                .passwordHash("$2a$10$e8Z4J8qB7rN6r5Wf2o8M2.YF3k6.b0u8A1s8q9v0w1x2y3z4a5b6c")
+                .passwordHash(defaultPasswordHash)
                 .fullName("Phạm Minh Cường")
                 .roles(Set.of(studentRole))
                 .build());

@@ -15,7 +15,7 @@ export default function App() {
 
   const getTargetPage = (role) => {
     if (role === 'ADMIN') return 'admin_home';
-    if (role === 'INSTRUCTOR') return 'lecturer_home';
+    if (role === 'INSTRUCTOR' || role === 'LECTURER') return 'lecturer_home';
     return 'student_home';
   };
 
@@ -30,6 +30,14 @@ export default function App() {
       setCurrentPage('login');
     }
     setMockUsersList(mockAuthService.getAllUsers());
+
+    const handleUnauthorized = () => {
+      setCurrentUser(null);
+      setCurrentPage('login');
+      showToast('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.');
+    };
+    window.addEventListener('aives-unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('aives-unauthorized', handleUnauthorized);
   }, []);
 
   const showToast = (msg) => {
@@ -40,7 +48,7 @@ export default function App() {
   const handleLoginSuccess = (user) => {
     setCurrentUser(user);
     setMockUsersList(mockAuthService.getAllUsers());
-    const roleTitle = user.role === 'ADMIN' ? 'Quản trị viên' : user.role === 'INSTRUCTOR' ? 'Thầy/Cô' : 'Thí sinh';
+    const roleTitle = user.role === 'ADMIN' ? 'Quản trị viên' : (user.role === 'INSTRUCTOR' || user.role === 'LECTURER') ? 'Thầy/Cô' : 'Thí sinh';
     showToast(`Chào mừng ${roleTitle} ${user.fullName || ''} đã đăng nhập thành công!`);
     setCurrentPage(getTargetPage(user.role));
   };

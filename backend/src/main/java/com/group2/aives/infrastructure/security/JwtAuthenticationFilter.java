@@ -33,11 +33,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String username = tokenProvider.getUsernameFromJwt(jwt);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                if (userDetails != null && userDetails.isEnabled()) {
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else if (userDetails != null && !userDetails.isEnabled()) {
+                    log.warn("Blocked request for deactivated user: {}", username);
+                }
             }
         } catch (Exception ex) {
             log.error("Could not set user authentication in security context", ex);

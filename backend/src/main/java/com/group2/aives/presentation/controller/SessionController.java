@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
@@ -40,12 +41,14 @@ public class SessionController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('LECTURER', 'ADMIN')")
     @Operation(summary = "Xếp lịch thi cho một sinh viên vào kỳ thi")
     public ResponseEntity<SessionResponse> createSession(@Valid @RequestBody SessionRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(sessionService.createSession(request));
     }
 
     @PatchMapping("/{sessionId}/grade")
+    @PreAuthorize("hasAnyRole('LECTURER', 'ADMIN')")
     @Operation(summary = "Giảng viên chốt điểm và nhận xét cuối cùng (Human-in-the-loop)")
     public ResponseEntity<SessionResponse> finalizeGrade(
             @PathVariable Long sessionId,
@@ -54,6 +57,7 @@ public class SessionController {
     }
 
     @DeleteMapping("/{sessionId}")
+    @PreAuthorize("hasAnyRole('LECTURER', 'ADMIN')")
     @Operation(summary = "Xóa ca thi")
     public ResponseEntity<Void> deleteSession(@PathVariable Long sessionId) {
         sessionService.deleteSession(sessionId);
@@ -61,6 +65,7 @@ public class SessionController {
     }
 
     @GetMapping("/{sessionId}/transcript.csv")
+    @PreAuthorize("hasAnyRole('LECTURER', 'ADMIN')")
     @Operation(summary = "Xuất transcript hội thoại của ca thi ra file CSV")
     public ResponseEntity<byte[]> exportTranscript(@PathVariable Long sessionId) {
         String csv = sessionService.exportTranscriptCsv(sessionId);

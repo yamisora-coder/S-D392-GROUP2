@@ -27,6 +27,10 @@ public class SessionResponse {
     private String lecturerFeedback;
 
     // Helper compatibility aliases
+    public Long getSessionId() {
+        return id;
+    }
+
     public String getSubjectName() {
         return courseName;
     }

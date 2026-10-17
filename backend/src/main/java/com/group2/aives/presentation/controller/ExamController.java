@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,18 +40,21 @@ public class ExamController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('LECTURER', 'ADMIN')")
     @Operation(summary = "Tạo kỳ thi mới")
     public ResponseEntity<ExamResponse> createExam(@Valid @RequestBody ExamRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(examService.createExam(request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('LECTURER', 'ADMIN')")
     @Operation(summary = "Cập nhật kỳ thi")
     public ResponseEntity<ExamResponse> updateExam(@PathVariable Long id, @Valid @RequestBody ExamRequest request) {
         return ResponseEntity.ok(examService.updateExam(id, request));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('LECTURER', 'ADMIN')")
     @Operation(summary = "Xóa kỳ thi")
     public ResponseEntity<Void> deleteExam(@PathVariable Long id) {
         examService.deleteExam(id);

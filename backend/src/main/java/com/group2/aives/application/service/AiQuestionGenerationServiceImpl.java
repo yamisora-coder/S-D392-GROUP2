@@ -179,7 +179,8 @@ public class AiQuestionGenerationServiceImpl implements AiQuestionGenerationServ
                                                   BloomLevel defaultBloomLevel) {
         List<Question> result = new ArrayList<>();
         try {
-            JsonNode root = objectMapper.readTree(aiContent);
+            String cleanedJson = stripCodeFence(aiContent);
+            JsonNode root = objectMapper.readTree(cleanedJson);
             JsonNode questionsNode = root.path("questions");
 
             if (!questionsNode.isArray()) {
@@ -281,5 +282,14 @@ public class AiQuestionGenerationServiceImpl implements AiQuestionGenerationServ
             case EVALUATE -> "EVALUATE (Đánh giá - phán xét, lựa chọn)";
             case CREATE -> "CREATE (Sáng tạo - thiết kế, xây dựng mới)";
         };
+    }
+
+    private static String stripCodeFence(String content) {
+        if (content == null) return "";
+        String s = content.trim();
+        if (s.startsWith("```")) {
+            s = s.replaceFirst("^```(?:json)?\\s*", "").replaceFirst("\\s*```$", "");
+        }
+        return s.trim();
     }
 }

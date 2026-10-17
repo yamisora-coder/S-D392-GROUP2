@@ -184,10 +184,9 @@ public class AiGradingServiceImpl implements AiGradingService {
     }
 
     private boolean canGrade(User grader, ExamSession session) {
-        if (hasRole(grader, RoleEnum.ADMIN)) {
+        if (hasRole(grader, RoleEnum.ADMIN) || hasRole(grader, RoleEnum.LECTURER)) {
             return true;
         }
-        // Giảng viên chỉ chấm ca thi thuộc môn học mình phụ trách
         User manager = session.getExam() != null && session.getExam().getCourse() != null
                 ? session.getExam().getCourse().getManagedBy()
                 : null;

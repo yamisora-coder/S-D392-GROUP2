@@ -66,4 +66,13 @@ public class AiInterviewController {
     public ResponseEntity<List<InterviewTurnResponse>> getSessionTurns(@PathVariable Long sessionId) {
         return ResponseEntity.ok(aiInterviewService.getSessionTurns(sessionId));
     }
+
+    @PostMapping("/sessions/{sessionId}/finish")
+    @Operation(
+        summary = "Kết thúc ca thi vấn đáp AI và cập nhật trạng thái COMPLETED",
+        description = "Được gọi khi sinh viên trả lời xong tất cả các câu hỏi hoặc nộp bài sớm."
+    )
+    public ResponseEntity<InterviewTurnResponse> finishSession(@PathVariable Long sessionId) {
+        return ResponseEntity.ok(aiInterviewService.finishSession(sessionId));
+    }
 }
