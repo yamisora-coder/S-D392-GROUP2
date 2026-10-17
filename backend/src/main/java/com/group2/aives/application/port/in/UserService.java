@@ -14,4 +14,5 @@ public interface UserService {
     UserResponse updateUser(Long id, UserRequest request);
     void deleteUser(Long id);
     UserResponse toggleActive(Long id);
+    UserResponse updateUserRole(String idOrCode, RoleEnum role);
 }

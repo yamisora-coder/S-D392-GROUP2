@@ -75,7 +75,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (!request.getPassword().equals(request.getConfirmPassword())) {
+        if (request.getConfirmPassword() != null && !request.getConfirmPassword().isBlank()
+                && !request.getPassword().equals(request.getConfirmPassword())) {
             throw new BadRequestException("Mật khẩu xác nhận không khớp với mật khẩu đã nhập");
         }
 
@@ -84,12 +85,13 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Email này đã được sử dụng trong hệ thống: " + email);
         }
 
-        // Lấy vai trò mặc định STUDENT
-        Role studentRole = roleRepository.findByRoleName(RoleEnum.STUDENT)
-                .orElseGet(() -> roleRepository.save(Role.builder().roleName(RoleEnum.STUDENT).build()));
+        // Lấy vai trò (mặc định STUDENT nếu không truyền)
+        RoleEnum targetRoleEnum = request.getRole() != null ? request.getRole() : RoleEnum.STUDENT;
+        Role targetRole = roleRepository.findByRoleName(targetRoleEnum)
+                .orElseGet(() -> roleRepository.save(Role.builder().roleName(targetRoleEnum).build()));
 
         Set<Role> roles = new HashSet<>();
-        roles.add(studentRole);
+        roles.add(targetRole);
 
         User user = User.builder()
                 .fullName(request.getFullName().trim())

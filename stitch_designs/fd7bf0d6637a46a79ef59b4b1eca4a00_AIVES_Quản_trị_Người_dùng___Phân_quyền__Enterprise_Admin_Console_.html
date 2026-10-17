@@ -1,0 +1,746 @@
+<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter,+sans-serif:wght@100..900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-container":"#e6eeff","on-primary":"#ffffff","error":"#ba1a1a","tertiary-fixed-dim":"#94ccff","tertiary":"#004871","on-secondary-container":"#57657a","inverse-primary":"#b7c4ff","on-secondary-fixed":"#0d1c2e","inverse-surface":"#233144","inverse-on-surface":"#eaf1ff","surface-variant":"#d5e3fc","on-surface-variant":"#434655","tertiary-container":"#006195","on-error":"#ffffff","surface-container-highest":"#d5e3fc","secondary-fixed":"#d5e3fc","on-tertiary-fixed":"#001d32","secondary":"#515f74","surface-container-high":"#dce9ff","outline-variant":"#c4c5d7","on-primary-fixed":"#001551","on-secondary":"#ffffff","on-background":"#0d1c2e","secondary-container":"#d5e3fc","on-primary-container":"#cad3ff","surface-tint":"#2151da","primary-fixed-dim":"#b7c4ff","on-tertiary-fixed-variant":"#004b74","surface-container-lowest":"#ffffff","on-tertiary":"#ffffff","on-tertiary-container":"#b3d9ff","surface-dim":"#ccdbf3","surface-bright":"#f8f9ff","background":"#f8f9ff","surface-container-low":"#eff4ff","on-error-container":"#93000a","on-primary-fixed-variant":"#0039b5","secondary-fixed-dim":"#b9c7df","surface":"#f8f9ff","primary":"#0037b0","on-surface":"#0d1c2e","on-secondary-fixed-variant":"#3a485b","outline":"#747686","tertiary-fixed":"#cde5ff","error-container":"#ffdad6","primary-container":"#1d4ed8","primary-fixed":"#dce1ff"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"base":"0.25rem","space-xl":"2rem","space-sm":"0.5rem","space-xs":"0.25rem","space-md":"1rem","space-lg":"1.5rem"},fontFamily:{"caption":["\"Inter, sans-serif\""],"body-md":["\"Inter, sans-serif\""],"timer-mono":["\"ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace\""],"headline-md":["\"Inter, sans-serif\""],"headline-lg":["\"Inter, sans-serif\""],"label-md":["\"Inter, sans-serif\""],"body-sm":["\"Inter, sans-serif\""]},fontSize:{"caption":["12px",{"lineHeight":"16px","fontWeight":"500"}],"body-md":["15px",{"lineHeight":"22px","fontWeight":"400"}],"timer-mono":["22px",{"lineHeight":"28px","fontWeight":"700"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"600"}],"headline-lg":["28px",{"lineHeight":"36px","fontWeight":"700"}],"label-md":["14px",{"lineHeight":"20px","fontWeight":"500"}],"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}]}}}}</script></head><body class="bg-background font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-white text-slate-800 z-50 flex flex-col justify-between border-r border-slate-200"><div class="flex flex-col"><div class="h-16 px-space-lg flex items-center justify-between border-b border-slate-200"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center"><span class="material-symbols-outlined text-white text-[20px]">verified_user</span></div><div class="flex flex-col"><span class="font-headline-md text-label-md font-bold tracking-tight text-slate-900">AIVES Admin</span><span class="font-caption text-caption text-slate-500 uppercase tracking-wider">Cloud Console</span></div></div><div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div></div><div class="px-space-md py-space-sm"><div class="font-caption text-xs font-semibold text-slate-400 px-space-sm py-space-xs uppercase tracking-wider">Hệ thống quản trị</div></div><nav class="flex flex-col gap-base px-space-sm" data-active-classes="bg-blue-50 text-blue-700 font-medium rounded-lg border border-blue-100"><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg bg-blue-50 text-blue-700 font-medium border border-blue-100 transition-all" data-path="quan-tri-nguoi-dung" href="#"><span class="material-symbols-outlined text-[20px] text-blue-700">group</span><span class="font-label-md text-label-md">Quản trị Người dùng</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all" data-path="cau-hinh-ai-va-he-thong" href="#"><span class="material-symbols-outlined text-[20px] text-slate-400">memory</span><span class="font-label-md text-label-md">Cấu hình AI &amp; Hệ thống</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all" data-path="nhat-ky-va-kiem-toan" href="#"><span class="material-symbols-outlined text-[20px] text-slate-400">history_edu</span><span class="font-label-md text-label-md">Nhật ký &amp; Kiểm toán</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all" data-path="cai-dat-chung" href="#"><span class="material-symbols-outlined text-[20px] text-slate-400">settings</span><span class="font-label-md text-label-md">Cài đặt chung</span></a></nav></div><div class="p-space-md border-t border-slate-200 flex flex-col gap-space-md"><div class="bg-slate-50 border border-slate-200/80 rounded-lg p-space-sm flex items-center justify-between text-slate-700"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="font-caption text-caption text-slate-600 font-medium">Cluster Online</span></div><span class="font-caption text-caption text-emerald-700 font-bold">99.98% SLA</span></div><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold"><span class="material-symbols-outlined text-blue-700 text-[18px]">person</span></div><div class="flex flex-col min-w-0 flex-1"><span class="font-label-md text-body-sm text-slate-900 font-medium truncate">ThS. Lê Hoàng Long</span><span class="font-caption text-caption text-slate-500 truncate">Quản trị viên Hệ thống</span></div></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/90 backdrop-blur-xl border-b border-outline-variant/30 z-40"><div class="h-16 w-full px-space-lg flex items-center justify-between"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-lg border border-outline-variant/40"><span class="material-symbols-outlined text-tertiary-container text-[18px]">dns</span><span class="font-label-md text-body-sm text-on-surface font-medium">Production - sg-node-01</span><span class="material-symbols-outlined text-outline text-[18px]">expand_more</span></div></div><div class="flex items-center gap-space-md"><button class="flex items-center gap-space-xs px-space-sm py-space-xs rounded-lg border border-outline-variant/40 bg-surface text-on-surface hover:bg-surface-container-low transition-colors" type="button"><span class="material-symbols-outlined text-secondary text-[18px]">translate</span><span class="font-label-md text-body-sm font-semibold">VIE</span></button><button class="relative p-space-xs rounded-lg text-secondary hover:bg-surface-container-low transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span></button><div class="h-6 w-px bg-outline-variant/40"></div><div class="flex items-center gap-space-xs cursor-pointer"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><span class="material-symbols-outlined text-outline text-[18px]">keyboard_arrow_down</span></div></div></div></header><main class="w-full pt-16 bg-background min-h-screen"><div class="flex flex-col w-full bg-slate-50 min-h-[calc(100vh-4rem)] p-6 gap-6 font-sans text-slate-800">
+<!-- Top Page Header -->
+<header class="flex flex-col gap-4">
+<!-- Breadcrumb -->
+<nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+<span class="">HỆ THỐNG QUẢN TRỊ</span>
+<span class="text-slate-300">/</span>
+<span class="text-blue-700">QUẢN TRỊ NGƯỜI DÙNG &amp; PHÂN QUYỀN</span>
+</nav>
+<!-- Main Header Action Row -->
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div class="flex flex-col">
+<h1 class="text-2xl font-bold tracking-tight text-slate-900">Quản lý Người dùng &amp; Phân quyền</h1>
+<p class="text-sm text-slate-500 mt-1">Quản lý danh sách tài khoản giảng viên, sinh viên, cán bộ khảo thí và phân cấp khoa/bộ môn.</p>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center gap-2.5">
+<button class="border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 h-9 px-3.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px] text-slate-500">download</span>
+<span class="">Xuất danh sách</span>
+</button>
+<button class="border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 h-9 px-3.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px] text-slate-500">upload_file</span>
+<span class="">Import Excel (.xlsx)</span>
+</button>
+<button class="bg-blue-600 hover:bg-blue-700 text-white h-9 px-4 rounded-lg text-sm font-medium shadow-sm flex items-center gap-2 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span class="">Thêm người dùng mới</span>
+</button>
+</div>
+</div>
+</header>
+<!-- 1. Top Metric Cards (Compact Grid 4 columns) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Card 1 -->
+<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">TỔNG SỐ NGƯỜI DÙNG</span>
+<span class="bg-blue-50 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded flex items-center gap-1">+120 tuần này</span>
+</div>
+<div class="mt-3">
+<div class="text-2xl font-bold tracking-tight text-slate-900">1,842</div>
+<div class="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+<span class="">4 vai trò hoạt động</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">GIẢNG VIÊN &amp; CHẤM THI</span>
+<span class="bg-emerald-50 text-emerald-700 text-xs font-semibold px-2 py-0.5 rounded flex items-center gap-1">100% cấp quyền</span>
+</div>
+<div class="mt-3">
+<div class="text-2xl font-bold tracking-tight text-slate-900">48</div>
+<div class="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span class="">12 bộ môn trực thuộc</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">SINH VIÊN ĐỦ ĐIỀU KIỆN</span>
+<span class="bg-emerald-50 text-emerald-700 text-xs font-semibold px-2 py-0.5 rounded flex items-center gap-1">Active Ready</span>
+</div>
+<div class="mt-3">
+<div class="text-2xl font-bold tracking-tight text-slate-900">1,780</div>
+<div class="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span class="">Đã xác thực dữ liệu sinh trắc học</span>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">ADMIN &amp; HỘI ĐỒNG KHẢO THÍ</span>
+<span class="bg-indigo-50 text-indigo-700 text-xs font-semibold px-2 py-0.5 rounded flex items-center gap-1">Toàn quyền / Audit</span>
+</div>
+<div class="mt-3">
+<div class="text-2xl font-bold tracking-tight text-slate-900">14</div>
+<div class="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+<span class="">Bảo mật 2FA bắt buộc</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 2. The Main User Data Table -->
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col overflow-hidden">
+<!-- Top Filter Toolbar -->
+<div class="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-wrap items-center justify-between gap-4">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-2.5 text-slate-400 text-[18px]">search</span>
+<input class="w-80 h-9 text-sm bg-white border border-slate-200 rounded-lg pl-8 pr-3 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600" placeholder="Tìm kiếm theo Họ tên, Email, MSSV/MSGV..." type="text">
+</div>
+<div class="flex items-center flex-wrap gap-2.5">
+<select class="h-9 text-sm border border-slate-200 rounded-lg bg-white px-3 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 cursor-pointer">
+<option>Vai trò: Tất cả</option>
+<option>Admin Toàn quyền</option>
+<option>Admin Hệ thống</option>
+<option>Admin Bộ môn</option>
+<option>Giảng viên Chấm thi</option>
+<option>Ban Khảo thí &amp; ĐBCL</option>
+<option>Sinh viên Thí sinh</option>
+</select>
+<select class="h-9 text-sm border border-slate-200 rounded-lg bg-white px-3 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 cursor-pointer">
+<option>Khoa / Bộ môn: Tất cả</option>
+<option>Khoa KH&amp;KT Máy tính</option>
+<option>Khoa Kỹ thuật Phần mềm</option>
+<option>Khoa An toàn Thông tin</option>
+<option>Khoa Hệ thống Thông tin</option>
+<option>Phòng Khảo thí &amp; ĐBCL</option>
+</select>
+<select class="h-9 text-sm border border-slate-200 rounded-lg bg-white px-3 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 cursor-pointer">
+<option>Trạng thái: Tất cả</option>
+<option>Đang hoạt động</option>
+<option>Chưa kích hoạt</option>
+<option>Tạm khóa</option>
+</select>
+<button class="h-9 w-9 flex items-center justify-center border border-slate-200 rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition-colors shadow-sm" title="Làm mới" type="button">
+<span class="material-symbols-outlined text-[18px]">refresh</span>
+</button>
+</div>
+</div>
+<!-- Bulk Action Toolbar Row -->
+<div class="px-4 py-2.5 bg-slate-50/80 border-b border-slate-200 flex flex-wrap items-center justify-between text-xs text-slate-600 gap-3">
+<div class="flex items-center gap-2.5">
+<input class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" id="select-all" type="checkbox">
+<label class="cursor-pointer font-medium text-slate-700 select-none" for="select-all">
+          Chọn tất cả trên trang này (<span class="font-semibold text-blue-700" id="selected-count">0</span> thí sinh/cán bộ được chọn)
+        </label>
+</div>
+<div class="flex items-center gap-2">
+<button class="border border-slate-200 bg-white px-3 py-1.5 rounded-md hover:bg-slate-50 text-slate-700 font-medium transition-colors shadow-xs flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[15px] text-slate-500">manage_accounts</span>
+<span class="">Đổi vai trò</span>
+</button>
+<button class="border border-slate-200 bg-white px-3 py-1.5 rounded-md hover:bg-slate-50 text-slate-700 font-medium transition-colors shadow-xs flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[15px] text-slate-500">mark_email_read</span>
+<span class="">Gửi lại mã kích hoạt</span>
+</button>
+<button class="border border-rose-200 bg-rose-50 text-rose-700 px-3 py-1.5 rounded-md font-medium hover:bg-rose-100 transition-colors flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[15px]">lock</span>
+<span class="">Khóa tài khoản</span>
+</button>
+</div>
+</div>
+<!-- High-Density HTML Table Container -->
+<div class="w-full overflow-x-auto">
+<table class="w-full text-sm text-left text-slate-600 whitespace-nowrap">
+<thead class="bg-slate-50 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200 select-none">
+<tr>
+<th class="w-10 px-4 py-3 text-center">
+<span class="sr-only">Checkbox</span>
+</th>
+<th class="px-4 py-3">NGƯỜI DÙNG</th>
+<th class="px-4 py-3">VAI TRÒ</th>
+<th class="px-4 py-3">BỘ MÔN / KHOA</th>
+<th class="px-4 py-3">KỲ THI PHỤ TRÁCH / LỚP HỌC</th>
+<th class="px-4 py-3">TRẠNG THÁI</th>
+<th class="px-4 py-3">2FA</th>
+<th class="text-right px-4 py-3">THAO TÁC</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 font-normal">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/80 transition-colors group">
+<td class="px-4 py-2.5 text-center">
+<input class="row-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" type="checkbox">
+</td>
+<td class="px-4 py-2.5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-xs shrink-0">
+                  NA
+                </div>
+<div class="flex flex-col">
+<span class="font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">TS. Nguyễn Văn A</span>
+<span class="text-xs text-slate-500">nguyen.vana@hcmut.edu.vn</span>
+</div>
+<span class="text-[11px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">GV-KTPM-018</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200/60">
+                Admin Bộ môn
+              </span>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs">
+<span class="font-medium text-slate-800">Khoa KH&amp;KT Máy tính</span>
+<span class="text-slate-400">Bộ môn Kỹ thuật Phần mềm</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs max-w-xs truncate">
+<span class="font-medium text-slate-800 truncate">Kiến trúc Máy tính (CO2003)</span>
+<span class="text-slate-500 truncate">Hội đồng thẩm định RAG</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                Đang hoạt động
+              </span>
+</td>
+<td class="px-4 py-2.5 text-xs font-mono">
+<span class="inline-flex items-center gap-1 text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 font-sans">
+<span class="material-symbols-outlined text-[14px] text-blue-600">verified_user</span>
+                FIDO2 Active
+              </span>
+</td>
+<td class="px-4 py-2.5 text-right">
+<button class="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/80 transition-colors group">
+<td class="px-4 py-2.5 text-center">
+<input class="row-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" type="checkbox">
+</td>
+<td class="px-4 py-2.5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center font-bold text-xs shrink-0">
+                  TB
+                </div>
+<div class="flex flex-col">
+<span class="font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">ThS. Trần Thị B</span>
+<span class="text-xs text-slate-500">tran.thib@hcmut.edu.vn</span>
+</div>
+<span class="text-[11px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">GV-KTMT-042</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-300">
+                Giảng viên Chấm thi
+              </span>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs">
+<span class="font-medium text-slate-800">Khoa KH&amp;KT Máy tính</span>
+<span class="text-slate-400">Bộ môn Kỹ thuật Máy tính</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs max-w-xs truncate">
+<span class="font-medium text-slate-800 truncate">Hệ điều hành nâng cao (CO2011)</span>
+<span class="text-slate-500 truncate">4 Lớp thực hành HK241</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                Đang hoạt động
+              </span>
+</td>
+<td class="px-4 py-2.5 text-xs">
+<span class="inline-flex items-center gap-1 text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+<span class="material-symbols-outlined text-[14px] text-slate-600">smartphone</span>
+                Authenticator
+              </span>
+</td>
+<td class="px-4 py-2.5 text-right">
+<button class="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/80 transition-colors group">
+<td class="px-4 py-2.5 text-center">
+<input class="row-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" type="checkbox">
+</td>
+<td class="px-4 py-2.5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center font-bold text-xs shrink-0">
+                  HĐ
+                </div>
+<div class="flex flex-col">
+<span class="font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">TS. Hoàng Minh Đạt</span>
+<span class="text-xs text-slate-500">dat.hoang@hcmut.edu.vn</span>
+</div>
+<span class="text-[11px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">KT-DBCL-005</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                Ban Khảo thí &amp; ĐBCL
+              </span>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs">
+<span class="font-medium text-slate-800">Phòng Khảo thí &amp; ĐBCL</span>
+<span class="text-slate-400">Đơn vị Đảm bảo chất lượng</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs max-w-xs truncate">
+<span class="font-medium text-slate-800 truncate">Toàn trường - Học kỳ 241</span>
+<span class="text-slate-500 truncate">Giám sát 12 phòng thi Live</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                Đang hoạt động
+              </span>
+</td>
+<td class="px-4 py-2.5 text-xs">
+<span class="inline-flex items-center gap-1 text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+<span class="material-symbols-outlined text-[14px] text-blue-600">verified_user</span>
+                FIDO2 Active
+              </span>
+</td>
+<td class="px-4 py-2.5 text-right">
+<button class="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50/80 transition-colors group">
+<td class="px-4 py-2.5 text-center">
+<input class="row-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" type="checkbox">
+</td>
+<td class="px-4 py-2.5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-cyan-100 text-cyan-800 flex items-center justify-center font-bold text-xs shrink-0">
+                  LT
+                </div>
+<div class="flex flex-col">
+<span class="font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">Lê Anh Tuấn</span>
+<span class="text-xs text-slate-500">tuan.leanh@student.hcmut.edu.vn</span>
+</div>
+<span class="text-[11px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">2110942 (SE170123)</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-50 text-cyan-700 border border-cyan-200">
+                Sinh viên Thí sinh
+              </span>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs">
+<span class="font-medium text-slate-800">Khoa Kỹ thuật Phần mềm</span>
+<span class="text-slate-400">Lớp K21-CNTT02</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs max-w-xs truncate">
+<span class="font-medium text-slate-800 truncate">5 Môn thi Cuối kỳ HK241</span>
+<span class="text-slate-500 truncate">Đã nộp cam kết liêm chính</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                Đang hoạt động
+              </span>
+</td>
+<td class="px-4 py-2.5 text-xs">
+<span class="inline-flex items-center gap-1 text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+<span class="material-symbols-outlined text-[14px] text-slate-500">mail</span>
+                Email OTP
+              </span>
+</td>
+<td class="px-4 py-2.5 text-right">
+<button class="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-slate-50/80 transition-colors group bg-rose-50/20">
+<td class="px-4 py-2.5 text-center">
+<input class="row-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" type="checkbox">
+</td>
+<td class="px-4 py-2.5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-rose-100 text-rose-800 flex items-center justify-center font-bold text-xs shrink-0">
+                  PT
+                </div>
+<div class="flex flex-col">
+<span class="font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">Phạm Thuỳ Trang</span>
+<span class="text-xs text-slate-500">trang.pham@student.hcmut.edu.vn</span>
+</div>
+<span class="text-[11px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">2011389</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-50 text-cyan-700 border border-cyan-200">
+                Sinh viên Thí sinh
+              </span>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs">
+<span class="font-medium text-slate-800">Khoa An toàn Thông tin</span>
+<span class="text-slate-400">Lớp K20-ATTT01</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs max-w-xs truncate">
+<span class="font-semibold text-rose-600 truncate">Đình chỉ thi HK241</span>
+<span class="text-rose-500 text-[11px] truncate">Vi phạm quy chế thi (Mã #VIOL-092)</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
+<span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+                Tạm khóa
+              </span>
+</td>
+<td class="px-4 py-2.5 text-xs text-slate-400">
+<span class="inline-flex items-center gap-1 text-slate-400 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+<span class="material-symbols-outlined text-[14px]">close</span>
+                Không kích hoạt
+              </span>
+</td>
+<td class="px-4 py-2.5 text-right">
+<button class="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="hover:bg-slate-50/80 transition-colors group">
+<td class="px-4 py-2.5 text-center">
+<input class="row-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" type="checkbox">
+</td>
+<td class="px-4 py-2.5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                  VK
+                </div>
+<div class="flex flex-col">
+<span class="font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">PGS.TS. Vũ Đình Khang</span>
+<span class="text-xs text-slate-500">khang.vudinh@hcmut.edu.vn</span>
+</div>
+<span class="text-[11px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">SYS-ADMIN-001</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-white border border-slate-900 shadow-xs">
+                Admin Toàn quyền
+              </span>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs">
+<span class="font-medium text-slate-800">Trung tâm Dữ liệu &amp; CNTT</span>
+<span class="text-slate-400">Hội đồng Quản trị AIVES</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs max-w-xs truncate">
+<span class="font-medium text-slate-800 truncate">Toàn quyền hạ tầng &amp; AI Engine</span>
+<span class="text-slate-500 truncate">Root cluster node access</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                Đang hoạt động
+              </span>
+</td>
+<td class="px-4 py-2.5 text-xs">
+<span class="inline-flex items-center gap-1 text-slate-900 bg-amber-50 text-amber-800 px-2 py-0.5 rounded border border-amber-200 font-medium">
+<span class="material-symbols-outlined text-[14px] text-amber-700">key</span>
+                Hardware Key
+              </span>
+</td>
+<td class="px-4 py-2.5 text-right">
+<button class="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 7 -->
+<tr class="hover:bg-slate-50/80 transition-colors group">
+<td class="px-4 py-2.5 text-center">
+<input class="row-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" type="checkbox">
+</td>
+<td class="px-4 py-2.5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs shrink-0">
+                  MĐ
+                </div>
+<div class="flex flex-col">
+<span class="font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">Đặng Minh Đức</span>
+<span class="text-xs text-slate-500">duc.dangminh@student.hcmut.edu.vn</span>
+</div>
+<span class="text-[11px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">2210512</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-50 text-cyan-700 border border-cyan-200">
+                Sinh viên Thí sinh
+              </span>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs">
+<span class="font-medium text-slate-800">Khoa Hệ thống Thông tin</span>
+<span class="text-slate-400">Lớp K22-HTTT01</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs max-w-xs truncate">
+<span class="font-medium text-slate-800 truncate">Cơ sở Dữ liệu (IT2002)</span>
+<span class="text-amber-600 truncate">Chờ thu thập mẫu sinh trắc</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                Chưa kích hoạt
+              </span>
+</td>
+<td class="px-4 py-2.5 text-xs text-slate-400">
+<span class="inline-flex items-center gap-1 text-slate-400 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+<span class="material-symbols-outlined text-[14px]">hourglass_empty</span>
+                Chưa kích hoạt
+              </span>
+</td>
+<td class="px-4 py-2.5 text-right">
+<button class="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 8 -->
+<tr class="hover:bg-slate-50/80 transition-colors group">
+<td class="px-4 py-2.5 text-center">
+<input class="row-checkbox rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer" type="checkbox">
+</td>
+<td class="px-4 py-2.5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                  HL
+                </div>
+<div class="flex flex-col">
+<span class="font-semibold text-slate-900 group-hover:text-blue-700 transition-colors">ThS. Lê Hoàng Long</span>
+<span class="text-xs text-slate-500">long.lehoang@hcmut.edu.vn</span>
+</div>
+<span class="text-[11px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">SYS-ADMIN-004</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-white border border-slate-900 shadow-xs">
+                Admin Hệ thống
+              </span>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs">
+<span class="font-medium text-slate-800">Quản trị viên Trung tâm Khảo thí</span>
+<span class="text-slate-400">Node Operator AIVES</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<div class="flex flex-col text-xs max-w-xs truncate">
+<span class="font-medium text-slate-800 truncate">Cấu hình tham số &amp; Kiểm toán hệ thống</span>
+<span class="text-slate-500 truncate">Chính sách bảo mật ISO 27001</span>
+</div>
+</td>
+<td class="px-4 py-2.5">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                Đang hoạt động
+              </span>
+</td>
+<td class="px-4 py-2.5 text-xs">
+<span class="inline-flex items-center gap-1 text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+<span class="material-symbols-outlined text-[14px] text-blue-600">verified_user</span>
+                FIDO2 Active
+              </span>
+</td>
+<td class="px-4 py-2.5 text-right">
+<button class="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer & Pagination -->
+<div class="border-t border-slate-200 p-4 flex flex-wrap justify-between items-center bg-white rounded-b-xl gap-4 text-xs">
+<div class="text-slate-500 font-medium">
+        Hiển thị <span class="font-semibold text-slate-700">1 - 8</span> trên tổng số <span class="font-semibold text-slate-700">1,842</span> người dùng (Trang 1 / 231)
+      </div>
+<nav aria-label="Pagination" class="flex items-center gap-1">
+<button class="px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-300 cursor-not-allowed font-medium flex items-center gap-1" disabled="" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+<span class="">Trước</span>
+</button>
+<button class="w-8 h-8 rounded-md bg-blue-600 text-white font-semibold flex items-center justify-center shadow-xs" type="button">1</button>
+<button class="w-8 h-8 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-medium flex items-center justify-center transition-colors" type="button">2</button>
+<button class="w-8 h-8 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-medium flex items-center justify-center transition-colors" type="button">3</button>
+<span class="w-8 h-8 flex items-center justify-center text-slate-400 font-bold">...</span>
+<button class="w-8 h-8 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-medium flex items-center justify-center transition-colors" type="button">231</button>
+<button class="px-2.5 py-1.5 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-medium flex items-center gap-1 transition-colors shadow-xs" type="button">
+<span class="">Sau</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</nav>
+</div>
+</div>
+<!-- 3. System Integrations (Compact 3-column section below) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Card 1 -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600 text-[20px]">account_tree</span>
+<h2 class="text-sm font-bold text-slate-900 tracking-tight">Phân cấp Khoa &amp; Bộ môn</h2>
+</div>
+<p class="text-xs text-slate-500 leading-relaxed">
+          Chỉ định Trưởng bộ môn duyệt quyền sinh đề tự động bằng RAG và thẩm định khiếu nại.
+        </p>
+<div class="divide-y divide-slate-100 border border-slate-100 rounded-lg overflow-hidden bg-slate-50/50 mt-1">
+<div class="flex items-center justify-between px-3 py-2 text-xs">
+<span class="font-medium text-slate-700">Khoa KH&amp;KT Máy tính</span>
+<span class="font-mono bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-600 font-semibold">18 GV</span>
+</div>
+<div class="flex items-center justify-between px-3 py-2 text-xs">
+<span class="font-medium text-slate-700">Khoa Kỹ thuật Phần mềm</span>
+<span class="font-mono bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-600 font-semibold">14 GV</span>
+</div>
+<div class="flex items-center justify-between px-3 py-2 text-xs">
+<span class="font-medium text-slate-700">Khoa An toàn Thông tin</span>
+<span class="font-mono bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-600 font-semibold">16 GV</span>
+</div>
+</div>
+</div>
+<div class="pt-4 mt-2">
+<a class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors" href="#">
+<span class="">Xem cây phân cấp tổ chức</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-indigo-600 text-[20px]">security</span>
+<h2 class="text-sm font-bold text-slate-900 tracking-tight">Tiêu chuẩn Xác thực 2FA / FIDO2</h2>
+</div>
+<p class="text-xs text-slate-500 leading-relaxed">
+          Bắt buộc xác thực 2 lớp qua Hardware Key/Authenticator App đối với Giảng viên và Quản trị viên.
+        </p>
+<div class="bg-slate-50 border border-slate-200 rounded-lg p-3 flex flex-col gap-2">
+<div class="flex items-center justify-between text-xs">
+<span class="text-slate-600 font-medium">Tỷ lệ kích hoạt 2FA Cán bộ:</span>
+<span class="font-bold text-emerald-700">96.8%</span>
+</div>
+<div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+<div class="bg-emerald-500 h-1.5 rounded-full" style="width: 96.8%"></div>
+</div>
+<div class="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+<span class="">Hết hạn phiên làm việc:</span>
+<span class="font-mono font-medium text-slate-700">30 phút</span>
+</div>
+</div>
+</div>
+<div class="pt-3">
+<div class="flex items-start gap-2 bg-amber-50 border border-amber-200/80 rounded-lg p-2.5 text-[11px] text-amber-800">
+<span class="material-symbols-outlined text-[16px] text-amber-600 shrink-0 mt-0.5">info</span>
+<span class="">Yêu cầu đăng xuất tất cả phiên khi thay đổi quyền hạn.</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600 text-[20px]">sync</span>
+<h2 class="text-sm font-bold text-slate-900 tracking-tight">Đồng bộ Hệ thống SIS / LMS</h2>
+</div>
+<p class="text-xs text-slate-500 leading-relaxed">
+          Đồng bộ tự động danh sách phòng thi &amp; tài khoản từ Cổng Đào tạo Đại học qua API thời gian thực.
+        </p>
+<div class="bg-slate-50 border border-slate-200 rounded-lg p-3 flex flex-col gap-1.5">
+<div class="flex items-center gap-2 text-xs text-slate-700 font-medium">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="">API Gateway Active (v2.4)</span>
+</div>
+<p class="text-[11px] text-slate-500">
+            Đồng bộ gần nhất lúc <span class="font-semibold text-slate-700">04:30 AM</span> • 1,780 sinh viên khớp mã định danh.
+          </p>
+</div>
+</div>
+<div class="pt-4">
+<button class="bg-blue-600 hover:bg-blue-700 text-white w-full h-9 rounded-lg font-medium text-xs flex items-center justify-center gap-2 transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px]">sync</span>
+<span class="">Bắt đầu đồng bộ thủ công ngay</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+    const selectedCountSpan = document.getElementById('selected-count');
+
+    function updateCount() {
+      let count = 0;
+      rowCheckboxes.forEach(cb => {
+        if (cb.checked) count++;
+      });
+      if (selectedCountSpan) {
+        selectedCountSpan.textContent = count;
+      }
+      if (selectAllCheckbox) {
+        selectAllCheckbox.checked = count === rowCheckboxes.length && rowCheckboxes.length > 0;
+        selectAllCheckbox.indeterminate = count > 0 && count < rowCheckboxes.length;
+      }
+    }
+
+    if (selectAllCheckbox) {
+      selectAllCheckbox.addEventListener('change', function(e) {
+        const checked = e.target.checked;
+        rowCheckboxes.forEach(cb => {
+          cb.checked = checked;
+        });
+        if (selectedCountSpan) {
+          selectedCountSpan.textContent = checked ? rowCheckboxes.length : 0;
+        }
+      });
+    }
+
+    rowCheckboxes.forEach(cb => {
+      cb.addEventListener('change', updateCount);
+    });
+  })();
+</script></main></div>
+
+</body></html>

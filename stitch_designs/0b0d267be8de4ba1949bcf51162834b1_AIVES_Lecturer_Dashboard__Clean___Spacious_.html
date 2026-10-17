@@ -1,0 +1,506 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>AIVES - Enterprise Lecturer Dashboard</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', sans-serif;
+      }
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    }
+    .material-symbols-outlined.fill {
+      font-variation-settings: 'FILL' 1;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
+<!-- Left Sidebar -->
+<aside class="fixed left-0 top-0 h-full w-72 bg-white border-r border-slate-200 z-50 flex flex-col justify-between shadow-sm">
+<div class="flex flex-col flex-1">
+<!-- Logo Header -->
+<div class="h-16 px-6 flex items-center gap-3 border-b border-slate-200">
+<div class="w-9 h-9 rounded-lg bg-blue-700 flex items-center justify-center text-white shadow-sm">
+<span class="material-symbols-outlined text-[22px]">psychology</span>
+</div>
+<div class="flex flex-col">
+<span class="text-base font-bold text-slate-900 leading-tight tracking-tight">AIVES</span>
+<span class="text-xs text-slate-500 font-medium">Viva Portal</span>
+</div>
+</div>
+<!-- Navigation Section -->
+<div class="px-5 pt-6 pb-2">
+<span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-3">Hệ thống Quản lý</span>
+</div>
+<nav class="flex-1 px-3 space-y-1.5">
+<!-- Dashboard Active -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-blue-700 text-white font-medium text-sm shadow-sm transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+<span>Dashboard</span>
+</a>
+<!-- Chấm điểm & Duyệt with Badge 14 -->
+<a class="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium text-sm transition-colors group" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] text-slate-500 group-hover:text-slate-700">fact_check</span>
+<span>Chấm điểm &amp; Duyệt</span>
+</div>
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">14</span>
+</a>
+<a class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium text-sm transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-slate-500 group-hover:text-slate-700">menu_book</span>
+<span>Ngân hàng &amp; Rubric</span>
+</a>
+<a class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium text-sm transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-slate-500 group-hover:text-slate-700">calendar_month</span>
+<span>Quản lý Kỳ thi &amp; Lịch</span>
+</a>
+<a class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium text-sm transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-slate-500 group-hover:text-slate-700">monitoring</span>
+<span>Báo cáo &amp; Phổ điểm</span>
+</a>
+<a class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium text-sm transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-slate-500 group-hover:text-slate-700">admin_panel_settings</span>
+<span>Cấu hình &amp; Hệ thống</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Indicator -->
+<div class="p-4 border-t border-slate-200">
+<div class="px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100"></span>
+<span class="text-xs font-medium text-slate-600">AIVES v2.4 (AI Viva Online)</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Top Header Bar -->
+<header class="fixed top-0 left-72 right-0 h-16 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-8 shadow-sm">
+<!-- Search Bar -->
+<div class="flex items-center w-96">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[18px]">search</span>
+<input class="w-full h-10 pl-9 pr-4 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all" placeholder="Tìm kiếm thí sinh, ca thi, câu hỏi..." type="text">
+</div>
+</div>
+<!-- Header Actions & Profile -->
+<div class="flex items-center gap-4">
+<!-- Language Switch -->
+<div class="flex items-center border border-slate-200 rounded-lg p-0.5 bg-slate-50 text-xs font-semibold">
+<span class="px-2.5 py-1 rounded bg-white text-blue-700 shadow-xs">VIE</span>
+<span class="px-2 py-1 text-slate-500 hover:text-slate-700 cursor-pointer">EN</span>
+</div>
+<!-- Notification Bell -->
+<button class="relative w-9 h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500"></span>
+</button>
+<div class="h-6 w-px bg-slate-200"></div>
+<!-- User Profile -->
+<div class="flex items-center gap-3 pl-1">
+<div class="text-right">
+<div class="text-sm font-semibold text-slate-900 leading-tight">TS. Nguyễn Văn A</div>
+<div class="text-xs text-slate-500">Giảng viên • Ban Khảo thí</div>
+</div>
+<div class="w-9 h-9 rounded-full bg-blue-700 flex items-center justify-center text-white font-medium text-sm shadow-sm ring-2 ring-blue-100">
+<span class="material-symbols-outlined text-[20px]">person</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pl-72 pt-16 min-h-screen bg-slate-50">
+<div class="p-8 max-w-7xl mx-auto space-y-8">
+<!-- Top Welcome & Quick Actions Section -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<h1 class="text-2xl font-bold text-slate-900 tracking-tight">Chào mừng, TS. Nguyễn Văn A</h1>
+<p class="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-blue-700">school</span>
+            Khoa Công nghệ Thông tin • Bộ môn Hệ thống &amp; Mạng
+          </p>
+</div>
+<!-- Uniform Quick Action Buttons (h-10) -->
+<div class="flex flex-wrap items-center gap-3">
+<button class="h-10 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 rounded-lg shadow-sm flex items-center gap-2 text-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>+ Tạo kỳ thi vấn đáp mới</span>
+</button>
+<button class="h-10 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium px-4 rounded-lg text-sm flex items-center gap-2 shadow-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px] text-blue-600">auto_awesome</span>
+<span>Sinh câu hỏi AI bằng RAG</span>
+</button>
+<button class="h-10 border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 font-medium px-4 rounded-lg text-sm flex items-center gap-2 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px] text-amber-700">pending_actions</span>
+<span>Duyệt điểm chờ (14)</span>
+</button>
+</div>
+</div>
+<!-- High-level Metric Cards (Grid of 4) -->
+<!-- Clean cards: NO arbitrary colored bottom borders/lines -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<!-- Card 1 -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold text-slate-500 tracking-wider uppercase">MÔN PHỤ TRÁCH</span>
+<div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700">
+<span class="material-symbols-outlined text-[18px]">auto_stories</span>
+</div>
+</div>
+<div class="mt-2">
+<div class="text-3xl font-bold text-slate-900 tracking-tight">03</div>
+<p class="text-xs text-slate-500 mt-2 font-medium truncate">Kiến trúc MT, HĐH, Mạng MT</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold text-slate-500 tracking-wider uppercase">KỲ THI ĐANG MỞ</span>
+<div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700">
+<span class="material-symbols-outlined text-[18px]">sensors</span>
+</div>
+</div>
+<div class="mt-2">
+<div class="text-3xl font-bold text-slate-900 tracking-tight">02</div>
+<div class="mt-2">
+<span class="bg-emerald-50 text-emerald-700 text-xs px-2 py-0.5 rounded-md font-medium inline-flex items-center gap-1.5 border border-emerald-200/50">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                1 ca đang LIVE vấn đáp
+              </span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold text-slate-500 tracking-wider uppercase">CHỜ DUYỆT ĐIỂM</span>
+<div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700">
+<span class="material-symbols-outlined text-[18px]">hourglass_top</span>
+</div>
+</div>
+<div class="mt-2">
+<div class="text-3xl font-bold text-slate-900 tracking-tight">14</div>
+<div class="mt-2">
+<span class="bg-amber-50 text-amber-700 text-xs px-2 py-0.5 rounded-md font-medium inline-flex items-center gap-1 border border-amber-200/50">
+<span>⚠️ Hạn chót trong 24 giờ</span>
+</span>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold text-slate-500 tracking-wider uppercase">ĐIỂM TB TỔNG KỲ</span>
+<div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700">
+<span class="material-symbols-outlined text-[18px]">insights</span>
+</div>
+</div>
+<div class="mt-2">
+<div class="text-3xl font-bold text-slate-900 tracking-tight">
+              7.82 <span class="text-lg font-normal text-slate-400">/ 10</span>
+</div>
+<div class="mt-2">
+<span class="bg-emerald-50 text-emerald-700 text-xs px-2 py-0.5 rounded-md font-medium inline-flex items-center gap-1 border border-emerald-200/50">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                +0.4 so với kỳ trước
+              </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Content Split (2/3 Left vs 1/3 Right Grid) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+<!-- Left Column (col-span-2): Kỳ thi & Ca thi gần nhất -->
+<div class="lg:col-span-2 space-y-4">
+<!-- Section Header & Filter segmented pills -->
+<div class="flex items-center justify-between">
+<h2 class="text-lg font-bold text-slate-900">Kỳ thi &amp; Ca thi gần nhất</h2>
+<div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-medium">
+<button class="px-3 py-1 rounded bg-white text-slate-900 shadow-xs font-semibold" type="button">Tất cả (4)</button>
+<button class="px-3 py-1 rounded text-slate-600 hover:text-slate-900 transition-colors" type="button">Đang LIVE (1)</button>
+<button class="px-3 py-1 rounded text-slate-600 hover:text-slate-900 transition-colors" type="button">Chờ duyệt (2)</button>
+</div>
+</div>
+<!-- Vertical list of wide exam cards -->
+<div class="space-y-4">
+<!-- Card 1 (LIVE) -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-300 transition-all">
+<div class="space-y-2">
+<div class="flex items-center gap-3">
+<h3 class="text-base font-semibold text-slate-900">Hệ điều hành (INT3105)</h3>
+<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs px-2.5 py-0.5 rounded-full font-semibold inline-flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping"></span>
+                    ● Đang diễn ra LIVE
+                  </span>
+</div>
+<div class="text-xs text-slate-500 flex items-center gap-2">
+<span class="material-symbols-outlined text-[15px] text-slate-400">schedule</span>
+<span>Ca 03 • Hôm nay 14:00 - 17:00</span>
+<span class="text-slate-300">|</span>
+<span class="material-symbols-outlined text-[15px] text-slate-400">meeting_room</span>
+<span>Phòng AI-Viva #04</span>
+</div>
+</div>
+<div class="flex items-center gap-6 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+<div class="flex flex-col items-end min-w-[130px]">
+<span class="text-xs font-medium text-slate-600">Tiến độ: <strong class="text-slate-900 font-semibold">18 / 24 SV</strong> (75%)</span>
+<div class="w-32 bg-slate-100 h-2 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-emerald-600 h-full rounded-full" style="width: 75%"></div>
+</div>
+</div>
+<button class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium h-9 px-4 rounded-lg text-sm flex items-center gap-2 shadow-sm transition-colors" type="button">
+<span>Vào phòng Live</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Card 2 (Chờ duyệt) -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-300 transition-all">
+<div class="space-y-2">
+<div class="flex items-center gap-3">
+<h3 class="text-base font-semibold text-slate-900">Kiến trúc máy tính (INT2204)</h3>
+<span class="bg-amber-50 text-amber-700 border border-amber-200 text-xs px-2.5 py-0.5 rounded-full font-semibold">
+                    Chờ duyệt điểm (8 bài)
+                  </span>
+</div>
+<div class="text-xs text-slate-500 flex items-center gap-2">
+<span class="material-symbols-outlined text-[15px] text-slate-400">schedule</span>
+<span>Ca 01 • Sáng nay 08:30 - 11:30</span>
+<span class="text-slate-300">|</span>
+<span class="material-symbols-outlined text-[15px] text-slate-400">rule</span>
+<span>Rubric Bloom: L3-L5</span>
+</div>
+</div>
+<div class="flex items-center gap-6 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+<div class="flex flex-col items-end min-w-[130px]">
+<span class="text-xs font-medium text-slate-600">Đã hoàn thành <strong class="text-slate-900 font-semibold">20 / 20 SV</strong></span>
+<div class="w-32 bg-slate-100 h-2 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-blue-600 h-full rounded-full" style="width: 100%"></div>
+</div>
+</div>
+<button class="bg-blue-600 hover:bg-blue-700 text-white font-medium h-9 px-4 rounded-lg text-sm flex items-center gap-2 shadow-sm transition-colors" type="button">
+<span>Vào chấm điểm</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Card 3 (Chờ duyệt) -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-300 transition-all">
+<div class="space-y-2">
+<div class="flex items-center gap-3">
+<h3 class="text-base font-semibold text-slate-900">Mạng máy tính (INT3202)</h3>
+<span class="bg-amber-50 text-amber-700 border border-amber-200 text-xs px-2.5 py-0.5 rounded-full font-semibold">
+                    Chờ duyệt điểm (6 bài)
+                  </span>
+</div>
+<div class="text-xs text-slate-500 flex items-center gap-2">
+<span class="material-symbols-outlined text-[15px] text-slate-400">schedule</span>
+<span>Ca 02 • Hôm qua 13:30 - 16:30</span>
+<span class="text-slate-300">|</span>
+<span class="material-symbols-outlined text-[15px] text-slate-400">smart_toy</span>
+<span>AI đã tổng hợp transcript</span>
+</div>
+</div>
+<div class="flex items-center gap-6 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+<div class="flex flex-col items-end min-w-[130px]">
+<span class="text-xs font-medium text-slate-600">Đã hoàn thành <strong class="text-slate-900 font-semibold">22 / 22 SV</strong></span>
+<div class="w-32 bg-slate-100 h-2 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-blue-600 h-full rounded-full" style="width: 100%"></div>
+</div>
+</div>
+<button class="bg-blue-600 hover:bg-blue-700 text-white font-medium h-9 px-4 rounded-lg text-sm flex items-center gap-2 shadow-sm transition-colors" type="button">
+<span>Vào chấm điểm</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Card 4 (Đã công bố) -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-300 transition-all opacity-90">
+<div class="space-y-2">
+<div class="flex items-center gap-3">
+<h3 class="text-base font-semibold text-slate-900">Hệ điều hành (INT3105) • Ca 01</h3>
+<span class="bg-slate-100 text-slate-600 border border-slate-200 text-xs px-2.5 py-0.5 rounded-full font-semibold">
+                    Đã công bố điểm
+                  </span>
+</div>
+<div class="text-xs text-slate-500 flex items-center gap-2">
+<span class="material-symbols-outlined text-[15px] text-slate-400">event</span>
+<span>12/10/2024 • 24 SV</span>
+<span class="text-slate-300">|</span>
+<span class="font-medium text-slate-700">ĐTB: 7.95</span>
+</div>
+</div>
+<div class="flex items-center gap-6 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+<button class="border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium h-9 px-4 rounded-lg text-sm flex items-center gap-2 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px] text-slate-500">bar_chart</span>
+<span>Xem phổ điểm</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bottom Analytics strip -->
+<div class="p-5 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+<div class="space-y-1">
+<div class="text-sm font-semibold text-slate-900">Xu hướng đánh giá AI so với Giảng viên</div>
+<p class="text-xs text-slate-500">
+                Độ tương thích (Alignment Score): <strong class="text-blue-700 font-semibold">94.2%</strong> giữa đề xuất AI và điểm duyệt chính thức.
+              </p>
+</div>
+<div class="flex items-center gap-4 shrink-0">
+<svg class="w-36 h-9" fill="none" viewBox="0 0 160 36">
+<path d="M 0 30 Q 30 14, 60 18 T 110 8 T 160 6" stroke="#2563eb" stroke-linecap="round" stroke-width="2.5"></path>
+<path d="M 0 32 Q 30 20, 60 22 T 110 14 T 160 10" stroke="#94a3b8" stroke-dasharray="3 3" stroke-width="2"></path>
+<circle cx="160" cy="6" fill="#1d4ed8" r="3.5"></circle>
+</svg>
+<div class="text-right">
+<span class="inline-block text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded">Sai số ±0.28đ</span>
+<div class="text-[11px] text-slate-400 font-medium mt-0.5">Rất tối ưu</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column (col-span-1): Hàng đợi ưu tiên (Grading Queue) -->
+<!-- Generously spaced with clean enterprise breathing room -->
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6 space-y-6">
+<!-- Column Header -->
+<div class="space-y-1">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<h2 class="text-base font-bold text-slate-900">Hàng đợi ưu tiên</h2>
+<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-700">14</span>
+</div>
+<button class="text-slate-400 hover:text-slate-600 p-1 rounded hover:bg-slate-100 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</button>
+</div>
+<p class="text-xs text-slate-500 leading-relaxed">Các bài thi có cảnh báo độ tin cậy cần xác nhận</p>
+</div>
+<!-- Student Queue List -->
+<div class="space-y-5">
+<!-- Student 1 -->
+<div class="p-4 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all space-y-3">
+<!-- Row 1 & 2: Avatar, Name, Score, Confidence -->
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<img alt="Trần Đình Minh" class="w-10 h-10 rounded-full object-cover border border-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBr6X3QJbtSHF6P4Mb_cdMpVxK0BwyLwvR_XPJ7pHqBbYdUOQUcS-x4JhPUMiK8kPvhN8KWxoAJuPnAmlgktVpXUD2VxVcN11TsQjCoDU70K44GQ--1PuYop1qRUkWQ7WY04RyIWrIbwki6ScWMciHICE1Qx-3uBJ0rnuu8EIuyQbWSPM34E2gs8sSTqXxIaR5Nlx8CAQ8MZJZd_JlstpCFAa0khpAzjbHFhSPF0R21nCKfasJQ10J7">
+<div>
+<h4 class="text-sm font-semibold text-slate-900 leading-tight">Trần Đình Minh</h4>
+<p class="text-xs text-slate-500 mt-0.5">MSSV: 21020455 • HĐH</p>
+</div>
+</div>
+<div class="text-right">
+<div class="text-xl font-bold text-blue-700 leading-tight">8.2</div>
+<div class="text-[11px] text-slate-400 font-medium">96% tin cậy</div>
+</div>
+</div>
+<!-- Row 3: Alert badge -->
+<div>
+<span class="bg-amber-50 text-amber-700 text-xs px-2.5 py-1 rounded-md font-medium inline-block border border-amber-200/50">
+                  ⚠️ 1 lần mất tập trung nhẹ (01:14)
+                </span>
+</div>
+<!-- Row 4: Full-width button -->
+<button class="w-full bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium h-9 rounded-lg text-sm flex items-center justify-center gap-1.5 transition-colors" type="button">
+<span>Duyệt ngay</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+<!-- Student 2 -->
+<div class="p-4 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all space-y-3">
+<!-- Row 1 & 2: Avatar, Name, Score, Confidence -->
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<img alt="Lê Thị Thanh Mai" class="w-10 h-10 rounded-full object-cover border border-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqh_ts227HXMDxDKMcDldukmN1-_QOT3GcZOhDlgweIFiCXFWbo5q3N0xXal1-gS1v9bi9Ulg0LaPCN4bIS5t9C9_r-_pTM5XMdKLB5_i_lKbGVQtTS39fjDeGIidrn-px4-Znnlg9yl0wO3ZSkAx0WrVWbeo6VLgIE7RMu0NZvLEZ882DH7A0_aaT4i53nYRPWkc9Y3TCjIntDxQ7YY8chbiLY9yrIaf2fTIq0bTpkXrakRAhV_Sr">
+<div>
+<h4 class="text-sm font-semibold text-slate-900 leading-tight">Lê Thị Thanh Mai</h4>
+<p class="text-xs text-slate-500 mt-0.5">MSSV: 21020612 • KTMT</p>
+</div>
+</div>
+<div class="text-right">
+<div class="text-xl font-bold text-blue-700 leading-tight">6.8</div>
+<div class="text-[11px] text-slate-400 font-medium">88% tin cậy</div>
+</div>
+</div>
+<!-- Row 3: Alert badge -->
+<div>
+<span class="bg-blue-50 text-blue-700 text-xs px-2.5 py-1 rounded-md font-medium inline-block border border-blue-200/50">
+                  ℹ️ Trả lời ngắt quãng ở câu hỏi Paging
+                </span>
+</div>
+<!-- Row 4: Full-width button -->
+<button class="w-full bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium h-9 rounded-lg text-sm flex items-center justify-center gap-1.5 transition-colors" type="button">
+<span>Duyệt ngay</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+<!-- Student 3 -->
+<div class="p-4 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all space-y-3">
+<!-- Row 1 & 2: Avatar, Name, Score, Confidence -->
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<img alt="Phạm Hoàng Nam" class="w-10 h-10 rounded-full object-cover border border-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWUXPumRjSlI9LQ0nOLiUVXw7Qt8NYv8DBDBYK0OtQQkMIHZCl_Of7-S_r4PLjd-BHwz7mubwWHGbqEdMGR5NhGf5CZ5ZrJDZLPVneVv0PDROORlKjNrvgpb3eK1hTzscVwizP0RWBp15_W7rh4Deg50bg2owo3G2MopVcR5NjljNnrzpjh66UDnf3D93dX2Y5P3F5vs2IUfoOlZwid1VoEJsml3L9BALBfPT_2N-2Fi8htgsYWFHz">
+<div>
+<h4 class="text-sm font-semibold text-slate-900 leading-tight">Phạm Hoàng Nam</h4>
+<p class="text-xs text-slate-500 mt-0.5">MSSV: 21020789 • Mạng MT</p>
+</div>
+</div>
+<div class="text-right">
+<div class="text-xl font-bold text-blue-700 leading-tight">9.4</div>
+<div class="text-[11px] text-slate-400 font-medium">98% tin cậy</div>
+</div>
+</div>
+<!-- Row 3: Alert badge -->
+<div>
+<span class="bg-emerald-50 text-emerald-700 text-xs px-2.5 py-1 rounded-md font-medium inline-block border border-emerald-200/50">
+                  ✓ Lập luận sắc bén • AI đề xuất điểm Xuất sắc
+                </span>
+</div>
+<!-- Row 4: Full-width button -->
+<button class="w-full bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium h-9 rounded-lg text-sm flex items-center justify-center gap-1.5 transition-colors" type="button">
+<span>Duyệt ngay</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Footer View All Link -->
+<a class="w-full py-2.5 text-center text-sm font-semibold text-slate-600 hover:text-blue-700 border-t border-slate-100 mt-4 block transition-colors" href="#">
+            Xem tất cả 14 bài chờ duyệt →
+          </a>
+</div>
+</div>
+</div>
+</main>
+</body></html>

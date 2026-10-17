@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_dashboard" name="shell-type"/>
+<title>AIVES - Student Grading</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+      body {
+        overscroll-behavior: none;
+      }
+    }
+    /* Custom refined scrollbar for high-density panes */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-900 h-screen w-screen flex overflow-hidden">
+<!-- ==================== SIDEBAR ==================== -->
+<aside class="w-64 h-full bg-white border-r border-slate-200 z-50 flex flex-col justify-between flex-shrink-0 select-none">
+<div class="flex flex-col">
+<!-- Portal Brand -->
+<div class="h-16 px-5 flex items-center gap-3 border-b border-slate-100">
+<div class="w-9 h-9 rounded-lg bg-blue-700 flex items-center justify-center text-white font-bold text-lg shadow-sm shadow-blue-500/20">
+          A
+        </div>
+<div class="flex flex-col">
+<span class="font-bold text-lg text-blue-700 leading-tight tracking-tight">AIVES</span>
+<span class="text-[11px] font-medium text-slate-400 leading-none">Lecturer &amp; Admin Portal</span>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="px-3 pt-4">
+<div class="px-3 pb-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Management System</div>
+<nav class="flex flex-col gap-1 text-sm font-medium">
+<a class="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" href="#">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[20px] text-slate-400">dashboard</span>
+<span>Dashboard</span>
+</div>
+</a>
+<a aria-current="page" class="flex items-center justify-between px-3 py-2 rounded-lg bg-blue-50 text-blue-700 font-semibold transition-colors" href="#">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[20px] text-blue-600">fact_check</span>
+<span>Grading &amp; Review</span>
+</div>
+<span class="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold leading-none">14</span>
+</a>
+<a class="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" href="#">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[20px] text-slate-400">quiz</span>
+<span>Question Bank &amp; Rubric</span>
+</div>
+</a>
+<a class="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" href="#">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[20px] text-slate-400">calendar_month</span>
+<span>Exams &amp; Schedule</span>
+</div>
+</a>
+<a class="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" href="#">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[20px] text-slate-400">analytics</span>
+<span>Reports &amp; Analytics</span>
+</div>
+</a>
+<a class="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors" href="#">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[20px] text-slate-400">tune</span>
+<span>Settings &amp; System</span>
+</div>
+</a>
+</nav>
+</div>
+</div>
+<!-- Instructor Profile Bottom Card -->
+<div class="p-3 border-t border-slate-200 bg-slate-50/50">
+<div class="p-2 rounded-lg bg-white border border-slate-200/80 flex items-center gap-2.5 shadow-xs">
+<div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">person</span>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<span class="text-xs font-semibold text-slate-800 truncate">Dr. Nguyen Van A</span>
+<span class="text-[11px] text-slate-400 truncate">Faculty of IT</span>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-[18px]">unfold_more</span>
+</div>
+</div>
+</aside>
+<!-- ==================== MAIN CONTENT WRAPPER ==================== -->
+<div class="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+<!-- GLOBAL TOP HEADER -->
+<header class="h-14 bg-white border-b border-slate-200 px-6 flex justify-between items-center z-40 flex-shrink-0">
+<!-- Breadcrumbs -->
+<div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+<span class="hover:text-blue-700 cursor-pointer transition-colors">Exam</span>
+<span class="material-symbols-outlined text-[14px] text-slate-400">chevron_right</span>
+<span class="hover:text-blue-700 cursor-pointer transition-colors">CS201 - Computer Architecture &amp; OS</span>
+<span class="material-symbols-outlined text-[14px] text-slate-400">chevron_right</span>
+<span class="text-slate-800 font-semibold">Student Grading</span>
+</div>
+<!-- Center: Student Info Pill -->
+<div class="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1 rounded-full shadow-2xs">
+<img alt="Avatar" class="w-6 h-6 rounded-full object-cover" data-alt="Portrait of a 20-year-old Vietnamese male university student" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuJsxAdcf8MVbIgwZ4utmQD5QlTy1SodMApEaUX4G-spZuicbTHwaCBZouJJlyzZUDEfP7PFl9cxdtTWTsw83661W2UUkVN3NLuZFqPjRso1lhYCCOdEg986ro33uoAWOrq3GkoBSEHd8V3lwebF61iV2h7aBSfcplTrRvFlxZbTmT_ODzdK8mgzqhQBQSkpJVVAB87F9XzlXzVhrwgOUq3As3eeGoMzWf6Fk4bRBQlYaWmjqKfDl9"/>
+<span class="text-xs font-bold text-slate-900">Tran Hoang Phuc <span class="font-mono font-medium text-slate-500">(ID: SE180123)</span></span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200/80 text-amber-800 text-[11px] font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+          Pending Instructor Review
+        </span>
+</div>
+<!-- Right: Compact Pagination & List Selector -->
+<div class="flex items-center gap-2">
+<div class="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200 text-xs">
+<button class="w-7 h-7 rounded flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-white transition-colors" title="Previous Student" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<div class="px-2 font-medium text-slate-700 select-none">
+<span class="font-bold text-slate-900">Student 04</span> <span class="text-slate-400">/ 25</span>
+<span class="text-[10px] text-slate-400 block -mt-0.5 leading-none">(Morning Slot)</span>
+</div>
+<button class="w-7 h-7 rounded flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-white transition-colors" title="Next Student" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+<button class="h-8 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center gap-1.5 transition-colors shadow-2xs" type="button">
+<span class="material-symbols-outlined text-[16px] text-slate-500">list</span>
+<span>Select List</span>
+</button>
+</div>
+</header>
+<!-- ==================== MAIN WORKSPACE (SPLIT VIEW) ==================== -->
+<main class="flex-1 h-[calc(100vh-56px)] flex gap-5 px-6 py-4 overflow-hidden bg-slate-50">
+<!-- ==================== LEFT PANE (Context & Evidence - Width 40%) ==================== -->
+<div class="w-[40%] flex flex-col gap-3.5 h-full overflow-hidden">
+<!-- 1. Media Player Card -->
+<div class="bg-slate-900 rounded-xl overflow-hidden shadow-sm relative aspect-video flex-shrink-0 border border-slate-800">
+<img alt="Webcam Feed" class="w-full h-full object-cover opacity-90" data-alt="Close-up webcam feed of student taking online oral exam" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFPzByzJcuM0lxO20vG40agBH-kidksmdZnlEfU4dbawqu5sB8FKHNSBkhR_Yk_k7TLHze5-tJRJgEFqXURwq5Z1JnffJJWpqzMbeL1zRYNGD3zXSdO2iXCf9Num0jyxp5P0DAWOvMBaZBkaQGrF64RDI9FJXNtW8UefgkCvsXZx8woAtE1xXHlrDyXEc53jCV81fAf31GymtNVJrqVwuQHWUaPNRjnuYTsnSldZcxHiVEM8BHz009"/>
+<!-- Overlays -->
+<div class="absolute top-2.5 left-2.5 flex items-center gap-2">
+<div class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-900/85 backdrop-blur-sm text-emerald-400 font-mono text-[10px] font-semibold border border-slate-700/60">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              AI Proctor: 0 violations
+            </div>
+<div class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-600/80 backdrop-blur-sm text-white text-[10px] font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+              REC
+            </div>
+</div>
+<div class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded bg-slate-900/80 backdrop-blur-sm text-slate-300 font-mono text-[10px] border border-slate-700/60">
+            CAM-01 • 1080p
+          </div>
+<!-- Player Controls Bar -->
+<div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent p-2.5 flex items-center justify-between text-white">
+<div class="flex items-center gap-2">
+<button class="w-7 h-7 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-colors shadow-xs" type="button">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+<div class="font-mono text-[11px] text-slate-300">
+<span class="text-white font-semibold">04:12</span> / 18:45
+              </div>
+</div>
+<div class="flex items-center gap-3">
+<!-- Speed Selector -->
+<div class="flex items-center bg-slate-800/80 backdrop-blur-sm rounded p-0.5 text-[10px] font-mono border border-slate-700">
+<button class="px-1.5 py-0.5 text-slate-400 hover:text-white rounded" type="button">1.0x</button>
+<button class="px-1.5 py-0.5 bg-blue-600 text-white font-semibold rounded" type="button">1.25x</button>
+<button class="px-1.5 py-0.5 text-slate-400 hover:text-white rounded" type="button">1.5x</button>
+</div>
+<button class="text-slate-400 hover:text-white transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">volume_up</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 2. Interactive Timeline & Question Segment Markers -->
+<div class="bg-white border border-slate-200 rounded-xl p-3 shadow-xs space-y-2 flex-shrink-0">
+<!-- Waveform Progress Bar -->
+<div class="h-6 w-full flex items-end gap-[2px] bg-slate-50 px-2 rounded border border-slate-100">
+<span class="w-1 bg-blue-600 h-[35%] rounded-full"></span>
+<span class="w-1 bg-blue-600 h-[60%] rounded-full"></span>
+<span class="w-1 bg-blue-600 h-[45%] rounded-full"></span>
+<span class="w-1 bg-blue-600 h-[80%] rounded-full"></span>
+<span class="w-1 bg-blue-600 h-[50%] rounded-full"></span>
+<span class="w-1 bg-blue-600 h-[90%] rounded-full"></span>
+<span class="w-1 bg-blue-600 h-[70%] rounded-full"></span>
+<span class="w-1 bg-blue-600 h-[40%] rounded-full"></span>
+<span class="w-1 bg-blue-600 h-[65%] rounded-full"></span>
+<span class="w-1 bg-blue-600 h-[85%] rounded-full"></span>
+<span class="w-1 bg-blue-600 h-[30%] rounded-full"></span>
+<span class="w-1 bg-blue-600 h-[55%] rounded-full"></span>
+<span class="w-1 bg-blue-600 h-[75%] rounded-full"></span>
+<span class="w-1 bg-blue-600 h-[95%] rounded-full"></span>
+<!-- Active Playhead -->
+<span class="w-1.5 bg-blue-700 h-[100%] rounded-full ring-2 ring-blue-300"></span>
+<span class="w-1 bg-slate-300 h-[50%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[70%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[35%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[80%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[60%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[45%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[90%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[65%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[30%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[50%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[85%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[40%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[75%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[60%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[35%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[90%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[70%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[45%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[80%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[55%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[30%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[65%] rounded-full"></span>
+<span class="w-1 bg-slate-300 h-[40%] rounded-full"></span>
+</div>
+<!-- 3 Segment Milestone Markers -->
+<div class="grid grid-cols-3 gap-1.5 text-[11px]">
+<!-- Seg 1: Active -->
+<button class="bg-blue-50 border border-blue-200 text-blue-800 p-1.5 rounded-lg text-left transition-all shadow-2xs" type="button">
+<div class="flex items-center justify-between font-mono text-[9px] text-blue-600 font-semibold mb-0.5">
+<span>00:00 - 05:30</span>
+<span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping"></span>
+</div>
+<div class="font-semibold truncate text-[11px]">Q1: Paging</div>
+</button>
+<!-- Seg 2 -->
+<button class="bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 p-1.5 rounded-lg text-left transition-colors" type="button">
+<div class="font-mono text-[9px] text-slate-400 mb-0.5">05:30 - 11:45</div>
+<div class="font-medium truncate text-[11px]">Q2: TLB Miss</div>
+</button>
+<!-- Seg 3 -->
+<button class="bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 p-1.5 rounded-lg text-left transition-colors" type="button">
+<div class="font-mono text-[9px] text-slate-400 mb-0.5">11:45 - 18:45</div>
+<div class="font-medium truncate text-[11px]">Q3: CPU Scheduling</div>
+</button>
+</div>
+</div>
+<!-- 3. Smart Script-Style Transcript -->
+<div class="bg-white border border-slate-200 rounded-xl flex-1 flex flex-col overflow-hidden shadow-xs">
+<div class="flex justify-between items-center px-4 py-2.5 border-b border-slate-100 bg-slate-50/60 flex-shrink-0">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-blue-600 text-[18px]">graphic_eq</span>
+<span class="text-xs font-bold text-slate-800">Conversation Transcript</span>
+<span class="text-[10px] font-mono font-medium px-1.5 py-0.5 bg-blue-100/70 text-blue-700 rounded-md">STT 98.4%</span>
+</div>
+<button class="text-xs font-semibold text-blue-700 hover:text-blue-800 flex items-center gap-1 transition-colors" type="button">
+<span>Listen to this segment 🎧</span>
+</button>
+</div>
+<!-- Body Script -->
+<div class="overflow-y-auto p-4 space-y-3.5 flex-1 text-sm">
+<!-- Examiner / AI -->
+<div>
+<div class="text-xs font-semibold text-blue-700 flex items-center gap-1.5 mb-1">
+<span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+<span>AI Examiner</span>
+<span class="text-[10px] font-mono text-slate-400 font-normal">(00:15)</span>
+</div>
+<div class="text-slate-600 text-xs sm:text-sm pl-3 border-l-2 border-blue-200 leading-relaxed">
+                "You mentioned the Paging mechanism. How does Internal Fragmentation occur within this mechanism?"
+              </div>
+</div>
+<!-- Student -->
+<div>
+<div class="text-xs font-semibold text-slate-800 flex items-center gap-1.5 mb-1 mt-2">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+<span>Student Tran Hoang Phuc</span>
+<span class="text-[10px] font-mono text-slate-400 font-normal">(00:32)</span>
+</div>
+<div class="text-slate-800 text-xs sm:text-sm pl-3 border-l-2 border-emerald-400 leading-relaxed">
+                "Thưa thầy cô, phân mảnh nội vi xảy ra khi kích thước tiến trình không chia hết cho kích thước của <span class="bg-emerald-100 text-emerald-800 font-medium px-1.5 py-0.5 rounded">page frame</span>... therefore, the <span class="bg-emerald-100 text-emerald-800 font-medium px-1.5 py-0.5 rounded">last page</span> allocated only uses a portion of data, leaving <span class="bg-emerald-100 text-emerald-800 font-medium px-1.5 py-0.5 rounded">unused space</span>."
+              </div>
+</div>
+<!-- Examiner Follow-up -->
+<div>
+<div class="text-xs font-semibold text-indigo-700 flex items-center gap-1.5 mb-1 mt-2">
+<span class="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+<span>AI Follow-up</span>
+<span class="text-[10px] font-mono text-slate-400 font-normal">(02:10)</span>
+</div>
+<div class="text-slate-600 text-xs sm:text-sm pl-3 border-l-2 border-indigo-200 leading-relaxed">
+                "So how can we minimize this internal fragmentation size in practice?"
+              </div>
+</div>
+<!-- Student Follow-up -->
+<div>
+<div class="text-xs font-semibold text-slate-800 flex items-center gap-1.5 mb-1 mt-2">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+<span>Student Tran Hoang Phuc</span>
+<span class="text-[10px] font-mono text-slate-400 font-normal">(02:24)</span>
+</div>
+<div class="text-slate-800 text-xs sm:text-sm pl-3 border-l-2 border-emerald-400 leading-relaxed">
+                "We can <span class="bg-emerald-100 text-emerald-800 font-medium px-1.5 py-0.5 rounded">decrease the page size</span>, however, this approach will <span class="bg-emerald-100 text-emerald-800 font-medium px-1.5 py-0.5 rounded">increase the page table size</span> and memory overhead."
+              </div>
+</div>
+</div>
+</div>
+</div>
+<!-- ==================== RIGHT PANE (Evaluation & Action - Width 60%) ==================== -->
+<div class="w-[60%] flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm h-full overflow-hidden">
+<!-- 1. Question Tabs (Segmented Control) -->
+<div class="border-b border-slate-200 flex bg-slate-50/80 rounded-t-xl px-4 pt-3 gap-2 flex-shrink-0 select-none">
+<!-- Tab 1: ACTIVE -->
+<button class="bg-white border-b-2 border-blue-600 text-blue-700 font-semibold shadow-xs px-4 py-2.5 rounded-t-lg flex items-center gap-2 text-xs transition-colors" type="button">
+<span class="w-2 h-2 rounded-full bg-blue-600"></span>
+<span>Q1: Paging &amp; Fragmentation</span>
+<span class="font-mono text-[11px] text-blue-600 font-normal">(4.0 pts)</span>
+</button>
+<!-- Tab 2 -->
+<button class="text-slate-600 hover:text-slate-900 px-4 py-2.5 font-medium rounded-t-lg text-xs transition-colors flex items-center gap-1.5" type="button">
+<span>Q2: Virtual Memory &amp; TLB</span>
+<span class="font-mono text-[11px] text-slate-400">(3.5 pts)</span>
+</button>
+<!-- Tab 3 -->
+<button class="text-slate-600 hover:text-slate-900 px-4 py-2.5 font-medium rounded-t-lg text-xs transition-colors flex items-center gap-1.5" type="button">
+<span>Q3: CPU Scheduling</span>
+<span class="font-mono text-[11px] text-slate-400">(2.5 pts)</span>
+</button>
+<!-- Tab 4: Overview -->
+<button class="text-slate-600 hover:text-slate-900 px-4 py-2.5 font-medium rounded-t-lg text-xs transition-colors ml-auto flex items-center gap-1.5" type="button">
+<span>📊 Summary &amp; Finalize</span>
+<span class="font-mono text-[11px] font-bold text-slate-700">(10 pts)</span>
+</button>
+</div>
+<!-- 2. Active Tab Content (Scrollable Container) -->
+<div class="flex-1 overflow-y-auto p-5 space-y-4">
+<!-- Question Header Summary -->
+<div class="bg-slate-50 border border-slate-200/80 rounded-xl p-4 shadow-2xs space-y-2">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold uppercase tracking-wider rounded">
+                KEY QUESTION 1 • MAX SCORE 4.0 PTS
+              </span>
+<div class="flex items-center gap-2">
+<span class="text-xs font-medium text-slate-500">AI Suggested:</span>
+<span class="font-mono text-sm font-bold text-blue-700 bg-white border border-blue-200 px-2 py-0.5 rounded shadow-2xs">3.5 / 4.0 pts</span>
+<span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Confidence 94%</span>
+</div>
+</div>
+<h2 class="text-base font-bold text-slate-900 leading-snug">
+              Explain the nature of internal fragmentation in Paging and trade-off solutions.
+            </h2>
+</div>
+<!-- Inline Combined Rubric & AI Grading Cards -->
+<!-- Criterion 1 Card -->
+<div class="border border-slate-200 rounded-xl p-4 bg-white shadow-xs space-y-3">
+<div class="flex justify-between items-start">
+<div>
+<span class="font-bold text-slate-900 text-sm">Criterion 1: Definition &amp; Nature of Fragmentation</span>
+<p class="text-xs text-slate-500 mt-0.5">Mastery of definition &amp; causes of internal fragmentation; state clearly that it only occurs on the last page.</p>
+</div>
+<span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md">Max: 1.5 pts</span>
+</div>
+<!-- AI Analysis box -->
+<div class="bg-blue-50/60 border border-blue-100 rounded-lg p-2.5 text-xs text-slate-700 flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-blue-600 flex-shrink-0"></span>
+<span><strong>AI Log:</strong> Matched 3/3 required keywords (<em>page size, last page, unused space</em>). Accurate explanation.</span>
+</div>
+<span class="font-bold font-mono text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-200 shadow-2xs">AI: 1.5 pts</span>
+</div>
+<!-- Instructor Override Row -->
+<div class="flex items-center justify-between pt-2 border-t border-slate-100">
+<span class="text-xs font-medium text-slate-700">Lecturer Grade / Review:</span>
+<div class="flex items-center gap-2">
+<button class="w-7 h-7 rounded border border-slate-300 bg-slate-50 hover:bg-slate-100 flex items-center justify-center font-bold text-slate-600 transition-colors" type="button">-</button>
+<input class="w-14 h-7 text-center font-mono font-bold text-sm text-blue-700 border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-600" type="text" value="1.5"/>
+<button class="w-7 h-7 rounded border border-slate-300 bg-slate-50 hover:bg-slate-100 flex items-center justify-center font-bold text-slate-600 transition-colors" type="button">+</button>
+</div>
+</div>
+</div>
+<!-- Criterion 2 Card -->
+<div class="border border-slate-200 rounded-xl p-4 bg-white shadow-xs space-y-3">
+<div class="flex justify-between items-start">
+<div>
+<span class="font-bold text-slate-900 text-sm">Criterion 2: Trade-off Analysis</span>
+<p class="text-xs text-slate-500 mt-0.5">Analyze trade-off mechanism: decreasing page size limits fragmentation but increases number of pages &amp; page table overhead.</p>
+</div>
+<span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md">Max: 1.5 pts</span>
+</div>
+<!-- AI Analysis box -->
+<div class="bg-amber-50/70 border border-amber-100 rounded-lg p-2.5 text-xs text-slate-700 flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0"></span>
+<span><strong>AI Log:</strong> Matched keywords (<em>reduce page size, increase overhead</em>). Missing Huge Pages / Multi-level Paging solutions.</span>
+</div>
+<span class="font-bold font-mono text-amber-800 bg-white px-2 py-0.5 rounded border border-amber-200 shadow-2xs">AI: 1.25 pts</span>
+</div>
+<!-- Instructor Override Row -->
+<div class="flex items-center justify-between pt-2 border-t border-slate-100">
+<span class="text-xs font-medium text-slate-700">Lecturer Grade / Review:</span>
+<div class="flex items-center gap-2">
+<button class="w-7 h-7 rounded border border-slate-300 bg-slate-50 hover:bg-slate-100 flex items-center justify-center font-bold text-slate-600 transition-colors" type="button">-</button>
+<input class="w-14 h-7 text-center font-mono font-bold text-sm text-blue-700 border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-600" type="text" value="1.25"/>
+<button class="w-7 h-7 rounded border border-slate-300 bg-slate-50 hover:bg-slate-100 flex items-center justify-center font-bold text-slate-600 transition-colors" type="button">+</button>
+</div>
+</div>
+</div>
+<!-- Criterion 3 Card -->
+<div class="border border-slate-200 rounded-xl p-4 bg-white shadow-xs space-y-3">
+<div class="flex justify-between items-start">
+<div>
+<span class="font-bold text-slate-900 text-sm">Criterion 3: Fluency &amp; Latency</span>
+<p class="text-xs text-slate-500 mt-0.5">Response latency under 2.0s, confident tone, no stuttering or silence over 5s.</p>
+</div>
+<span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md">Max: 1.0 pt</span>
+</div>
+<!-- AI Analysis box -->
+<div class="bg-emerald-50/60 border border-emerald-100 rounded-lg p-2.5 text-xs text-slate-700 flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-600 flex-shrink-0"></span>
+<span><strong>AI Log:</strong> Fast response (1.8s), fluency score 88/100, no abnormal pauses.</span>
+</div>
+<span class="font-bold font-mono text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200 shadow-2xs">AI: 1.0 pt</span>
+</div>
+<!-- Instructor Override Row -->
+<div class="flex items-center justify-between pt-2 border-t border-slate-100">
+<span class="text-xs font-medium text-slate-700">Lecturer Grade / Review:</span>
+<div class="flex items-center gap-2">
+<button class="w-7 h-7 rounded border border-slate-300 bg-slate-50 hover:bg-slate-100 flex items-center justify-center font-bold text-slate-600 transition-colors" type="button">-</button>
+<input class="w-14 h-7 text-center font-mono font-bold text-sm text-blue-700 border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-600" type="text" value="1.0"/>
+<button class="w-7 h-7 rounded border border-slate-300 bg-slate-50 hover:bg-slate-100 flex items-center justify-center font-bold text-slate-600 transition-colors" type="button">+</button>
+</div>
+</div>
+</div>
+<!-- Instructor Quick Feedback Note -->
+<div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200 space-y-1.5">
+<div class="text-xs font-bold text-slate-700 flex items-center justify-between">
+<span>Notes for Question 1 (Optional):</span>
+<span class="text-slate-400 font-normal text-[11px]">Attached only to this question evaluation</span>
+</div>
+<input class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-white placeholder:text-slate-400 focus:outline-none focus:border-blue-600" placeholder="Student has a solid grasp of concepts, clear presentation..." type="text"/>
+</div>
+</div>
+<!-- 3. Bottom Sticky Action Bar (Right Pane Only) -->
+<div class="border-t border-slate-200 bg-slate-50 px-6 py-3.5 rounded-b-xl flex justify-between items-center flex-shrink-0">
+<!-- Total calculated score for Câu 1 -->
+<div class="flex items-baseline gap-2">
+<span class="text-xs text-slate-500 font-medium">Total Question 1:</span>
+<span class="text-lg font-bold font-mono text-blue-700">3.75</span>
+<span class="text-xs text-slate-400 font-mono">/ 4.0 pts</span>
+<span class="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-semibold ml-2">Achieved 93.7%</span>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-2">
+<button class="border border-slate-300 bg-white text-slate-700 px-3.5 py-2 rounded-lg text-xs font-medium hover:bg-slate-50 transition-colors shadow-2xs" type="button">
+              Save Draft
+            </button>
+<button class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs px-5 py-2 rounded-lg shadow-sm flex items-center gap-1.5 transition-all active:scale-[0.98]" type="button">
+<span>Save &amp; Next Question</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

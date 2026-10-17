@@ -1,5 +1,6 @@
 package com.group2.aives.application.dto.request;
 
+import com.group2.aives.domain.enums.RoleEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -18,8 +19,9 @@ public class RegisterRequest {
     @Size(max = 100, message = "Họ và tên không vượt quá 100 ký tự")
     private String fullName;
 
-    @NotBlank(message = "Mã số sinh viên không được để trống")
     private String studentCode;
+
+    private String code; // Hỗ trợ tương thích cả studentCode hoặc code từ FE
 
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Định dạng email không hợp lệ")
@@ -29,6 +31,17 @@ public class RegisterRequest {
     @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
     private String password;
 
-    @NotBlank(message = "Xác nhận mật khẩu không được để trống")
     private String confirmPassword;
+
+    private RoleEnum role;
+
+    public String getEffectiveCode() {
+        if (studentCode != null && !studentCode.isBlank()) {
+            return studentCode.trim().toUpperCase();
+        }
+        if (code != null && !code.isBlank()) {
+            return code.trim().toUpperCase();
+        }
+        return null;
+    }
 }

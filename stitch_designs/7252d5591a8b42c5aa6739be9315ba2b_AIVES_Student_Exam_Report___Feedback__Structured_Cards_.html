@@ -1,0 +1,340 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Exam Portal - AIVES Student Portal</title>
+<!-- Tailwind CSS v3 with forms and container-queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- FontAwesome for icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style data-purpose="custom-scrollbar">
+    /* Custom Scrollbar for clean UI */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+<meta content="web_dashboard" name="shell-type"></head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased">
+<!-- BEGIN: MainLayout -->
+<div class="flex h-screen overflow-hidden">
+<!-- BEGIN: Sidebar -->
+<aside class="w-64 bg-white border-r border-slate-200 flex flex-col z-20" data-purpose="sidebar-navigation">
+<!-- Logo Area -->
+<div class="h-16 flex items-center px-6 border-b border-slate-100">
+<span class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">AIVES</span>
+<span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-blue-50 text-blue-600 rounded">Student</span>
+</div>
+<!-- Navigation Links -->
+<nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+<p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Overview</p>
+<a class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition-colors" href="#">
+<i class="fa-solid fa-house w-5 mr-3 text-slate-400"></i>
+          Overview
+        </a>
+<p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mt-6 mb-2">Exams</p>
+<a class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-blue-600 bg-blue-50/80" href="#">
+<i class="fa-solid fa-file-lines w-5 mr-3 text-blue-600"></i>
+          My Exams
+          <span class="ml-auto bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">2</span>
+</a>
+<a class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition-colors" href="#">
+<i class="fa-solid fa-clock-rotate-left w-5 mr-3 text-slate-400"></i>
+          Exam History
+        </a>
+<p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mt-6 mb-2">System</p>
+<a class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition-colors" href="#">
+<i class="fa-solid fa-laptop-code w-5 mr-3 text-slate-400"></i>
+          Device Check
+        </a>
+<a class="flex items-center px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition-colors" href="#">
+<i class="fa-solid fa-gear w-5 mr-3 text-slate-400"></i>
+          Settings
+        </a>
+</nav>
+<!-- User Quick Profile Footer -->
+<div class="p-4 border-t border-slate-100 flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<img alt="Avatar" class="w-9 h-9 rounded-full object-cover border border-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4jUoWXWjj0satU3TF0ZrA0L-Vlr6QXzHn29_oDRUr9fyUz6C85mmtOA7QY2lKXUFNwVjvhyTdUGEkBNZHgpJgoWC75kaewHEeLwcT_dMZyoE007nQzjxSHIt3oa84h3wfYwgItNwFOLFCZ0RFWII_cIpd8HhUakkqy1JLKl_I_4QJ7KNKUW8cJiQzsefnFvAbedDNOVtNRkYYstO7j0y0OQh5cHI6M_icM-MKUasJMwgPj-6IDvYmwTWAp8tqKObN0g">
+<div class="text-sm">
+<p class="font-medium text-slate-700 leading-none">Nguyen Van A</p>
+<p class="text-xs text-slate-400 mt-1">ID: SV102938</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors" title="Logout">
+<i class="fa-solid fa-right-from-bracket"></i>
+</button>
+</div>
+</aside>
+<!-- END: Sidebar -->
+<!-- BEGIN: MainContentWrapper -->
+<div class="flex-1 flex flex-col overflow-hidden">
+<!-- BEGIN: Topbar -->
+<header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 z-10" data-purpose="topbar">
+<!-- Search bar -->
+<div class="relative w-96">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+<i class="fa-solid fa-magnifying-glass text-sm"></i>
+</span>
+<input class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all" placeholder="Search exams, subjects, documents..." type="text">
+</div>
+<!-- Topbar Right Actions -->
+<div class="flex items-center space-x-5">
+<!-- Notifications -->
+<button class="relative text-slate-400 hover:text-slate-600 transition-colors">
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+<i class="fa-regular fa-bell text-xl"></i>
+</button>
+<div class="h-6 w-px bg-slate-200"></div>
+<!-- Language Dropdown -->
+<div class="flex items-center space-x-2 text-sm font-medium text-slate-600 cursor-pointer">
+<span>English</span>
+<i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
+</div>
+</div>
+</header>
+<!-- END: Topbar -->
+<!-- BEGIN: ScrollablePageContent -->
+<main class="flex-1 overflow-y-auto bg-slate-50 min-h-screen p-8">
+<div class="max-w-7xl mx-auto flex flex-col w-full">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+<div>
+<div class="text-sm text-slate-500 font-medium flex items-center gap-1.5 mb-1">
+<span>Exams</span>
+<i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+<span>CS201 Final Viva Exam</span>
+<i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+<span class="text-blue-600 font-medium">Results &amp; Report</span>
+</div>
+<h1 class="text-2xl font-bold text-slate-900 mt-1">CS201 • Computer Architecture &amp; Operating Systems</h1>
+<p class="text-sm text-slate-500">Exam Results &amp; Detailed Feedback</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 border border-amber-300 bg-amber-50/50 hover:bg-amber-100 text-amber-800 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all shadow-sm">
+<span>⚠</span>
+<span>Request Grade Appeal</span>
+</button>
+<button class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-sm font-semibold flex items-center gap-2 shadow-sm transition-all">
+<span>↓</span>
+<span>Download PDF Report</span>
+</button>
+</div>
+</div>
+<!-- Top Overview Section (SOLID CARD) -->
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6 mb-6 flex flex-wrap lg:flex-nowrap gap-8 justify-between items-center">
+<!-- Column 1 (Final Grade) -->
+<div class="flex flex-col justify-center min-w-[220px]">
+<div>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200 mb-3">✓ Finalized &amp; Approved by Instructor</span>
+</div>
+<div class="flex items-baseline space-x-2">
+<span class="text-5xl font-extrabold text-blue-700 leading-none">8.5</span>
+<span class="text-xl text-slate-400 font-medium">/ 10.0</span>
+</div>
+<p class="text-sm font-semibold text-slate-700 mt-1">Grade: A (Excellent)</p>
+</div>
+<!-- Column 2 (Exam Details) -->
+<div class="flex flex-col justify-center gap-2.5 py-1 px-6 border-y lg:border-y-0 lg:border-x border-slate-200 w-full lg:w-auto">
+<div class="flex items-center gap-3 text-sm">
+<div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs">
+<i class="fa-regular fa-calendar"></i>
+</div>
+<span class="text-slate-500 font-medium min-w-[70px]">Date:</span>
+<span class="text-slate-800 font-semibold">Nov 20, 2024</span>
+</div>
+<div class="flex items-center gap-3 text-sm">
+<div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs">
+<i class="fa-regular fa-clock"></i>
+</div>
+<span class="text-slate-500 font-medium min-w-[70px]">Duration:</span>
+<span class="text-slate-800 font-semibold">30 mins (Completed)</span>
+</div>
+<div class="flex items-center gap-3 text-sm">
+<div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs">
+<i class="fa-solid fa-user-shield"></i>
+</div>
+<span class="text-slate-500 font-medium min-w-[70px]">Examiner:</span>
+<span class="text-slate-800 font-semibold">AI Viva v2.4 + Dr. Nguyen</span>
+</div>
+</div>
+<!-- Column 3 (Performance Metrics) -->
+<div class="flex flex-col justify-center min-w-[240px] w-full lg:w-auto">
+<h4 class="text-sm font-bold text-slate-900 mb-3 uppercase tracking-wider">Performance Metrics</h4>
+<div class="space-y-2.5">
+<div>
+<div class="flex justify-between text-xs font-medium mb-1">
+<span class="text-slate-600">Conceptual Accuracy</span>
+<span class="text-slate-900 font-bold">90%</span>
+</div>
+<div class="w-48 bg-slate-100 rounded-full h-2 overflow-hidden">
+<div class="bg-blue-600 h-2 rounded-full" style="width: 90%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs font-medium mb-1">
+<span class="text-slate-600">Technical Terminology</span>
+<span class="text-slate-900 font-bold">85%</span>
+</div>
+<div class="w-48 bg-slate-100 rounded-full h-2 overflow-hidden">
+<div class="bg-blue-600 h-2 rounded-full" style="width: 85%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs font-medium mb-1">
+<span class="text-slate-600">Response Time &amp; Fluency</span>
+<span class="text-slate-900 font-bold">80%</span>
+</div>
+<div class="w-48 bg-slate-100 rounded-full h-2 overflow-hidden">
+<div class="bg-blue-600 h-2 rounded-full" style="width: 80%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Area (2-COLUMN GRID) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Left Column (Detailed Question Breakdown, lg:col-span-2) -->
+<div class="lg:col-span-2">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-lg font-bold text-slate-900">Detailed Question Breakdown</h2>
+<span class="text-xs font-semibold px-2.5 py-1 bg-slate-200 text-slate-700 rounded-md">3 Questions Evaluated</span>
+</div>
+<!-- Card for Q1 -->
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6 mb-4">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2.5">
+<span class="bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded text-xs">Q1</span>
+<h3 class="font-bold text-slate-900 text-base">Paging &amp; Internal Fragmentation</h3>
+</div>
+<div>
+<span class="text-blue-700 font-bold text-base">3.5</span>
+<span class="text-slate-400 text-sm"> / 4.0</span>
+</div>
+</div>
+<div class="border-l-4 border-blue-500 pl-4 py-1 my-3 bg-blue-50/30 rounded-r text-slate-700 italic text-sm">
+            "Explain how paging handles internal fragmentation and how frame size impacts overall system performance."
+          </div>
+<div class="bg-slate-50 border border-slate-200/60 rounded-lg p-4 mt-4">
+<div class="flex items-center gap-2 text-emerald-700 font-semibold text-xs uppercase tracking-wider mb-1.5">
+<i class="fa-solid fa-robot"></i>
+<span>AI Examiner Feedback</span>
+</div>
+<p class="text-sm text-slate-600">Accurate explanation of page allocation and frame size mismatch. Minor omission regarding page table overhead in multi-level architectures.</p>
+</div>
+</div>
+<!-- Card for Q2 -->
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6 mb-4">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2.5">
+<span class="bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded text-xs">Q2</span>
+<h3 class="font-bold text-slate-900 text-base">Virtual Memory &amp; TLB Miss Handling</h3>
+</div>
+<div>
+<span class="text-blue-700 font-bold text-base">3.0</span>
+<span class="text-slate-400 text-sm"> / 3.5</span>
+</div>
+</div>
+<div class="border-l-4 border-blue-500 pl-4 py-1 my-3 bg-blue-50/30 rounded-r text-slate-700 italic text-sm">
+            "Describe the exact hardware and OS steps executed during a Translation Lookaside Buffer (TLB) miss leading to a page fault."
+          </div>
+<div class="bg-slate-50 border border-slate-200/60 rounded-lg p-4 mt-4">
+<div class="flex items-center gap-2 text-emerald-700 font-semibold text-xs uppercase tracking-wider mb-1.5">
+<i class="fa-solid fa-robot"></i>
+<span>AI Examiner Feedback</span>
+</div>
+<p class="text-sm text-slate-600">Clear and precise description of TLB lookup and page fault resolution steps. Excellent handling of the interrupt handling sequence.</p>
+</div>
+</div>
+</div>
+<!-- Right Column - Feedback Summary Sidebar (lg:col-span-1) -->
+<div class="lg:col-span-1">
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6 sticky top-6">
+<h3 class="text-lg font-bold text-slate-900 mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
+<i class="fa-solid fa-wand-magic-sparkles text-blue-600"></i>
+<span>Feedback Summary</span>
+</h3>
+<!-- Key Strengths -->
+<div>
+<h3 class="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+              ✓ KEY STRENGTHS
+            </h3>
+<ul class="space-y-2 text-sm text-slate-600">
+<li class="flex items-start gap-2">
+<svg class="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Strong conceptual understanding of operating system architectures.</span>
+</li>
+<li class="flex items-start gap-2">
+<svg class="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Precise technical terminology used throughout the viva.</span>
+</li>
+<li class="flex items-start gap-2">
+<svg class="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Excellent live articulation and confidence under timed constraints.</span>
+</li>
+</ul>
+</div>
+<!-- Areas for Improvement -->
+<div class="mt-6">
+<h3 class="text-xs font-bold text-amber-700 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+              ↗ AREAS FOR IMPROVEMENT
+            </h3>
+<ul class="space-y-2 text-sm text-slate-600">
+<li class="flex items-start gap-2">
+<svg class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M7 17L17 7M17 7H7M17 7V17" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Further review recommended for resource allocation graphs.</span>
+</li>
+<li class="flex items-start gap-2">
+<svg class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M7 17L17 7M17 7H7M17 7V17" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Deepen study on advanced deadlock recovery algorithms.</span>
+</li>
+</ul>
+</div>
+<!-- Divider -->
+<hr class="my-5 border-slate-200">
+<!-- Official Instructor Note -->
+<div>
+<h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              ★ OFFICIAL INSTRUCTOR NOTE
+            </h3>
+<div class="p-3 bg-slate-50 border border-slate-200/80 rounded-lg text-sm text-slate-700 italic">
+              "Impressive viva defense. Student demonstrated thorough preparation and deep comprehension of core kernel concepts."
+            </div>
+<div class="mt-3 flex items-center justify-between text-xs text-slate-500 font-medium">
+<span>Dr. Nguyen Van A • Lead Examiner</span>
+<span class="inline-flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full font-semibold text-[11px]">
+<i class="fa-solid fa-certificate"></i> Verified
+              </span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- END: ScrollablePageContent -->
+</div>
+<!-- END: MainContentWrapper -->
+</div>
+<!-- END: MainLayout -->
+</body></html>

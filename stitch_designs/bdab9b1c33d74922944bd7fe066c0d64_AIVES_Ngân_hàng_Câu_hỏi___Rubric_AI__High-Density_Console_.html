@@ -1,0 +1,973 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<meta content="web_dashboard" name="shell-type">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+      main > :first-child { margin-top: 0 !important; }
+      main > :last-child { margin-bottom: 0 !important; }
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen">
+<!-- Left Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-white text-slate-700 z-50 flex flex-col justify-between border-r border-slate-200">
+<div class="flex flex-col flex-1">
+<!-- App Brand -->
+<div class="h-16 px-5 flex items-center gap-3 border-b border-slate-200 bg-slate-50/50">
+<div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+<span class="material-symbols-outlined text-[20px]">psychology</span>
+</div>
+<div class="flex flex-col">
+<span class="text-base font-bold text-slate-900 tracking-tight leading-tight">AIVES</span>
+<span class="text-[11px] font-medium text-slate-500">Viva Academic Portal</span>
+</div>
+</div>
+<!-- Navigation Section -->
+<div class="px-3 pt-5">
+<span class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Hệ thống Quản lý</span>
+</div>
+<nav class="flex-1 px-3 py-2 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+<span class="">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]">fact_check</span>
+<span class="">Chấm điểm &amp; Duyệt</span>
+</a>
+<a aria-current="page" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold bg-blue-50 text-blue-700 shadow-xs transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]">menu_book</span>
+<span class="">Ngân hàng &amp; Rubric</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]">calendar_month</span>
+<span class="">Quản lý Kỳ thi &amp; Lịch</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]">monitoring</span>
+<span class="">Báo cáo &amp; Phổ điểm</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+<span class="">Cấu hình &amp; Hệ thống</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Status Pill -->
+<div class="p-3 border-t border-slate-200 bg-slate-50/50">
+<div class="px-3 py-2 rounded-lg bg-white border border-slate-200/80 flex items-center justify-between shadow-2xs">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="text-xs text-slate-700 font-medium">AIVES v2.4 (Online)</span>
+</div>
+<span class="text-[10px] text-slate-400 font-mono-code">AI Active</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Wrap -->
+<div class="pl-64">
+<!-- Top Header Bar -->
+<header class="fixed top-0 left-64 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 z-40 flex items-center justify-between px-8">
+<div class="flex items-center w-96">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[18px]">search</span>
+<input class="w-full h-9 pl-9 pr-3 rounded-lg bg-slate-100 border-none text-slate-800 text-xs placeholder:text-slate-400 focus:bg-white focus:ring-1 focus:ring-blue-600 transition-all" placeholder="Tìm kiếm thí sinh, ca thi, câu hỏi..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">translate</span>
+<span class="">VIE</span>
+</button>
+<button class="relative w-9 h-9 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+</button>
+<div class="h-5 w-[1px] bg-slate-200"></div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden sm:block">
+<div class="text-xs font-semibold text-slate-800">TS. Nguyễn Văn A</div>
+<div class="text-[11px] text-slate-500 leading-tight">Giảng viên • Ban Khảo thí</div>
+</div>
+<div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[18px]">person</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Content Container -->
+<main class="pt-20 px-8 pb-12 max-w-7xl mx-auto w-full">
+<!-- Toast Notification Alert -->
+<div class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none" id="toastNotification">
+<div class="flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-slate-900 text-white shadow-xl border border-slate-700 text-xs font-medium">
+<span class="material-symbols-outlined text-emerald-400 text-[18px]" id="toastIcon">check_circle</span>
+<span id="toastMessage" class="">Thao tác thành công</span>
+</div>
+</div>
+<!-- Page Header & Action Bar -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+<div>
+<!-- Breadcrumbs -->
+<div class="flex items-center gap-1.5 text-slate-500 text-xs mb-1.5 font-medium">
+<span class="">Kho lưu trữ học liệu</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="">Học phần Khối Kỹ thuật Máy tính</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-blue-600 font-semibold">CS201</span>
+</div>
+<h1 class="text-2xl font-bold text-slate-900 tracking-tight">Ngân hàng Câu hỏi &amp; Thư viện Rubric</h1>
+<p class="text-xs text-slate-500 mt-1">
+<span class="font-semibold text-slate-700">CS201 • Kiến trúc máy tính &amp; Hệ điều hành.</span> Quản trị ngân hàng vấn đáp, sinh câu hỏi RAG và cấu hình rubric.
+          </p>
+</div>
+<!-- Right Actions -->
+<div class="flex items-center gap-3 shrink-0">
+<button class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold shadow-sm transition-all" onclick="openManualModal()" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span class="">Thêm thủ công</span>
+</button>
+<button class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-all" onclick="scrollToRagGenerator()" type="button">
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+<span class="">Sinh tự động bằng AI (RAG)</span>
+</button>
+</div>
+</div>
+<!-- Main Tabs Bar & Status Counts -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3 mb-6">
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200/60 font-semibold text-xs transition-all shadow-xs" id="tabQuestionsBtn" onclick="switchMainTab('questions')">
+<span class="material-symbols-outlined text-[17px]">quiz</span>
+<span class="">Ngân hàng Câu hỏi Vấn đáp</span>
+<span class="px-1.5 py-0.2 rounded-full bg-blue-600 text-white text-[11px] font-bold">142</span>
+</button>
+<button class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium text-xs transition-all" id="tabRubricsBtn" onclick="switchMainTab('rubrics')">
+<span class="material-symbols-outlined text-[17px]">rule</span>
+<span class="">Thư viện Mẫu Rubric</span>
+<span class="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-600 text-[11px] font-bold">18</span>
+</button>
+</div>
+<!-- Status indicator counts -->
+<div class="flex items-center gap-4 text-xs text-slate-500 font-medium">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="">Đã duyệt: <strong class="text-slate-700">118</strong></span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-amber-500"></span>
+<span class="">AI chờ duyệt: <strong class="text-slate-700">14</strong></span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-slate-400"></span>
+<span class="">Bản nháp: <strong class="text-slate-700">10</strong></span>
+</div>
+</div>
+</div>
+<!-- QUESTIONS SECTION -->
+<div class="space-y-6" id="sectionQuestions">
+<!-- 1. COMPACT RAG GENERATOR PANEL -->
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm p-5 mb-6 relative" id="ragGeneratorPanel">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-md bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined text-[18px]">smart_toy</span>
+</div>
+<h2 class="text-sm font-bold text-slate-900">AI RAG Generator • Sinh câu hỏi bám sát Giáo trình</h2>
+<span class="bg-blue-50 border border-blue-200 text-blue-700 font-bold text-[10px] uppercase tracking-wide px-2 py-0.5 rounded">RAG ENGINE V3.1</span>
+</div>
+<button class="text-xs font-medium text-slate-500 hover:text-blue-600 flex items-center gap-1" id="collapseRagBtn" onclick="toggleRagPanel()" type="button">
+<span id="collapseRagText" class="">Thu gọn bảng tạo</span>
+<span class="material-symbols-outlined text-[16px]" id="collapseRagIcon">expand_less</span>
+</button>
+</div>
+<!-- Split Content Grid 2 cols -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-4" id="ragFormBody">
+<!-- Left: Document Manager / Dropzone (5 cols) -->
+<div class="lg:col-span-5 flex flex-col justify-between space-y-3">
+<div class="border-2 border-dashed border-slate-300 bg-slate-50/70 rounded-lg p-3">
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-blue-600">folder_managed</span>
+                    Tài liệu đã lập chỉ mục (Vector DB)
+                  </span>
+<button class="text-[11px] font-semibold text-blue-600 hover:underline flex items-center gap-0.5" onclick="triggerFileUpload()" type="button">
+<span class="material-symbols-outlined text-[13px]">upload_file</span> + Tải thêm
+                  </button>
+<input class="hidden" id="hiddenFileInput" onchange="handleFileSelected(event)" type="file">
+</div>
+<!-- File items stack -->
+<div class="space-y-2" id="fileListContainer">
+<div class="flex items-center justify-between bg-white border border-slate-200 rounded-md p-2 shadow-xs">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-rose-500 text-[18px]">picture_as_pdf</span>
+<div class="min-w-0">
+<p class="text-xs font-semibold text-slate-800 truncate leading-tight">Giao_trinh_He_dieu_hanh_v3.pdf</p>
+<p class="text-[10px] text-slate-400">14.2 MB • 412 trang indexed</p>
+</div>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<span class="text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 rounded px-1.5 py-0.2 flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">check</span> Đã xử lý
+                      </span>
+<button class="text-slate-400 hover:text-rose-500" title="Xóa" type="button"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+</div>
+<div class="flex items-center justify-between bg-white border border-slate-200 rounded-md p-2 shadow-xs">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-amber-500 text-[18px]">slideshow</span>
+<div class="min-w-0">
+<p class="text-xs font-semibold text-slate-800 truncate leading-tight">Slide_Chuong4_VirtualMemory.pptx</p>
+<p class="text-[10px] text-slate-400">8.6 MB • 64 slides indexed</p>
+</div>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<span class="text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 rounded px-1.5 py-0.2 flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">check</span> Đã xử lý
+                      </span>
+<button class="text-slate-400 hover:text-rose-500" title="Xóa" type="button"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</div>
+</div>
+</div>
+<div class="mt-2 text-center">
+<a class="text-[11px] text-blue-600 hover:underline font-medium cursor-pointer" onclick="triggerFileUpload()">+ Tải thêm giáo trình / slide PDF</a>
+</div>
+</div>
+</div>
+<!-- Right: Config Form (7 cols) -->
+<div class="lg:col-span-7 flex flex-col justify-between">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+<!-- Chapter / Topic -->
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Chương / Topic trọng tâm</label>
+<select class="w-full h-8 px-2.5 text-xs rounded-md bg-white border border-slate-200 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600" id="ragTopicSelect">
+<option value="virtual-memory">Chương 4: Bộ nhớ ảo &amp; Phân trang (TLB, Paging)</option>
+<option value="cpu-scheduling">Chương 3: CPU Scheduling &amp; Điều phối</option>
+<option value="deadlock">Chương 5: Bế tắc tài nguyên (Deadlock)</option>
+<option value="file-system">Chương 6: Hệ thống tập tin &amp; Quản lý I/O</option>
+</select>
+</div>
+<!-- Bloom distribution -->
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Phân bổ Mức độ Bloom</label>
+<select class="w-full h-8 px-2.5 text-xs rounded-md bg-white border border-slate-200 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600">
+<option>1 Hiểu + 2 Phân tích/Vận dụng</option>
+<option>Toàn bộ Vận dụng cao / Tình huống</option>
+<option>2 Nhớ + 1 Hiểu (Cơ bản)</option>
+<option>Cân bằng 4 mức Bloom</option>
+</select>
+</div>
+<!-- Question count tabs -->
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Số lượng câu đề xuất</label>
+<div class="grid grid-cols-3 gap-1.5">
+<button class="rag-count-btn h-8 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium" onclick="selectCount(1, this)" type="button">1 câu</button>
+<button class="rag-count-btn h-8 rounded-md bg-blue-600 text-white text-xs font-semibold shadow-xs" onclick="selectCount(3, this)" type="button">3 câu</button>
+<button class="rag-count-btn h-8 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium" onclick="selectCount(5, this)" type="button">5 câu</button>
+</div>
+</div>
+<!-- Follow-up probe depth -->
+<div>
+<div class="flex items-center justify-between mb-1">
+<label class="text-xs font-semibold text-slate-700">Độ sâu hỏi xoáy (Follow-up)</label>
+<span class="text-xs font-semibold text-blue-600" id="depthValLabel">2 lượt hỏi sâu</span>
+</div>
+<div class="flex items-center gap-2 h-8">
+<input class="w-full accent-blue-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer" id="depthRange" max="4" min="1" oninput="document.getElementById('depthValLabel').innerText = this.value + ' lượt hỏi sâu'" type="range" value="2">
+<span class="text-[11px] text-slate-400 shrink-0">1-4 cấp</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Bar -->
+<div class="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+<div class="flex items-center gap-2 text-xs text-slate-500">
+<span class="material-symbols-outlined text-[16px] text-blue-600">verified</span>
+<span class="">Chỉ số bao phủ Corpus ngữ nghĩa: <strong class="text-blue-700 font-semibold">94.8% toàn bài thi</strong></span>
+</div>
+<button class="flex items-center gap-1.5 bg-blue-600 text-white rounded-lg px-5 py-2 hover:bg-blue-700 shadow-sm font-medium text-xs transition-colors shrink-0" id="startRagGenerationBtn" onclick="runRagGeneration()" type="button">
+<span class="material-symbols-outlined text-[17px]" id="genIcon">auto_awesome</span>
+<span id="genText" class="">Bắt đầu sinh câu hỏi &amp; Rubric tự động</span>
+</button>
+</div>
+</div>
+<!-- 2. FILTERS & SEARCH BAR -->
+<div class="flex flex-col lg:flex-row gap-3 mb-6 bg-white p-3 rounded-xl border border-slate-200 shadow-sm items-center">
+<div class="relative flex-1 w-full">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[18px]">search</span>
+<input class="w-full h-9 pl-9 pr-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 transition-all" id="questionSearchInput" onkeyup="filterQuestions()" placeholder="Tìm kiếm từ khóa câu hỏi, khái niệm (VD: Paging, TLB, Virtual Memory)..." type="text">
+</div>
+<div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+<div class="flex items-center gap-1.5 text-xs text-slate-500">
+<span class="">Chủ đề:</span>
+<select class="h-9 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600" id="filterTopic" onchange="filterQuestions()">
+<option value="ALL">Tất cả chương</option>
+<option value="VIRTUAL_MEM">Bộ nhớ ảo &amp; Paging</option>
+<option value="CPU_SCHED">CPU Scheduling</option>
+</select>
+</div>
+<div class="flex items-center gap-1.5 text-xs text-slate-500">
+<span class="">Mức độ Bloom:</span>
+<select class="h-9 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600" id="filterBloom" onchange="filterQuestions()">
+<option value="ALL">Mọi mức độ</option>
+<option value="HIỂU">Hiểu</option>
+<option value="VẬN DỤNG">Vận dụng cao</option>
+</select>
+</div>
+<div class="flex items-center gap-1.5 text-xs text-slate-500">
+<span class="">Trạng thái:</span>
+<select class="h-9 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600" id="filterStatus" onchange="filterQuestions()">
+<option value="ALL">Tất cả trạng thái</option>
+<option value="OFFICIAL">Đã duyệt chính thức</option>
+<option value="AI_PENDING">AI vừa sinh (Chờ duyệt)</option>
+</select>
+</div>
+<button class="h-9 w-9 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors shrink-0" onclick="resetFilters()" title="Đặt lại bộ lọc" type="button">
+<span class="material-symbols-outlined text-[18px]">restart_alt</span>
+</button>
+</div>
+</div>
+<!-- 3. QUESTION CARDS LIST (HIGH-DENSITY & PROGRESSIVE DISCLOSURE) -->
+<div class="space-y-4" id="questionCardList">
+<!-- CARD 1: PENDING AI QUESTION (HUMAN-IN-THE-LOOP PRIORITY) -->
+<article class="question-item bg-white border border-slate-200 rounded-xl shadow-sm mb-4 flex flex-col border-l-4 border-amber-500 overflow-hidden" data-bloom="VẬN DỤNG" data-status="AI_PENDING" data-topic="VIRTUAL_MEM" id="aiGeneratedQuestionCard">
+<!-- Top Badges Row -->
+<div class="pt-3 px-5 flex flex-wrap items-center justify-between gap-2">
+<div class="flex flex-wrap items-center gap-2">
+<span class="bg-amber-50 text-amber-700 font-semibold text-xs px-2.5 py-0.5 rounded-md border border-amber-200 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> AI vừa sinh • Chờ duyệt
+                </span>
+<span class="font-mono-code text-xs text-slate-500">Mã: CS201-AI-902</span>
+<span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">Chương 4: Bộ nhớ ảo &amp; TLB</span>
+<span class="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-medium">Bloom: Vận dụng cao</span>
+</div>
+<div class="text-xs text-slate-500 font-medium">
+                Thang điểm: <span class="font-semibold text-slate-800">3.5đ</span> • Thời lượng: <span class="font-semibold text-slate-800">3.5 phút</span>
+</div>
+</div>
+<!-- Main Question & Content -->
+<h3 class="text-base md:text-lg font-bold text-slate-900 mt-2 px-5 leading-snug">
+              Phân tích cơ chế Translation Lookaside Buffer (TLB) Miss và các bước xử lý ngắt phần cứng?
+            </h3>
+<p class="text-xs md:text-sm text-slate-600 px-5 mt-1 leading-relaxed">
+              Trình bày sự khác biệt giữa TLB hit và TLB miss. Thí sinh giải thích chuỗi sự kiện từ lúc CPU phát sinh địa chỉ logic đến nạp PTE và thực thi lại lệnh.
+            </p>
+<div class="text-xs font-medium text-emerald-600 px-5 mt-2 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px]">auto_stories</span>
+<span class="">Trích xuất từ: <strong>Slide_Chuong4 (Trang 24-29)</strong> • <strong class="bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">RAG Match: 98%</strong></span>
+</div>
+<!-- Expandable Accordion: Follow-up questions (Card 1) -->
+<div class="hidden px-5 pt-3 mt-2 border-t border-slate-100 bg-amber-50/30" id="followup-box-1">
+<div class="p-3 rounded-lg bg-white border border-amber-200/80 shadow-xs">
+<span class="text-xs font-semibold text-amber-900 flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-amber-600">psychology_alt</span> 2 Lượt câu hỏi xoáy phản biện:
+                </span>
+<ul class="list-disc list-inside mt-1.5 space-y-1 text-xs text-slate-600">
+<li class=""><strong class="text-slate-800">Lượt 1:</strong> Nếu xảy ra Page Fault ngay sau khi TLB Miss, thứ tự ưu tiên xử lý của Hệ điều hành và MMU diễn ra như thế nào?</li>
+<li class=""><strong class="text-slate-800">Lượt 2:</strong> Tại sao khi thực hiện Context Switch giữa hai Process, OS thường phải Flush toàn bộ TLB hoặc dùng ASID?</li>
+</ul>
+</div>
+</div>
+<!-- Expandable Accordion: Rubric Details (Card 1) -->
+<div class="hidden px-5 pt-3 mt-2 border-t border-slate-100 bg-blue-50/20" id="rubric-box-1">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 p-3 rounded-lg bg-white border border-slate-200 text-xs">
+<div class="p-2 rounded bg-slate-50 border border-slate-100">
+<div class="flex justify-between font-semibold text-slate-800"><span class="">1. Quy trình TLB Miss</span><span class="text-blue-600">1.5đ</span></div>
+<p class="text-[11px] text-slate-500 mt-1">Nêu đúng việc MMU tra cứu TLB thất bại, phải thực hiện Page Walk truy cập RAM, cập nhật TLB.</p>
+</div>
+<div class="p-2 rounded bg-slate-50 border border-slate-100">
+<div class="flex justify-between font-semibold text-slate-800"><span class="">2. Công thức EAT</span><span class="text-blue-600">1.0đ</span></div>
+<p class="text-[11px] text-slate-500 mt-1">Viết và phân tích đúng công thức tính thời gian truy cập hiệu dụng theo tỷ lệ hit ratio α.</p>
+</div>
+<div class="p-2 rounded bg-slate-50 border border-slate-100">
+<div class="flex justify-between font-semibold text-slate-800"><span class="">3. Context Switch &amp; ASID</span><span class="text-blue-600">1.0đ</span></div>
+<p class="text-[11px] text-slate-500 mt-1">Nêu chuẩn xác rủi ro sai lệch địa chỉ khi đổi tiến trình và giải pháp TLB Invalidation / ASID.</p>
+</div>
+</div>
+</div>
+<!-- Action Footer (Human-in-the-Loop) -->
+<div class="border-t border-slate-100 bg-slate-50/70 p-3 mt-3 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2.5 px-5 rounded-b-xl">
+<!-- Left: Progressive Disclosure Triggers -->
+<div class="flex flex-wrap items-center gap-2">
+<button class="text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-100 transition-colors flex items-center gap-1 shadow-2xs" onclick="toggleCardDetail('followup-box-1', this)" type="button">
+<span class="">▼ Xem 2 câu hỏi xoáy (Follow-up)</span>
+</button>
+<button class="text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-100 transition-colors flex items-center gap-1 shadow-2xs" onclick="toggleCardDetail('rubric-box-1', this)" type="button">
+<span class="">▼ Xem chi tiết Rubric chấm (3 tiêu chí • 3.5đ)</span>
+</button>
+</div>
+<!-- Right: Review Action Buttons -->
+<div class="flex items-center gap-2 self-end sm:self-center">
+<button class="border border-red-200 text-red-600 bg-white hover:bg-red-50 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors" onclick="rejectQuestion('CS201-AI-902')" type="button">
+                  Loại bỏ
+                </button>
+<button class="border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors" onclick="editModalTrigger()" type="button">
+                  Chỉnh sửa
+                </button>
+<button class="solid bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-1.5 rounded-lg shadow-sm transition-colors flex items-center gap-1" onclick="approveQuestion('CS201-AI-902')" type="button">
+<span class="material-symbols-outlined text-[15px]">done</span>
+<span class="">✓ Duyệt vào ngân hàng</span>
+</button>
+</div>
+</div>
+</article>
+<!-- CARD 2: APPROVED QUESTION (STANDARD OFFICIAL QUESTION) -->
+<article class="question-item bg-white border border-slate-200 rounded-xl shadow-sm mb-4 flex flex-col overflow-hidden" data-bloom="HIỂU" data-status="OFFICIAL" data-topic="VIRTUAL_MEM">
+<!-- Top Badges Row -->
+<div class="pt-3 px-5 flex flex-wrap items-center justify-between gap-2">
+<div class="flex flex-wrap items-center gap-2">
+<span class="bg-emerald-50 text-emerald-700 font-semibold text-xs px-2.5 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">verified</span> ✓ Đã duyệt chính thức
+                </span>
+<span class="font-mono-code text-xs text-slate-500">Mã: CS201-Q042</span>
+<span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">Chương 4: Bộ nhớ ảo</span>
+<span class="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-medium">Bloom: Hiểu &amp; Phân tích</span>
+</div>
+<div class="flex items-center gap-3 text-xs text-slate-500">
+<span class="">Thang điểm: <strong class="text-slate-800">4.0đ</strong> • Thời lượng: <strong class="text-slate-800">4 phút</strong></span>
+<div class="flex items-center gap-1 text-slate-400 pl-1 border-l border-slate-200">
+<button class="hover:text-blue-600 p-1" title="Chỉnh sửa" type="button"><span class="material-symbols-outlined text-[16px]">edit</span></button>
+<button class="hover:text-blue-600 p-1" title="Nhân bản" type="button"><span class="material-symbols-outlined text-[16px]">content_copy</span></button>
+<button class="hover:text-rose-500 p-1" title="Lưu trữ" type="button"><span class="material-symbols-outlined text-[16px]">archive</span></button>
+</div>
+</div>
+</div>
+<!-- Main Question & Content -->
+<h3 class="text-base md:text-lg font-bold text-slate-900 mt-2 px-5 leading-snug">
+              Trình bày cơ chế Phân trang (Paging) và nguyên nhân gây Phân mảnh nội vi (Internal Fragmentation)?
+            </h3>
+<p class="text-xs md:text-sm text-slate-600 px-5 mt-1 leading-relaxed">
+              Mô tả cấu trúc bảng trang (Page Table), cách chuyển đổi địa chỉ logic sang địa chỉ vật lý và giải thích tại sao không đặt Page Size thật nhỏ.
+            </p>
+<div class="px-5 mt-2 flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-slate-500">
+<span class="text-slate-400 font-mono-code">Từ khóa:</span>
+<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded">#page_size</span>
+<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded">#frame</span>
+<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded">#offset</span>
+<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded">#trống_thừa</span>
+<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded">#page_table_entry</span>
+</div>
+<!-- Expandable Accordion: Follow-up questions (Card 2) -->
+<div class="hidden px-5 pt-3 mt-2 border-t border-slate-100 bg-slate-50/50" id="followup-box-2">
+<div class="p-3 rounded-lg bg-white border border-slate-200 text-xs text-slate-600 space-y-1">
+<span class="font-semibold text-slate-800">Bộ câu hỏi phụ phân hóa:</span>
+<p class="">• Lượt 1: Nếu Page Size là 4KB và tiến trình yêu cầu 13KB, hãy tính chính xác dung lượng bị lãng phí do phân mảnh nội vi?</p>
+<p class="">• Lượt 2: Tại sao chúng ta không đặt Page Size thật nhỏ (ví dụ 32 bytes) để triệt tiêu hoàn toàn phân mảnh nội vi?</p>
+</div>
+</div>
+<!-- Expandable Accordion: Rubric Details (Card 2) -->
+<div class="hidden px-5 pt-3 mt-2 border-t border-slate-100 bg-slate-50/50" id="rubric-box-2">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 p-3 rounded-lg bg-white border border-slate-200 text-xs">
+<div class="p-2 rounded bg-slate-50 border border-slate-100">
+<div class="flex justify-between font-semibold text-slate-800"><span class="">1. Nguyên lý phân trang</span><span class="text-blue-600">1.5đ</span></div>
+<p class="text-[11px] text-slate-500 mt-1">Tách địa chỉ logic thành Page Number (p) và Offset (d), vai trò PTBR.</p>
+</div>
+<div class="p-2 rounded bg-slate-50 border border-slate-100">
+<div class="flex justify-between font-semibold text-slate-800"><span class="">2. Phân mảnh nội vi</span><span class="text-blue-600">1.5đ</span></div>
+<p class="text-[11px] text-slate-500 mt-1">Phần dư ở frame cuối khi tiến trình không chia hết kích thước trang.</p>
+</div>
+<div class="p-2 rounded bg-slate-50 border border-slate-100">
+<div class="flex justify-between font-semibold text-slate-800"><span class="">3. Phản biện câu hỏi phụ</span><span class="text-blue-600">1.0đ</span></div>
+<p class="text-[11px] text-slate-500 mt-1">Tính đúng 3KB dư thừa và giải thích chi phí kích thước bảng trang.</p>
+</div>
+</div>
+</div>
+<!-- Action Footer -->
+<div class="border-t border-slate-100 bg-slate-50/70 p-3 mt-3 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2.5 px-5 rounded-b-xl">
+<div class="flex flex-wrap items-center gap-2">
+<button class="text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-100 transition-colors flex items-center gap-1 shadow-2xs" onclick="toggleCardDetail('followup-box-2', this)" type="button">
+<span class="">▼ Xem 2 câu hỏi xoáy (Follow-up)</span>
+</button>
+<button class="text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-100 transition-colors flex items-center gap-1 shadow-2xs" onclick="toggleCardDetail('rubric-box-2', this)" type="button">
+<span class="">▼ Xem Rubric chi tiết (3 tiêu chí • 4.0đ)</span>
+</button>
+</div>
+<div class="text-xs text-slate-500 self-end sm:self-center font-medium">
+                Đã sử dụng trong: <span class="text-slate-700 font-semibold">3 kỳ thi (HK232, HK241)</span>
+</div>
+</div>
+</article>
+<!-- CARD 3: APPROVED QUESTION (ANOTHER COMPACT QUESTION) -->
+<article class="question-item bg-white border border-slate-200 rounded-xl shadow-sm mb-4 flex flex-col overflow-hidden" data-bloom="VẬN DỤNG" data-status="OFFICIAL" data-topic="CPU_SCHED">
+<!-- Top Badges Row -->
+<div class="pt-3 px-5 flex flex-wrap items-center justify-between gap-2">
+<div class="flex flex-wrap items-center gap-2">
+<span class="bg-emerald-50 text-emerald-700 font-semibold text-xs px-2.5 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">verified</span> ✓ Đã duyệt chính thức
+                </span>
+<span class="font-mono-code text-xs text-slate-500">Mã: CS201-Q019</span>
+<span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">Chương 3: CPU Scheduling</span>
+<span class="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-medium">Bloom: Phân tích &amp; So sánh</span>
+</div>
+<div class="flex items-center gap-3 text-xs text-slate-500">
+<span class="">Thang điểm: <strong class="text-slate-800">3.5đ</strong> • Thời lượng: <strong class="text-slate-800">3.5 phút</strong></span>
+<div class="flex items-center gap-1 text-slate-400 pl-1 border-l border-slate-200">
+<button class="hover:text-blue-600 p-1" title="Chỉnh sửa" type="button"><span class="material-symbols-outlined text-[16px]">edit</span></button>
+<button class="hover:text-blue-600 p-1" title="Nhân bản" type="button"><span class="material-symbols-outlined text-[16px]">content_copy</span></button>
+<button class="hover:text-rose-500 p-1" title="Lưu trữ" type="button"><span class="material-symbols-outlined text-[16px]">archive</span></button>
+</div>
+</div>
+</div>
+<!-- Main Question & Content -->
+<h3 class="text-base md:text-lg font-bold text-slate-900 mt-2 px-5 leading-snug">
+              So sánh giải pháp Round Robin (RR) và Shortest Job First (SJF) trong lập lịch CPU khi có ràng buộc thời gian thực?
+            </h3>
+<p class="text-xs md:text-sm text-slate-600 px-5 mt-1 leading-relaxed">
+              Đánh giá theo các chỉ số: Thời gian chờ trung bình (Average Waiting Time), Thời gian đáp ứng (Response Time), và hiện tượng Bỏ đói tiến trình (Starvation).
+            </p>
+<div class="px-5 mt-2 flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-slate-500">
+<span class="text-slate-400 font-mono-code">Thuật ngữ:</span>
+<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded">#Time_Quantum</span>
+<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded">#Preemptive_SJF</span>
+<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded">#Starvation</span>
+<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded">#Deadline_Guarantees</span>
+</div>
+<!-- Expandable Accordion: Follow-up (Card 3) -->
+<div class="hidden px-5 pt-3 mt-2 border-t border-slate-100 bg-slate-50/50" id="followup-box-3">
+<div class="p-3 rounded-lg bg-white border border-slate-200 text-xs text-slate-600 space-y-1">
+<span class="font-semibold text-slate-800">Câu hỏi mở rộng RTOS:</span>
+<p class="">• Lượt 1: Trong môi trường hệ thống nhúng (Embedded RTOS), thuật toán nào được ưu tiên hơn và vì sao?</p>
+<p class="">• Lượt 2: Kỹ thuật Aging giải quyết triệt để Starvation trong SJF như thế nào?</p>
+</div>
+</div>
+<!-- Expandable Accordion: Rubric Details (Card 3) -->
+<div class="hidden px-5 pt-3 mt-2 border-t border-slate-100 bg-slate-50/50" id="rubric-box-3">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 p-3 rounded-lg bg-white border border-slate-200 text-xs">
+<div class="p-2 rounded bg-slate-50 border border-slate-100">
+<div class="flex justify-between font-semibold text-slate-800"><span class="">1. Chỉ số định lượng</span><span class="text-blue-600">1.5đ</span></div>
+<p class="text-[11px] text-slate-500 mt-1">So sánh rõ ràng AWT, Response time và rủi ro starvation.</p>
+</div>
+<div class="p-2 rounded bg-slate-50 border border-slate-100">
+<div class="flex justify-between font-semibold text-slate-800"><span class="">2. Cơ chế Preemptive</span><span class="text-blue-600">1.0đ</span></div>
+<p class="text-[11px] text-slate-500 mt-1">Phân tích tác động ngắt thời gian và chuyển đổi ngữ cảnh liên tục.</p>
+</div>
+<div class="p-2 rounded bg-slate-50 border border-slate-100">
+<div class="flex justify-between font-semibold text-slate-800"><span class="">3. Ứng dụng RTOS</span><span class="text-blue-600">1.0đ</span></div>
+<p class="text-[11px] text-slate-500 mt-1">Biện luận chính xác lý do chọn Priority Preemption thay vì RR chuẩn.</p>
+</div>
+</div>
+</div>
+<!-- Action Footer -->
+<div class="border-t border-slate-100 bg-slate-50/70 p-3 mt-3 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2.5 px-5 rounded-b-xl">
+<div class="flex flex-wrap items-center gap-2">
+<button class="text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-100 transition-colors flex items-center gap-1 shadow-2xs" onclick="toggleCardDetail('followup-box-3', this)" type="button">
+<span class="">▼ Xem 2 câu hỏi xoáy (Follow-up)</span>
+</button>
+<button class="text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-100 transition-colors flex items-center gap-1 shadow-2xs" onclick="toggleCardDetail('rubric-box-3', this)" type="button">
+<span class="">▼ Xem Rubric chi tiết (3 tiêu chí • 3.5đ)</span>
+</button>
+</div>
+<div class="text-xs text-slate-500 self-end sm:self-center font-medium">
+                Đã sử dụng trong: <span class="text-slate-700 font-semibold">5 ca thi học kỳ gần nhất</span>
+</div>
+</div>
+</article>
+</div>
+<!-- 4. PAGINATION FOOTER -->
+<div class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+<div class="text-slate-500">
+            Hiển thị <span class="font-semibold text-slate-800">1 - 3</span> trong tổng số <span class="font-semibold text-slate-800">142</span> câu hỏi môn học
+          </div>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-200 disabled:opacity-50" disabled="" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-blue-600 text-white font-semibold text-xs shadow-xs" type="button">1</button>
+<button class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-700 font-medium text-xs" type="button">2</button>
+<button class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-700 font-medium text-xs" type="button">3</button>
+<span class="px-1 text-slate-400">...</span>
+<button class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-700 font-medium text-xs" type="button">48</button>
+<button class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xs" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- MAIN TAB 2: RUBRIC LIBRARY -->
+<div class="hidden space-y-6" id="sectionRubrics">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
+<div>
+<h2 class="text-base font-bold text-slate-900">Thư viện Tiêu chí Chấm Điểm Chuẩn Hóa</h2>
+<p class="text-xs text-slate-500 mt-0.5">Tái sử dụng các mẫu Rubric đã hiệu chuẩn để AI Examiner và Giảng viên đồng bộ thang điểm vấn đáp.</p>
+</div>
+<button class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-xs font-semibold shadow-sm transition-all" onclick="showNewRubricToast()" type="button">
+<span class="material-symbols-outlined text-[18px]">post_add</span>
+<span class="">Tạo Mẫu Rubric Mới</span>
+</button>
+</div>
+<!-- Rubric Template Grid Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+<!-- Rubric Card 1 -->
+<div class="rounded-xl bg-white border border-slate-200 p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold uppercase">Trọng số: 50%</span>
+<span class="text-xs text-slate-400 font-mono-code">RUB-CS-01</span>
+</div>
+<h3 class="text-sm font-bold text-slate-900">Độ chính xác Nội dung &amp; Bản chất Kỹ thuật</h3>
+<p class="text-xs text-slate-500 mt-1">Đánh giá mức độ hiểu sâu sắc về kiến trúc phần cứng, thứ tự chu trình lệnh và logic xử lý của hệ điều hành.</p>
+<div class="mt-4 space-y-1.5 text-xs">
+<div class="p-2 rounded bg-slate-50 border border-slate-100 flex justify-between items-center">
+<span class="text-slate-700">Xuất sắc (90-100%)</span>
+<span class="font-semibold text-emerald-600">Đầy đủ &amp; Sâu</span>
+</div>
+<div class="p-2 rounded bg-slate-50 border border-slate-100 flex justify-between items-center">
+<span class="text-slate-700">Đạt yêu cầu (60-89%)</span>
+<span class="text-slate-500">Đúng cơ chế chính</span>
+</div>
+<div class="p-2 rounded bg-slate-50 border border-slate-100 flex justify-between items-center">
+<span class="text-slate-700">Chưa đạt (&lt;60%)</span>
+<span class="font-medium text-rose-600">Nhầm khái niệm</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+<span class="text-slate-400">Áp dụng: <strong class="text-slate-700">112 câu hỏi</strong></span>
+<button class="text-blue-600 hover:underline font-semibold" type="button">Tùy biến</button>
+</div>
+</div>
+<!-- Rubric Card 2 -->
+<div class="rounded-xl bg-white border border-slate-200 p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 text-[10px] font-bold uppercase">Trọng số: 30%</span>
+<span class="text-xs text-slate-400 font-mono-code">RUB-CS-02</span>
+</div>
+<h3 class="text-sm font-bold text-slate-900">Thuật ngữ Chuyên ngành Chuẩn xác</h3>
+<p class="text-xs text-slate-500 mt-1">Khả năng sử dụng các thuật ngữ Computer Science quốc tế (Interrupt vector, Context switch, Atomic, Thrashing).</p>
+<div class="mt-4 space-y-1.5 text-xs">
+<div class="p-2 rounded bg-slate-50 border border-slate-100 flex justify-between items-center">
+<span class="text-slate-700">Chuẩn quốc tế (100%)</span>
+<span class="font-semibold text-emerald-600">Đúng ngữ cảnh</span>
+</div>
+<div class="p-2 rounded bg-slate-50 border border-slate-100 flex justify-between items-center">
+<span class="text-slate-700">Việt hóa / Tương đương (75%)</span>
+<span class="text-slate-500">Diễn giải đúng</span>
+</div>
+<div class="p-2 rounded bg-slate-50 border border-slate-100 flex justify-between items-center">
+<span class="text-slate-700">Dùng sai từ (&lt;50%)</span>
+<span class="font-medium text-rose-600">Sai thuật ngữ</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+<span class="text-slate-400">Áp dụng: <strong class="text-slate-700">96 câu hỏi</strong></span>
+<button class="text-blue-600 hover:underline font-semibold" type="button">Tùy biến</button>
+</div>
+</div>
+<!-- Rubric Card 3 -->
+<div class="rounded-xl bg-white border border-slate-200 p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+<div>
+<div class="flex items-center justify-between mb-2">
+<span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold uppercase">Trọng số: 20%</span>
+<span class="text-xs text-slate-400 font-mono-code">RUB-CS-03</span>
+</div>
+<h3 class="text-sm font-bold text-slate-900">Phản xạ Vấn đáp &amp; Độ trôi chảy</h3>
+<p class="text-xs text-slate-500 mt-1">Thời gian phản hồi trước câu hỏi mở, khả năng suy luận trực diện không vòng vo, logic bảo vệ quan điểm.</p>
+<div class="mt-4 space-y-1.5 text-xs">
+<div class="p-2 rounded bg-slate-50 border border-slate-100 flex justify-between items-center">
+<span class="text-slate-700">Tức thì (&lt;5s)</span>
+<span class="font-semibold text-emerald-600">Mạch lạc, tự tin</span>
+</div>
+<div class="p-2 rounded bg-slate-50 border border-slate-100 flex justify-between items-center">
+<span class="text-slate-700">Cần suy nghĩ (5s - 15s)</span>
+<span class="text-slate-500">Ngập ngừng nhẹ</span>
+</div>
+<div class="p-2 rounded bg-slate-50 border border-slate-100 flex justify-between items-center">
+<span class="text-slate-700">Mất tập trung (&gt;20s)</span>
+<span class="font-medium text-rose-600">Cần nhắc nhở</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+<span class="text-slate-400">Áp dụng: <strong class="text-slate-700">Tất cả ca thi</strong></span>
+<button class="text-blue-600 hover:underline font-semibold" type="button">Tùy biến</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Manual Question Modal -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs hidden" id="manualQuestionModal">
+<div class="w-full max-w-xl bg-white rounded-xl shadow-2xl p-6 m-4 border border-slate-200">
+<div class="flex items-center justify-between pb-3 border-b border-slate-200">
+<h3 class="text-base font-bold text-slate-900">Thêm câu hỏi vấn đáp thủ công</h3>
+<button class="text-slate-400 hover:text-slate-600 p-1" onclick="closeManualModal()" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="py-4 space-y-3.5">
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Nội dung câu hỏi chính</label>
+<textarea class="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600" id="manualQuestionText" placeholder="Nhập đề bài câu hỏi..." rows="3"></textarea>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Chương học phần</label>
+<select class="w-full h-8 px-2 text-xs rounded-md bg-slate-50 border border-slate-200 text-slate-800">
+<option>Chương 4: Bộ nhớ ảo &amp; Paging</option>
+<option>Chương 3: CPU Scheduling</option>
+<option>Chương 2: Cấu trúc Hệ điều hành</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Thang điểm cơ bản</label>
+<input class="w-full h-8 px-2 text-xs rounded-md bg-slate-50 border border-slate-200 text-slate-800" step="0.5" type="number" value="4.0">
+</div>
+</div>
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Từ khóa bắt buộc AI chấm (Phân cách bởi dấu phẩy)</label>
+<input class="w-full h-8 px-2 text-xs rounded-md bg-slate-50 border border-slate-200 text-slate-800" placeholder="page size, frame, MMU, hit ratio" type="text">
+</div>
+</div>
+<div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+<button class="px-3.5 py-1.5 rounded-lg text-slate-600 text-xs font-medium hover:bg-slate-100 transition-colors" onclick="closeManualModal()" type="button">Hủy</button>
+<button class="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 shadow-sm transition-colors" onclick="saveManualQuestion()" type="button">Lưu vào Ngân hàng</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<script>
+    // Tab Switching Logic
+    function switchMainTab(tab) {
+      const qSec = document.getElementById('sectionQuestions');
+      const rSec = document.getElementById('sectionRubrics');
+      const qBtn = document.getElementById('tabQuestionsBtn');
+      const rBtn = document.getElementById('tabRubricsBtn');
+
+      if (tab === 'questions') {
+        qSec.classList.remove('hidden');
+        rSec.classList.add('hidden');
+        qBtn.className = 'flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200/60 font-semibold text-xs transition-all shadow-xs';
+        rBtn.className = 'flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium text-xs transition-all';
+      } else {
+        qSec.classList.add('hidden');
+        rSec.classList.remove('hidden');
+        rBtn.className = 'flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200/60 font-semibold text-xs transition-all shadow-xs';
+        qBtn.className = 'flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium text-xs transition-all';
+      }
+    }
+
+    // Toggle Collapse of RAG Panel
+    function toggleRagPanel() {
+      const body = document.getElementById('ragFormBody');
+      const txt = document.getElementById('collapseRagText');
+      const icon = document.getElementById('collapseRagIcon');
+      if (body.classList.contains('hidden')) {
+        body.classList.remove('hidden');
+        txt.innerText = 'Thu gọn bảng tạo';
+        icon.innerText = 'expand_less';
+      } else {
+        body.classList.add('hidden');
+        txt.innerText = 'Mở rộng bảng tạo';
+        icon.innerText = 'expand_more';
+      }
+    }
+
+    function scrollToRagGenerator() {
+      switchMainTab('questions');
+      const el = document.getElementById('ragGeneratorPanel');
+      el.scrollIntoView({ behavior: 'smooth' });
+      const form = document.getElementById('ragFormBody');
+      if (form.classList.contains('hidden')) toggleRagPanel();
+    }
+
+    // Progressive Disclosure Accordion Toggle
+    function toggleCardDetail(containerId, btn) {
+      const box = document.getElementById(containerId);
+      if (!box) return;
+      if (box.classList.contains('hidden')) {
+        box.classList.remove('hidden');
+        if (btn) btn.innerHTML = btn.innerHTML.replace('▼', '▲');
+      } else {
+        box.classList.add('hidden');
+        if (btn) btn.innerHTML = btn.innerHTML.replace('▲', '▼');
+      }
+    }
+
+    // Question Count Selector
+    function selectCount(count, btn) {
+      const buttons = document.querySelectorAll('.rag-count-btn');
+      buttons.forEach(b => {
+        b.className = 'rag-count-btn h-8 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium';
+      });
+      btn.className = 'rag-count-btn h-8 rounded-md bg-blue-600 text-white text-xs font-semibold shadow-xs';
+    }
+
+    // Toast Functionality
+    function showToast(msg, icon = 'check_circle') {
+      const toast = document.getElementById('toastNotification');
+      const msgEl = document.getElementById('toastMessage');
+      const iconEl = document.getElementById('toastIcon');
+      msgEl.innerText = msg;
+      iconEl.innerText = icon;
+      toast.classList.remove('opacity-0', 'translate-y-20');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'translate-y-20');
+      }, 3000);
+    }
+
+    // Approve AI Question
+    function approveQuestion(code) {
+      const card = document.getElementById('aiGeneratedQuestionCard');
+      if (card) {
+        card.setAttribute('data-status', 'OFFICIAL');
+        card.classList.remove('border-l-4', 'border-amber-500');
+        const badge = card.querySelector('.bg-amber-50');
+        if (badge) {
+          badge.className = 'bg-emerald-50 text-emerald-700 font-semibold text-xs px-2.5 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1';
+          badge.innerHTML = '<span class="material-symbols-outlined text-[13px]">verified</span> ✓ Đã duyệt chính thức';
+        }
+        showToast(`Đã duyệt mã câu hỏi ${code} vào Ngân hàng chính thức!`);
+      }
+    }
+
+    // Reject / Remove AI Question
+    function rejectQuestion(code) {
+      const card = document.getElementById('aiGeneratedQuestionCard');
+      if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.97)';
+        setTimeout(() => {
+          card.remove();
+          showToast(`Đã loại bỏ câu hỏi ${code}`, 'delete');
+        }, 200);
+      }
+    }
+
+    // Simulated AI RAG Generation Runner
+    function runRagGeneration() {
+      const btn = document.getElementById('startRagGenerationBtn');
+      const genIcon = document.getElementById('genIcon');
+      const genText = document.getElementById('genText');
+
+      btn.disabled = true;
+      genIcon.innerText = 'sync';
+      genIcon.classList.add('animate-spin');
+      genText.innerText = 'Đang phân tích vector corpus...';
+
+      setTimeout(() => {
+        btn.disabled = false;
+        genIcon.innerText = 'auto_awesome';
+        genIcon.classList.remove('animate-spin');
+        genText.innerText = 'Bắt đầu sinh câu hỏi & Rubric tự động';
+        showToast('Đã trích xuất & hoàn tất sinh 3 câu hỏi kèm Rubric định lượng!', 'auto_awesome');
+      }, 1500);
+    }
+
+    // File Upload Handlers
+    function triggerFileUpload() {
+      document.getElementById('hiddenFileInput').click();
+    }
+
+    function handleFileSelected(e) {
+      if (e.target.files && e.target.files[0]) {
+        const fileName = e.target.files[0].name;
+        const container = document.getElementById('fileListContainer');
+        const newCard = document.createElement('div');
+        newCard.className = 'flex items-center justify-between bg-white border border-slate-200 rounded-md p-2 shadow-xs';
+        newCard.innerHTML = `
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="material-symbols-outlined text-blue-600 text-[18px]">description</span>
+            <div class="min-w-0">
+              <p class="text-xs font-semibold text-slate-800 truncate leading-tight">${fileName}</p>
+              <p class="text-[10px] text-slate-400">Vừa tải lên • Đang vector hóa</p>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-amber-500 text-[16px] animate-spin">sync</span>
+        `;
+        container.appendChild(newCard);
+        showToast(`Đang phân tích ngữ nghĩa: ${fileName}`);
+      }
+    }
+
+    // Filtering System
+    function filterQuestions() {
+      const query = document.getElementById('questionSearchInput').value.toLowerCase();
+      const topic = document.getElementById('filterTopic').value;
+      const bloom = document.getElementById('filterBloom').value;
+      const status = document.getElementById('filterStatus').value;
+
+      const items = document.querySelectorAll('.question-item');
+      items.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        const itemTopic = item.getAttribute('data-topic');
+        const itemBloom = item.getAttribute('data-bloom');
+        const itemStatus = item.getAttribute('data-status');
+
+        const matchesSearch = text.includes(query);
+        const matchesTopic = (topic === 'ALL' || itemTopic === topic);
+        const matchesBloom = (bloom === 'ALL' || itemBloom === bloom);
+        const matchesStatus = (status === 'ALL' || itemStatus === status);
+
+        if (matchesSearch && matchesTopic && matchesBloom && matchesStatus) {
+          item.classList.remove('hidden');
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+    }
+
+    function resetFilters() {
+      document.getElementById('questionSearchInput').value = '';
+      document.getElementById('filterTopic').value = 'ALL';
+      document.getElementById('filterBloom').value = 'ALL';
+      document.getElementById('filterStatus').value = 'ALL';
+      filterQuestions();
+      showToast('Đã đặt lại bộ lọc', 'filter_alt');
+    }
+
+    // Modal Handlers
+    function openManualModal() {
+      document.getElementById('manualQuestionModal').classList.remove('hidden');
+    }
+
+    function closeManualModal() {
+      document.getElementById('manualQuestionModal').classList.add('hidden');
+    }
+
+    function saveManualQuestion() {
+      const val = document.getElementById('manualQuestionText').value.trim();
+      if (!val) {
+        alert('Vui lòng nhập nội dung câu hỏi!');
+        return;
+      }
+      closeManualModal();
+      showToast('Đã thêm câu hỏi thủ công vào danh sách!');
+    }
+
+    function showNewRubricToast() {
+      showToast('Mở trình thiết lập bảng rubric ma trận mới');
+    }
+
+    function editModalTrigger() {
+      showToast('Đang mở bộ hiệu chỉnh câu hỏi & tiêu chí chấm', 'tune');
+    }
+  </script>
+
+
+</body></html>

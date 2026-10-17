@@ -1,8 +1,12 @@
 package com.group2.aives.presentation.controller;
 
+import com.group2.aives.application.dto.request.RegisterRequest;
+import com.group2.aives.application.dto.request.UpdateRoleRequest;
 import com.group2.aives.application.dto.request.UserRequest;
+import com.group2.aives.application.dto.response.AuthResponse;
 import com.group2.aives.application.dto.response.UserResponse;
 import com.group2.aives.domain.enums.RoleEnum;
+import com.group2.aives.application.port.in.AuthService;
 import com.group2.aives.application.port.in.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +26,7 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final AuthService authService;
 
     @GetMapping
     @Operation(summary = "Lấy danh sách người dùng (có thể lọc theo vai trò: ADMIN, LECTURER, STUDENT)")
@@ -42,6 +47,28 @@ public class UserController {
     @Operation(summary = "Tạo tài khoản mới (Admin thực hiện)")
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(request));
+    }
+
+    @PostMapping("/register")
+    @Operation(summary = "Đăng ký tài khoản người dùng mới (Lưu trực tiếp vào PostgreSQL)")
+    public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
+        AuthResponse authResponse = authService.register(request);
+        UserResponse response = UserResponse.builder()
+                .id(authResponse.getUserId())
+                .email(authResponse.getEmail())
+                .fullName(authResponse.getFullName())
+                .role(request.getRole() != null ? request.getRole() : RoleEnum.STUDENT)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{idOrCode}/role")
+    @Operation(summary = "Quản trị viên cập nhật vai trò (Role: ADMIN, LECTURER, STUDENT) của người dùng")
+    public ResponseEntity<UserResponse> updateUserRole(
+            @PathVariable String idOrCode,
+            @Valid @RequestBody UpdateRoleRequest request
+    ) {
+        return ResponseEntity.ok(userService.updateUserRole(idOrCode, request.getRole()));
     }
 
     @PutMapping("/{id}")

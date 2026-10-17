@@ -1,13 +1,134 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIVES - AI Viva Exam System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            'surface': '#f8f9ff',
+            'surface-container-low': '#eff4ff',
+            'surface-container-lowest': '#ffffff',
+            'surface-container-high': '#dce9ff',
+            'surface-container': '#e6eeff',
+            'surface-variant': '#d5e3fc',
+            'on-surface': '#0d1c2e',
+            'on-surface-variant': '#434655',
+            'primary': '#1d4ed8',
+            'primary-container': '#2563eb',
+            'primary-hover': '#1e40af',
+            'on-primary': '#ffffff',
+            'secondary': '#515f74',
+            'secondary-container': '#d5e3fc',
+            'tertiary-container': '#0284c7',
+            'error': '#dc2626',
+            'outline-variant': '#cbd5e1',
+            'outline': '#64748b'
+          },
+          animation: {
+            'blob': 'blob 8s infinite',
+            'float': 'float 4s ease-in-out infinite',
+            'pulse-subtle': 'pulseSubtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'fade-in-up': 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            'fade-in': 'fadeIn 0.25s ease-out forwards',
+            'scale-up': 'scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            'pop': 'pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+            'soft-bounce': 'softBounce 2s ease-in-out infinite',
+            'shimmer': 'shimmer 2.5s infinite',
+          },
+          keyframes: {
+            blob: {
+              '0%': { transform: 'translate(0px, 0px) scale(1)' },
+              '33%': { transform: 'translate(25px, -35px) scale(1.08)' },
+              '66%': { transform: 'translate(-20px, 20px) scale(0.95)' },
+              '100%': { transform: 'translate(0px, 0px) scale(1)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-6px)' },
+            },
+            pulseSubtle: {
+              '0%, 100%': { opacity: '1' },
+              '50%': { opacity: '0.6' },
+            },
+            fadeInUp: {
+              '0%': { opacity: '0', transform: 'translateY(16px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            scaleUp: {
+              '0%': { opacity: '0', transform: 'scale(0.96)' },
+              '100%': { opacity: '1', transform: 'scale(1)' },
+            },
+            pop: {
+              '0%': { transform: 'scale(0.9)' },
+              '70%': { transform: 'scale(1.03)' },
+              '100%': { transform: 'scale(1)' },
+            },
+            softBounce: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-4px)' },
+            },
+            shimmer: {
+              '100%': { transform: 'translateX(100%)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+      }
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* Friendly interactive micro-animations */
+    .interactive-card {
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .interactive-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 28px -10px rgba(37, 99, 235, 0.12), 0 8px 16px -8px rgba(0, 0, 0, 0.06);
+    }
+    .btn-friendly {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn-friendly:active {
+      transform: scale(0.96);
+    }
+    .badge-glow {
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased selection:bg-blue-600 selection:text-white">
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
 </html>
