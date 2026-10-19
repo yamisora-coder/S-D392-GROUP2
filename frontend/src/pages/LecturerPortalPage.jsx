@@ -1,4 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { api, shortId, formatDate, formatDateTime } from '../services/api.js';
+
+const round2 = (n) => Math.round(n * 100) / 100;
+const roundQuarter = (n) => Math.round(n * 4) / 4;
+
+// Xây dựng bài làm (submission) cho Split-View từ ca thi + ngân hàng câu hỏi của môn.
+// Backend hiện chỉ lưu điểm tổng (AI gợi ý & điểm chốt), nên điểm từng tiêu chí được
+// phân bổ theo tỷ lệ điểm tổng và thang rubric được quy đổi để tổng bài = 10 điểm.
+function buildSubmission(session, exam, subjectQuestions) {
+  const pool = subjectQuestions.filter((q) => q.status === 'APPROVED');
+  const picked = pool.slice(0, Math.max(1, exam?.maxMainQuestions || 3));
+  const aiScore = session.aiSuggestedScore ?? 0;
+  const lecturerTotal = session.finalTeacherScore ?? aiScore;
+  const perQuestionMax = picked.length ? 10 / picked.length : 10;
+
+  const questions = picked.map((q, idx) => {
+    const totalRubric = q.totalRubricScore || q.rubrics.reduce((a, r) => a + r.maxScore, 0) || 1;
+    const rubrics = q.rubrics.map((r) => {
+      const max = round2((r.maxScore / totalRubric) * perQuestionMax);
+      return {
+        id: r.id,
+        title: r.criteriaName,
+        desc: r.description || '',
+        max,
+        ai: roundQuarter(max * (aiScore / 10)),
+        lecturer: roundQuarter(max * (lecturerTotal / 10)),
+        aiFeedback: 'Ước tính theo điểm AI tổng (backend chưa lưu điểm từng tiêu chí).',
+      };
+    });
+    return {
+      id: q.id,
+      title: `Câu ${idx + 1}: ${q.content}`,
+      maxScore: round2(perQuestionMax),
+      aiScore: round2(rubrics.reduce((a, r) => a + r.ai, 0)),
+      lecturerScore: round2(rubrics.reduce((a, r) => a + r.lecturer, 0)),
+      bloom: q.bloomLevel,
+      rubrics,
+      dialogue: [],
+    };
+  });
+
+  return {
+    id: session.id,
+    studentId: session.studentCode,
+    studentName: session.studentName || 'Thí sinh',
+    examId: session.examId,
+    examTitle: session.examTitle,
+    status: session.finalTeacherScore != null ? 'GRADED' : 'PENDING_APPROVAL',
+    aiScore,
+    lecturerScore: round2(lecturerTotal),
+    feedback: session.teacherFeedback || '',
+    submittedAt: formatDateTime(session.scheduledStartTime),
+    duration: `${exam?.durationPerStudentMins ?? '--'} phút`,
+    violationsCount: 0,
+    currentQuestionIdx: 0,
+    questions,
+  };
+}
 
 export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPortal }) {
   const [activeTab, setActiveTab] = useState('grading'); // 'dashboard' | 'grading' | 'questions' | 'exams' | 'analytics'
@@ -7,9 +65,13 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
   const [searchTerm, setSearchTerm] = useState('');
   const [questionSubjectFilter, setQuestionSubjectFilter] = useState('ALL');
   const [questionBloomFilter, setQuestionBloomFilter] = useState('ALL');
+  const [questionStatusFilter, setQuestionStatusFilter] = useState('ACTIVE'); // ACTIVE | DRAFT | AI_DRAFT | APPROVED | ARCHIVED | ALL
 
   // Modal states
   const [showAddQuestionModal, setShowAddQuestionModal] = useState(false);
+  const [editingQuestionId, setEditingQuestionId] = useState(null); // null = thêm mới
+  const [detailQuestion, setDetailQuestion] = useState(null);
+  const [savingQuestion, setSavingQuestion] = useState(false);
   const [showCreateExamModal, setShowCreateExamModal] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -18,187 +80,59 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
     setTimeout(() => setToastMessage(''), 3500);
   };
 
+  // ================= DỮ LIỆU TỪ BACKEND =================
+  const [subjects, setSubjects] = useState([]);
+  const [rawQuestions, setRawQuestions] = useState([]);
+  const [rawExams, setRawExams] = useState([]);
+  const [rawSessions, setRawSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
+  const loadAll = async () => {
+    setLoading(true);
+    setLoadError('');
+    try {
+      const [subs, qs, exs, ss] = await Promise.all([
+        api.getSubjects(),
+        api.getQuestions(),
+        api.getExams(),
+        api.getSessions(),
+      ]);
+      setSubjects(subs || []);
+      setRawQuestions(qs || []);
+      setRawExams(exs || []);
+      setRawSessions(ss || []);
+    } catch (err) {
+      setLoadError(err.message);
+      showNotification(`Lỗi tải dữ liệu: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAll();
+  }, []);
+
   // ================= DỮ LIỆU CHẤM ĐIỂM SPLIT-VIEW (HUMAN-IN-THE-LOOP) =================
-  const [submissions, setSubmissions] = useState([
-    {
-      id: 'SUB-001',
-      studentId: 'SE180123',
-      studentName: 'Trần Hoàng Phúc',
-      examId: 'CS201',
-      examTitle: 'Kiến trúc máy tính & Hệ điều hành (CS201)',
-      status: 'PENDING_APPROVAL', // 'PENDING_APPROVAL' | 'GRADED'
-      aiScore: 8.5,
-      lecturerScore: 8.75,
-      submittedAt: '14:20 - Hôm nay',
-      duration: '18 phút 45 giây',
-      violationsCount: 0,
-      currentQuestionIdx: 0,
-      questions: [
-        {
-          id: 'Q1',
-          title: 'Câu 1: Cơ chế Phân trang & Phân mảnh nội vi',
-          maxScore: 4.0,
-          aiScore: 3.5,
-          lecturerScore: 3.75,
-          bloom: 'ANALYZE',
-          note: 'Thí sinh nắm rất chắc bản chất, trình bày rành mạch logic.',
-          rubrics: [
-            {
-              id: 'R1_1',
-              title: 'Tiêu chí 1: Nắm vững định nghĩa & Nguyên lý (Definition)',
-              desc: 'Định nghĩa chuẩn cơ chế Paging, kích thước trang, khung trang.',
-              max: 1.5,
-              ai: 1.5,
-              lecturer: 1.5,
-              aiFeedback: 'Khớp 100% định nghĩa chuẩn. Trả lời ngay trong 3 giây đầu.',
-            },
-            {
-              id: 'R1_2',
-              title: 'Tiêu chí 2: Phân tích nguyên nhân & Biện pháp giảm thiểu',
-              desc: 'Chỉ rõ nguyên nhân trang cuối không lấp đầy và biện pháp khắc phục.',
-              max: 1.5,
-              ai: 1.25,
-              lecturer: 1.25,
-              aiFeedback: 'Nêu đúng giảm page size & overhead. Chưa nhắc tới Multi-level Paging.',
-            },
-            {
-              id: 'R1_3',
-              title: 'Tiêu chí 3: Phản xạ & Độ trôi chảy (Fluency & Latency)',
-              desc: 'Độ trễ phản xạ < 2.0s, ngữ điệu tự tin, không ấp úng ngắt quãng.',
-              max: 1.0,
-              ai: 0.75,
-              lecturer: 1.0,
-              aiFeedback: 'Phản xạ nhanh 1.8s, điểm tự tin AI đánh giá 88/100.',
-            },
-          ],
-          dialogue: [
-            {
-              speaker: 'AI Giám khảo',
-              time: '00:15',
-              text: 'Chào bạn Phúc! Bạn vừa nhắc đến cơ chế Phân trang (Paging), vậy hiện tượng Phân mảnh nội vi (Internal Fragmentation) xảy ra như thế nào trong cơ chế này?',
-              isAi: true,
-            },
-            {
-              speaker: 'Thí sinh Trần Hoàng Phúc',
-              time: '00:32',
-              text: 'Thưa thầy cô, phân mảnh nội vi xảy ra khi kích thước tiến trình không chia hết cho kích thước của khung trang (page frame)... do đó trang cuối cùng được cấp phát chỉ sử dụng một phần dữ liệu, để thừa khoảng trống không dùng đến.',
-              isAi: false,
-            },
-            {
-              speaker: 'AI Hỏi xoáy sâu (Follow-up)',
-              time: '02:10',
-              text: 'Rất chính xác! Vậy làm thế nào để giảm thiểu kích thước phân mảnh nội vi này trong thiết kế hệ điều hành thực tế?',
-              isAi: true,
-            },
-            {
-              speaker: 'Thí sinh Trần Hoàng Phúc',
-              time: '02:24',
-              text: 'Dạ chúng ta có thể giảm kích thước trang (page size). Tuy nhiên nhược điểm là sẽ làm tăng kích thước bảng trang (page table size) và overhead bộ nhớ ạ.',
-              isAi: false,
-            },
-          ],
-        },
-        {
-          id: 'Q2',
-          title: 'Câu 2: Bộ nhớ ảo & Bộ đệm chuyển đổi TLB',
-          maxScore: 3.5,
-          aiScore: 3.0,
-          lecturerScore: 3.0,
-          bloom: 'APPLY',
-          note: 'Giải thích tốt về TLB Hit và TLB Miss.',
-          rubrics: [
-            {
-              id: 'R2_1',
-              title: 'Tiêu chí 1: Vai trò phần cứng TLB',
-              desc: 'Giải thích bộ nhớ liên kết nhanh giảm số lần truy cập RAM.',
-              max: 2.0,
-              ai: 1.75,
-              lecturer: 1.75,
-              aiFeedback: 'Mô tả rõ chu trình hit/miss.',
-            },
-            {
-              id: 'R2_2',
-              title: 'Tiêu chí 2: Đánh đổi hiệu năng (Performance Trade-off)',
-              desc: 'Tính toán thời gian truy cập hiệu dụng EAT.',
-              max: 1.5,
-              ai: 1.25,
-              lecturer: 1.25,
-              aiFeedback: 'Công thức EAT chính xác.',
-            },
-          ],
-          dialogue: [
-            {
-              speaker: 'AI Giám khảo',
-              time: '06:12',
-              text: 'Hãy giải thích vai trò của Translation Lookaside Buffer (TLB) khi CPU tra cứu địa chỉ?',
-              isAi: true,
-            },
-            {
-              speaker: 'Thí sinh Trần Hoàng Phúc',
-              time: '06:28',
-              text: 'TLB là bộ nhớ cache tốc độ rất cao nằm trong MMU, lưu trữ các ánh xạ trang gần đây nhất để CPU không cần tốn 2 lần đọc RAM.',
-              isAi: false,
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'SUB-002',
-      studentId: 'SE170002',
-      studentName: 'Lê Thị Bình',
-      examId: 'CS201',
-      examTitle: 'Kiến trúc máy tính & Hệ điều hành (CS201)',
-      status: 'PENDING_APPROVAL',
-      aiScore: 7.25,
-      lecturerScore: 7.5,
-      submittedAt: '13:50 - Hôm nay',
-      duration: '16 phút 10 giây',
-      violationsCount: 0,
-      currentQuestionIdx: 0,
-      questions: [
-        {
-          id: 'Q1',
-          title: 'Câu 1: Cơ chế Phân trang & Phân mảnh nội vi',
-          maxScore: 4.0,
-          aiScore: 3.0,
-          lecturerScore: 3.0,
-          bloom: 'ANALYZE',
-          note: 'Trả lời đúng ý chính.',
-          rubrics: [
-            {
-              id: 'R1_1',
-              title: 'Tiêu chí 1: Nắm vững định nghĩa',
-              desc: 'Định nghĩa phân trang',
-              max: 1.5,
-              ai: 1.25,
-              lecturer: 1.25,
-              aiFeedback: 'Tốt',
-            },
-          ],
-          dialogue: [],
-        },
-      ],
-    },
-    {
-      id: 'SUB-003',
-      studentId: 'SE170003',
-      studentName: 'Phạm Minh Cường',
-      examId: 'CS201',
-      examTitle: 'Kiến trúc máy tính & Hệ điều hành (CS201)',
-      status: 'GRADED',
-      aiScore: 9.0,
-      lecturerScore: 9.0,
-      submittedAt: '10:15 - Hôm qua',
-      duration: '19 phút 00 giây',
-      violationsCount: 0,
-      currentQuestionIdx: 0,
-      questions: [],
-    },
-  ]);
+  const [submissions, setSubmissions] = useState([]);
+
+  useEffect(() => {
+    const examById = new Map(rawExams.map((e) => [e.id, e]));
+    const built = rawSessions
+      .filter((s) => s.status === 'IN_PROGRESS' || s.status === 'COMPLETED' || s.aiSuggestedScore != null)
+      .sort((a, b) => (a.finalTeacherScore != null) - (b.finalTeacherScore != null))
+      .map((s) => {
+        const exam = examById.get(s.examId);
+        const subjectQuestions = rawQuestions.filter((q) => q.subjectId === exam?.subjectId);
+        return buildSubmission(s, exam, subjectQuestions);
+      });
+    setSubmissions(built);
+  }, [rawSessions, rawExams, rawQuestions]);
 
   const [selectedSubIdx, setSelectedSubIdx] = useState(0);
   const [selectedQuestionTab, setSelectedQuestionTab] = useState(0);
+  const [isFinalizing, setIsFinalizing] = useState(false);
   const currentSubmission = submissions[selectedSubIdx] || submissions[0];
   const activeQuestion = currentSubmission?.questions?.[selectedQuestionTab] || currentSubmission?.questions?.[0];
 
@@ -218,174 +152,334 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
           return { ...q, rubrics: newRubrics, lecturerScore: newQLecturer };
         });
         const totalLecturer = Number(newQuestions.reduce((acc, cur) => acc + cur.lecturerScore, 0).toFixed(2));
-        return { ...sub, questions: newQuestions, lecturerScore: totalLecturer };
+        return { ...sub, questions: newQuestions, lecturerScore: Math.min(10, totalLecturer) };
       })
     );
   };
 
-  const handleApproveGrade = () => {
-    setSubmissions((prev) =>
-      prev.map((sub, idx) =>
-        idx === selectedSubIdx
-          ? { ...sub, status: 'GRADED' }
-          : sub
-      )
-    );
-    showNotification(`Đã duyệt & chốt điểm bài thi của thí sinh ${currentSubmission.studentName} thành công! Điểm: ${currentSubmission.lecturerScore}/10.0`);
+  const handleFeedbackChange = (value) => {
+    setSubmissions((prev) => prev.map((sub, idx) => (idx === selectedSubIdx ? { ...sub, feedback: value } : sub)));
+  };
+
+  const handleApproveGrade = async () => {
+    if (!currentSubmission) return;
+    setIsFinalizing(true);
+    try {
+      const score = Math.max(0, Math.min(10, Number(currentSubmission.lecturerScore) || 0));
+      const updated = await api.finalizeGrade(currentSubmission.id, score, currentSubmission.feedback || null);
+      setRawSessions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+      showNotification(`Đã duyệt & chốt điểm bài thi của thí sinh ${currentSubmission.studentName} thành công! Điểm: ${score}/10.0`);
+    } catch (err) {
+      showNotification(`Lỗi chốt điểm: ${err.message}`);
+    } finally {
+      setIsFinalizing(false);
+    }
   };
 
   // ================= DỮ LIỆU NGÂN HÀNG CÂU HỎI & RUBRIC =================
-  const [questionsList, setQuestionsList] = useState([
-    {
-      id: 'QUEST-101',
-      subject: 'Hệ điều hành (OS)',
-      code: 'CS201',
-      title: 'Phân tích cơ chế Phân trang (Paging) và Phân mảnh bộ nhớ nội vi',
-      bloom: 'ANALYZE',
-      status: 'APPROVED',
-      maxScore: 4.0,
-      keywords: ['Paging', 'Internal Fragmentation', 'Page Size', 'Overhead'],
-      rubricCount: 3,
-    },
-    {
-      id: 'QUEST-102',
-      subject: 'Hệ điều hành (OS)',
-      code: 'CS201',
-      title: 'Nguyên lý hoạt động và hiệu năng của bộ đệm chuyển đổi địa chỉ TLB',
-      bloom: 'APPLY',
-      status: 'APPROVED',
-      maxScore: 3.5,
-      keywords: ['TLB Hit', 'TLB Miss', 'Page Table Walk', 'EAT'],
-      rubricCount: 2,
-    },
-    {
-      id: 'QUEST-103',
-      subject: 'Mạng máy tính',
-      code: 'NET102',
-      title: 'So sánh cơ chế bắt tay 3 bước TCP và giao thức UDP trong truyền streaming',
-      bloom: 'EVALUATE',
-      status: 'APPROVED',
-      maxScore: 5.0,
-      keywords: ['TCP 3-way handshake', 'UDP', 'Congestion Control', 'Flow Control'],
-      rubricCount: 4,
-    },
-    {
-      id: 'QUEST-104',
-      subject: 'Kỹ thuật Phần mềm',
-      code: 'SWE301',
-      title: 'Áp dụng Design Pattern Factory Method vs Abstract Factory',
-      bloom: 'CREATE',
-      status: 'DRAFT',
-      maxScore: 4.5,
-      keywords: ['Creational Patterns', 'Loose Coupling', 'Polymorphism'],
-      rubricCount: 3,
-    },
-  ]);
-
-  // Add Question Form State
-  const [newQuestion, setNewQuestion] = useState({
-    title: '',
-    subject: 'CS201',
-    bloom: 'UNDERSTAND',
-    maxScore: '4.0',
-    keywords: '',
-    rubric1: 'Kiến thức lý thuyết cốt lõi (Trọng số 40%)',
-    rubric2: 'Khả năng lập luận phản xạ (Trọng số 30%)',
-    rubric3: 'Ví dụ thực tiễn & Giải quyết vấn đề (Trọng số 30%)',
-  });
-
-  const handleAddQuestion = (e) => {
-    e.preventDefault();
-    if (!newQuestion.title.trim()) return;
-    const item = {
-      id: `QUEST-${Date.now().toString().slice(-4)}`,
-      subject: newQuestion.subject === 'CS201' ? 'Hệ điều hành (OS)' : 'Kỹ thuật phần mềm',
-      code: newQuestion.subject,
-      title: newQuestion.title,
-      bloom: newQuestion.bloom,
-      status: 'APPROVED',
-      maxScore: parseFloat(newQuestion.maxScore) || 4.0,
-      keywords: newQuestion.keywords.split(',').map((k) => k.trim()).filter(Boolean),
-      rubricCount: 3,
-    };
-    setQuestionsList([item, ...questionsList]);
-    setShowAddQuestionModal(false);
-    showNotification('Đã thêm câu hỏi và tiêu chí Rubric thành công vào Ngân hàng!');
-    setNewQuestion({
-      title: '',
-      subject: 'CS201',
-      bloom: 'UNDERSTAND',
-      maxScore: '4.0',
-      keywords: '',
-      rubric1: 'Kiến thức lý thuyết cốt lõi (Trọng số 40%)',
-      rubric2: 'Khả năng lập luận phản xạ (Trọng số 30%)',
-      rubric3: 'Ví dụ thực tiễn & Giải quyết vấn đề (Trọng số 30%)',
-    });
+  const BLOOM_LABELS = {
+    REMEMBER: 'Nhớ (Remember)',
+    UNDERSTAND: 'Hiểu (Understand)',
+    APPLY: 'Vận dụng (Apply)',
+    ANALYZE: 'Phân tích (Analyze)',
+  };
+  const STATUS_META = {
+    DRAFT: { label: 'Chờ duyệt', cls: 'bg-amber-100 text-amber-800' },
+    APPROVED: { label: 'Đã duyệt', cls: 'bg-emerald-100 text-emerald-800' },
+    ARCHIVED: { label: 'Lưu trữ', cls: 'bg-slate-200 text-slate-600' },
   };
 
+  const questionsList = useMemo(
+    () =>
+      rawQuestions.map((q) => ({
+        id: q.id,
+        subjectId: q.subjectId,
+        isAiGenerated: !!q.isAiGenerated,
+        createdByName: q.createdByName,
+        displayId: shortId(q.id, 'Q-'),
+        subject: q.subjectName,
+        code: q.subjectCode,
+        title: q.content,
+        bloom: q.bloomLevel,
+        status: q.status,
+        maxScore: q.totalRubricScore ?? 0,
+        keywords: q.isAiGenerated ? ['AI Generated'] : [],
+        rubricCount: q.rubrics?.length || 0,
+        rubrics: q.rubrics || [],
+        sampleAnswer: q.sampleAnswer,
+      })),
+    [rawQuestions]
+  );
+
+  const matchStatusFilter = (q, filter) => {
+    switch (filter) {
+      case 'ACTIVE': return q.status !== 'ARCHIVED';
+      case 'DRAFT': return q.status === 'DRAFT';
+      case 'AI_DRAFT': return q.status === 'DRAFT' && q.isAiGenerated;
+      case 'APPROVED': return q.status === 'APPROVED';
+      case 'ARCHIVED': return q.status === 'ARCHIVED';
+      default: return true;
+    }
+  };
+
+  const questionStatusTabs = [
+    { key: 'ACTIVE', label: 'Đang sử dụng' },
+    { key: 'DRAFT', label: 'Chờ duyệt' },
+    { key: 'AI_DRAFT', label: 'AI sinh – chờ duyệt' },
+    { key: 'APPROVED', label: 'Đã duyệt' },
+    { key: 'ARCHIVED', label: 'Lưu trữ' },
+    { key: 'ALL', label: 'Tất cả' },
+  ].map((t) => ({ ...t, count: questionsList.filter((q) => matchStatusFilter(q, t.key)).length }));
+
+  const filteredQuestions = questionsList.filter((q) => {
+    const matchSubject = questionSubjectFilter === 'ALL' || q.code === questionSubjectFilter;
+    const matchBloom = questionBloomFilter === 'ALL' || q.bloom === questionBloomFilter;
+    const matchStatus = matchStatusFilter(q, questionStatusFilter);
+    const matchSearch = !searchTerm.trim() || q.title.toLowerCase().includes(searchTerm.trim().toLowerCase());
+    return matchSubject && matchBloom && matchStatus && matchSearch;
+  });
+
+  let rubricKeySeq = 0;
+  const makeRubricRow = (criteriaName = '', maxScore = '', description = '', id = null) => ({
+    key: `r-${Date.now()}-${rubricKeySeq++}-${Math.random().toString(36).slice(2, 7)}`,
+    id,
+    criteriaName,
+    maxScore: maxScore === '' || maxScore == null ? '' : String(maxScore),
+    description: description || '',
+  });
+
+  const defaultQuestionForm = () => ({
+    title: '',
+    subject: subjects[0]?.id || '',
+    bloom: 'UNDERSTAND',
+    sampleAnswer: '',
+    status: 'APPROVED',
+    isAiGenerated: false,
+    rubrics: [
+      makeRubricRow('Kiến thức lý thuyết cốt lõi', 4, 'Trình bày đúng, đủ khái niệm/định nghĩa then chốt'),
+      makeRubricRow('Khả năng lập luận, phản xạ', 3, 'Giải thích mạch lạc, trả lời được câu hỏi phụ'),
+      makeRubricRow('Ví dụ thực tiễn & giải quyết vấn đề', 3, 'Đưa ra ví dụ/tình huống áp dụng phù hợp'),
+    ],
+  });
+
+  // Add/Edit Question Form State
+  const [newQuestion, setNewQuestion] = useState(defaultQuestionForm);
+
+  useEffect(() => {
+    if (!newQuestion.subject && subjects.length) {
+      setNewQuestion((prev) => ({ ...prev, subject: subjects[0].id }));
+    }
+  }, [subjects]);
+
+  const formRubricTotal = round2(
+    newQuestion.rubrics.reduce((sum, r) => sum + (parseFloat(r.maxScore) || 0), 0)
+  );
+
+  const openAddQuestion = () => {
+    setEditingQuestionId(null);
+    setNewQuestion(defaultQuestionForm());
+    setShowAddQuestionModal(true);
+  };
+
+  const openEditQuestion = (questionId) => {
+    const q = rawQuestions.find((x) => x.id === questionId);
+    if (!q) return;
+    setEditingQuestionId(q.id);
+    setNewQuestion({
+      title: q.content || '',
+      subject: q.subjectId,
+      bloom: q.bloomLevel,
+      sampleAnswer: q.sampleAnswer || '',
+      status: q.status,
+      isAiGenerated: !!q.isAiGenerated,
+      rubrics: (q.rubrics?.length ? q.rubrics : [{}]).map((r) =>
+        makeRubricRow(r.criteriaName || '', r.maxScore ?? '', r.description || '', r.id || null)
+      ),
+    });
+    setDetailQuestion(null);
+    setShowAddQuestionModal(true);
+  };
+
+  const closeQuestionModal = () => {
+    setShowAddQuestionModal(false);
+    setEditingQuestionId(null);
+  };
+
+  const updateRubricRow = (key, field, value) =>
+    setNewQuestion((prev) => ({
+      ...prev,
+      rubrics: prev.rubrics.map((r) => (r.key === key ? { ...r, [field]: value } : r)),
+    }));
+
+  const addRubricRow = () =>
+    setNewQuestion((prev) => ({ ...prev, rubrics: [...prev.rubrics, makeRubricRow()] }));
+
+  const removeRubricRow = (key) =>
+    setNewQuestion((prev) => ({
+      ...prev,
+      rubrics: prev.rubrics.length > 1 ? prev.rubrics.filter((r) => r.key !== key) : prev.rubrics,
+    }));
+
+  const replaceQuestion = (updated) =>
+    setRawQuestions((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+
+  const handleSaveQuestion = async (e) => {
+    e.preventDefault();
+    if (!newQuestion.title.trim()) return showNotification('Vui lòng nhập nội dung câu hỏi.');
+    if (!newQuestion.subject) return showNotification('Vui lòng chọn môn học.');
+    if (!newQuestion.rubrics.length) return showNotification('Rubric cần ít nhất 1 tiêu chí.');
+    for (const [i, r] of newQuestion.rubrics.entries()) {
+      if (!r.criteriaName.trim()) return showNotification(`Tiêu chí #${i + 1} chưa có tên.`);
+      const score = parseFloat(r.maxScore);
+      if (!(score > 0)) return showNotification(`Tiêu chí #${i + 1} phải có điểm tối đa > 0.`);
+    }
+
+    const payload = {
+      subjectId: newQuestion.subject,
+      content: newQuestion.title.trim(),
+      sampleAnswer: newQuestion.sampleAnswer.trim() || null,
+      bloomLevel: newQuestion.bloom,
+      isAiGenerated: newQuestion.isAiGenerated,
+      status: newQuestion.status,
+      createdById: currentUser?.dbId || null,
+      rubrics: newQuestion.rubrics.map((r) => ({
+        criteriaName: r.criteriaName.trim(),
+        maxScore: round2(parseFloat(r.maxScore)),
+        description: r.description.trim() || null,
+      })),
+    };
+
+    setSavingQuestion(true);
+    try {
+      if (editingQuestionId) {
+        const updated = await api.updateQuestion(editingQuestionId, payload);
+        replaceQuestion(updated);
+        showNotification('Đã cập nhật câu hỏi và Rubric.');
+      } else {
+        const created = await api.createQuestion(payload);
+        setRawQuestions((prev) => [created, ...prev]);
+        showNotification('Đã thêm câu hỏi và tiêu chí Rubric vào Ngân hàng!');
+      }
+      closeQuestionModal();
+      setNewQuestion(defaultQuestionForm());
+    } catch (err) {
+      showNotification(`Lỗi lưu câu hỏi: ${err.message}`);
+    } finally {
+      setSavingQuestion(false);
+    }
+  };
+
+  const handleChangeQuestionStatus = async (q, status) => {
+    try {
+      const updated = await api.updateQuestionStatus(q.id, status);
+      replaceQuestion(updated);
+      if (detailQuestion?.id === q.id) setDetailQuestion(null);
+      const msg = {
+        APPROVED: q.status === 'ARCHIVED' ? 'Đã khôi phục câu hỏi vào ngân hàng chính thức.' : 'Đã duyệt câu hỏi vào ngân hàng chính thức.',
+        ARCHIVED: 'Đã chuyển câu hỏi vào Lưu trữ (không dùng cho kỳ thi mới).',
+        DRAFT: 'Đã chuyển câu hỏi về trạng thái Chờ duyệt.',
+      }[status];
+      showNotification(msg);
+    } catch (err) {
+      showNotification(`Lỗi cập nhật trạng thái: ${err.message}`);
+    }
+  };
+
+  const handleDeleteQuestion = async (q) => {
+    if (!window.confirm(`Xóa vĩnh viễn câu hỏi ${q.displayId}?\n\n"${q.title.slice(0, 120)}"\n\nThao tác này không thể hoàn tác.`)) return;
+    try {
+      await api.deleteQuestion(q.id);
+      setRawQuestions((prev) => prev.filter((x) => x.id !== q.id));
+      if (detailQuestion?.id === q.id) setDetailQuestion(null);
+      showNotification('Đã xóa câu hỏi khỏi ngân hàng.');
+    } catch (err) {
+      showNotification(`Không thể xóa (có thể câu hỏi đã được dùng trong phiên thi). Hãy dùng "Lưu trữ". Chi tiết: ${err.message}`);
+    }
+  };
+
+  const handleShowRubric = (q) => setDetailQuestion(q);
+
   // ================= DỮ LIỆU QUẢN LÝ KỲ THI =================
-  const [examsList, setExamsList] = useState([
-    {
-      id: 'EXAM-2026-01',
-      title: 'Kỳ thi Vấn đáp Cuối kỳ - Hệ điều hành (CS201)',
-      subject: 'Kiến trúc máy tính & HĐH',
-      durationMinutes: 20,
-      totalQuestionsAi: 3,
-      totalCandidates: 45,
-      gradedCount: 31,
-      status: 'ACTIVE',
-      date: '14/10/2026 - 18/10/2026',
-    },
-    {
-      id: 'EXAM-2026-02',
-      title: 'Bảo vệ Đồ án Kỹ thuật Phần mềm (SWE301)',
-      subject: 'Kỹ thuật Phần mềm Chuyên sâu',
-      durationMinutes: 30,
-      totalQuestionsAi: 4,
-      totalCandidates: 28,
-      gradedCount: 28,
-      status: 'COMPLETED',
-      date: '05/10/2026',
-    },
-    {
-      id: 'EXAM-2026-03',
-      title: 'Thi Đánh giá Năng lực Mạng máy tính (NET102)',
-      subject: 'Mạng máy tính căn bản',
-      durationMinutes: 15,
-      totalQuestionsAi: 2,
-      totalCandidates: 52,
-      gradedCount: 12,
-      status: 'UPCOMING',
-      date: '20/10/2026',
-    },
-  ]);
+  const examsList = useMemo(
+    () =>
+      rawExams.map((ex) => {
+        const sessions = rawSessions.filter((s) => s.examId === ex.id);
+        const graded = sessions.filter((s) => s.finalTeacherScore != null).length;
+        const times = sessions.map((s) => new Date(s.scheduledStartTime).getTime()).filter(Boolean).sort((a, b) => a - b);
+        let status = 'UPCOMING';
+        if (sessions.length && graded === sessions.length) status = 'COMPLETED';
+        else if (sessions.some((s) => s.status !== 'SCHEDULED')) status = 'ACTIVE';
+        const date = times.length
+          ? times[0] === times[times.length - 1] || formatDate(times[0]) === formatDate(times[times.length - 1])
+            ? formatDate(times[0])
+            : `${formatDate(times[0])} - ${formatDate(times[times.length - 1])}`
+          : 'Chưa xếp lịch';
+        return {
+          id: ex.id,
+          displayId: shortId(ex.id, 'EXAM-'),
+          title: ex.title,
+          subject: ex.subjectName,
+          durationMinutes: ex.durationPerStudentMins,
+          totalQuestionsAi: ex.maxMainQuestions,
+          totalCandidates: sessions.length,
+          gradedCount: graded,
+          status,
+          date,
+        };
+      }),
+    [rawExams, rawSessions]
+  );
 
   const [newExam, setNewExam] = useState({
     title: '',
-    subject: 'Kiến trúc máy tính & HĐH',
-    durationMinutes: 20,
+    subject: '',
+    durationMinutes: 15,
     totalQuestionsAi: 3,
-    date: '25/10/2026',
+    maxFollowupQuestions: 2,
   });
 
-  const handleCreateExam = (e) => {
+  const handleCreateExam = async (e) => {
     e.preventDefault();
-    if (!newExam.title.trim()) return;
-    const created = {
-      id: `EXAM-${Date.now().toString().slice(-4)}`,
-      title: newExam.title,
-      subject: newExam.subject,
-      durationMinutes: Number(newExam.durationMinutes),
-      totalQuestionsAi: Number(newExam.totalQuestionsAi),
-      totalCandidates: 30,
-      gradedCount: 0,
-      status: 'UPCOMING',
-      date: newExam.date,
-    };
-    setExamsList([created, ...examsList]);
-    setShowCreateExamModal(false);
-    showNotification(`Đã khởi tạo kỳ thi "${created.title}" thành công!`);
+    const subjectId = newExam.subject || subjects[0]?.id;
+    if (!newExam.title.trim() || !subjectId) return;
+    try {
+      const created = await api.createExam({
+        subjectId,
+        title: newExam.title.trim(),
+        durationPerStudentMins: Number(newExam.durationMinutes),
+        maxMainQuestions: Number(newExam.totalQuestionsAi),
+        maxFollowupQuestions: Number(newExam.maxFollowupQuestions),
+      });
+      setRawExams((prev) => [created, ...prev]);
+      setShowCreateExamModal(false);
+      showNotification(`Đã khởi tạo kỳ thi "${created.title}" thành công!`);
+      setNewExam((prev) => ({ ...prev, title: '' }));
+    } catch (err) {
+      showNotification(`Lỗi tạo kỳ thi: ${err.message}`);
+    }
   };
+
+  // ================= THỐNG KÊ =================
+  const gradedSessions = rawSessions.filter((s) => s.finalTeacherScore != null);
+  const finishedSessions = rawSessions.filter((s) => s.status === 'COMPLETED' || s.status === 'IN_PROGRESS' || s.finalTeacherScore != null);
+  const completionRate = finishedSessions.length ? Math.round((gradedSessions.length / finishedSessions.length) * 100) : 0;
+  const avgScore = gradedSessions.length
+    ? (gradedSessions.reduce((a, s) => a + s.finalTeacherScore, 0) / gradedSessions.length).toFixed(2)
+    : '--';
+  const aiDeviation = gradedSessions.filter((s) => s.aiSuggestedScore != null);
+  const aiReliability = aiDeviation.length
+    ? (100 - (aiDeviation.reduce((a, s) => a + Math.abs(s.finalTeacherScore - s.aiSuggestedScore), 0) / aiDeviation.length) * 10).toFixed(1)
+    : '--';
+  const scoreBands = [
+    { label: 'Xuất sắc (9.0 - 10)', min: 9, max: 10.01, color: 'text-emerald-600' },
+    { label: 'Giỏi (8.0 - 8.9)', min: 8, max: 9, color: 'text-blue-600' },
+    { label: 'Khá (7.0 - 7.9)', min: 7, max: 8, color: 'text-cyan-600' },
+    { label: 'Trung bình (5.0 - 6.9)', min: 5, max: 7, color: 'text-amber-600' },
+    { label: 'Không đạt (< 5.0)', min: 0, max: 5, color: 'text-rose-600' },
+  ].map((b) => {
+    const count = gradedSessions.filter((s) => s.finalTeacherScore >= b.min && s.finalTeacherScore < b.max).length;
+    return { ...b, count, pct: gradedSessions.length ? ((count / gradedSessions.length) * 100).toFixed(1) : '0.0' };
+  });
 
   const pendingApprovalCount = submissions.filter((s) => s.status === 'PENDING_APPROVAL').length;
 
@@ -546,12 +640,12 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 border border-slate-200">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span>PostgreSQL aives_db: Đồng bộ</span>
+              <span className={`w-2 h-2 rounded-full ${loadError ? 'bg-rose-500' : loading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'}`}></span>
+              <span>PostgreSQL aives_db: {loadError ? 'Mất kết nối' : loading ? 'Đang tải...' : 'Đồng bộ'}</span>
             </div>
             {activeTab === 'questions' && (
               <button
-                onClick={() => setShowAddQuestionModal(true)}
+                onClick={openAddQuestion}
                 className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
               >
                 <span className="material-symbols-outlined text-base">add</span>
@@ -571,7 +665,22 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
         </header>
 
         {/* ================= TAB 1: SPLIT-VIEW GRADING WORKSPACE ================= */}
-        {activeTab === 'grading' && (
+        {activeTab === 'grading' && !currentSubmission && (
+          <div className="flex-1 flex items-center justify-center p-10">
+            <div className="text-center bg-white border border-slate-200 rounded-2xl p-8 shadow-2xs max-w-md">
+              <span className="material-symbols-outlined text-4xl text-slate-300">inbox</span>
+              <p className="text-sm font-bold text-slate-700 mt-2">
+                {loading ? 'Đang tải bài thi từ máy chủ...' : loadError ? `Không tải được dữ liệu: ${loadError}` : 'Chưa có bài thi nào cần chấm.'}
+              </p>
+              {!loading && (
+                <button onClick={loadAll} className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl cursor-pointer">
+                  Tải lại
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        {activeTab === 'grading' && currentSubmission && (
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Student Candidate Navigation Sub-header */}
             <div className="h-12 bg-white border-b border-slate-200 px-6 flex items-center justify-between flex-shrink-0">
@@ -778,7 +887,8 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                         <label className="text-xs font-bold text-slate-700">Ghi chú &amp; Lời phê của Giảng viên:</label>
                         <textarea
                           rows="2"
-                          defaultValue={activeQuestion.note}
+                          value={currentSubmission.feedback || ''}
+                          onChange={(e) => handleFeedbackChange(e.target.value)}
                           placeholder="Nhập nhận xét sư phạm dành riêng cho sinh viên..."
                           className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-blue-600"
                         ></textarea>
@@ -801,7 +911,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => showNotification('Đã lưu bản nháp điểm số!')}
+                      onClick={() => showNotification('Bản nháp đang được giữ trên trình duyệt. Bấm "Duyệt & Chốt Điểm" để lưu vào hệ thống.')}
                       className="px-3.5 py-2 border border-slate-300 bg-white hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 cursor-pointer shadow-2xs"
                     >
                       Lưu nháp
@@ -809,6 +919,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                     <button
                       type="button"
                       onClick={handleApproveGrade}
+                      disabled={isFinalizing}
                       className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-500/20 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-sm">verified</span>
@@ -824,6 +935,37 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
         {/* ================= TAB 2: NGÂN HÀNG CÂU HỎI & RUBRIC AI ================= */}
         {activeTab === 'questions' && (
           <div className="flex-1 p-6 overflow-y-auto space-y-5">
+            {/* Status Tabs: Đang dùng / Chờ duyệt / AI chờ duyệt / Đã duyệt / Lưu trữ */}
+            <div className="flex flex-wrap items-center gap-2">
+              {questionStatusTabs.map((t) => {
+                const active = questionStatusFilter === t.key;
+                const highlight = (t.key === 'DRAFT' || t.key === 'AI_DRAFT') && t.count > 0;
+                return (
+                  <button
+                    key={t.key}
+                    id={`question-status-tab-${t.key.toLowerCase()}`}
+                    type="button"
+                    onClick={() => setQuestionStatusFilter(t.key)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border flex items-center gap-1.5 cursor-pointer transition-colors ${
+                      active
+                        ? 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-500/20'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {t.key === 'AI_DRAFT' && <span className="material-symbols-outlined text-sm">auto_awesome</span>}
+                    <span>{t.label}</span>
+                    <span
+                      className={`min-w-5 px-1.5 py-0.5 rounded-full text-[10px] ${
+                        active ? 'bg-white/25 text-white' : highlight ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'
+                      }`}
+                    >
+                      {t.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
             {/* Filter Bar */}
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
@@ -840,9 +982,9 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                   className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none"
                 >
                   <option value="ALL">Tất cả Môn học</option>
-                  <option value="CS201">Hệ điều hành (CS201)</option>
-                  <option value="NET102">Mạng máy tính (NET102)</option>
-                  <option value="SWE301">Kỹ thuật phần mềm (SWE301)</option>
+                  {subjects.map((s) => (
+                    <option key={s.id} value={s.code}>{s.name} ({s.code})</option>
+                  ))}
                 </select>
                 <select
                   value={questionBloomFilter}
@@ -850,17 +992,15 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                   className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none"
                 >
                   <option value="ALL">Thang Bloom: Tất cả</option>
-                  <option value="REMEMBER">Nhận biết (Remember)</option>
-                  <option value="UNDERSTAND">Thông hiểu (Understand)</option>
+                  <option value="REMEMBER">Nhớ (Remember)</option>
+                  <option value="UNDERSTAND">Hiểu (Understand)</option>
                   <option value="APPLY">Vận dụng (Apply)</option>
                   <option value="ANALYZE">Phân tích (Analyze)</option>
-                  <option value="EVALUATE">Đánh giá (Evaluate)</option>
-                  <option value="CREATE">Sáng tạo (Create)</option>
                 </select>
               </div>
 
               <div className="text-xs text-slate-500 font-semibold">
-                Tổng cộng: <strong className="text-slate-800">{questionsList.length} câu hỏi</strong> đã chuẩn hóa Rubric
+                Hiển thị: <strong className="text-slate-800">{filteredQuestions.length} câu hỏi</strong>
               </div>
             </div>
 
@@ -878,46 +1018,122 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {questionsList.map((q) => (
-                    <tr key={q.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3.5 px-4">
-                        <span className="font-bold text-slate-800 block">{q.subject}</span>
-                        <span className="text-[10px] font-mono text-slate-400">{q.id} • {q.code}</span>
-                      </td>
-                      <td className="py-3.5 px-4 max-w-md">
-                        <p className="font-semibold text-slate-800 line-clamp-2">{q.title}</p>
-                        <div className="flex gap-1.5 mt-1">
-                          {q.keywords?.map((kw, i) => (
-                            <span key={i} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">
-                              #{kw}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className="px-2.5 py-1 rounded-full font-bold text-[10px] bg-indigo-50 text-indigo-700">
-                          {q.bloom}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className="font-bold text-slate-800">{q.maxScore} điểm</span>
-                        <span className="block text-[10px] text-slate-400">{q.rubricCount} tiêu chí đánh giá</span>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${q.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>
-                          {q.status}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-right space-x-2">
-                        <button
-                          onClick={() => alert(`Xem chi tiết Rubric cho câu hỏi ${q.id}`)}
-                          className="text-blue-600 hover:text-blue-800 font-bold cursor-pointer"
-                        >
-                          Chi tiết Rubric
-                        </button>
+                  {filteredQuestions.length === 0 && (
+                    <tr>
+                      <td colSpan="6" className="py-10 text-center text-slate-400 font-semibold">
+                        {questionStatusFilter === 'AI_DRAFT' || questionStatusFilter === 'DRAFT'
+                          ? 'Không có câu hỏi nào đang chờ duyệt.'
+                          : 'Không có câu hỏi phù hợp bộ lọc.'}
                       </td>
                     </tr>
-                  ))}
+                  )}
+                  {filteredQuestions.map((q) => {
+                    const meta = STATUS_META[q.status] || { label: q.status, cls: 'bg-slate-100 text-slate-600' };
+                    return (
+                      <tr
+                        key={q.id}
+                        className={`hover:bg-slate-50/80 transition-colors ${q.status === 'DRAFT' ? 'bg-amber-50/40' : ''} ${q.status === 'ARCHIVED' ? 'opacity-60' : ''}`}
+                      >
+                        <td className="py-3.5 px-4">
+                          <span className="font-bold text-slate-800 block">{q.subject}</span>
+                          <span className="text-[10px] font-mono text-slate-400">{q.displayId} • {q.code}</span>
+                        </td>
+                        <td className="py-3.5 px-4 max-w-md">
+                          <p className="font-semibold text-slate-800 line-clamp-2">{q.title}</p>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {q.isAiGenerated ? (
+                              <span className="text-[10px] bg-violet-100 text-violet-700 px-2 py-0.5 rounded font-bold flex items-center gap-0.5">
+                                <span className="material-symbols-outlined text-[11px]">auto_awesome</span>
+                                AI sinh
+                              </span>
+                            ) : (
+                              <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">
+                                {q.createdByName || 'Giảng viên'}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2.5 py-1 rounded-full font-bold text-[10px] bg-indigo-50 text-indigo-700 whitespace-nowrap">
+                            {BLOOM_LABELS[q.bloom] || q.bloom}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-bold text-slate-800">{q.maxScore} điểm</span>
+                          <span className="block text-[10px] text-slate-400">{q.rubricCount} tiêu chí đánh giá</span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${meta.cls}`}>
+                            {meta.label}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center justify-end gap-1">
+                            {q.status === 'DRAFT' && (
+                              <button
+                                id={`question-approve-${q.id}`}
+                                type="button"
+                                onClick={() => handleChangeQuestionStatus(q, 'APPROVED')}
+                                title="Duyệt vào ngân hàng chính thức"
+                                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1 cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-sm">check_circle</span>
+                                Duyệt
+                              </button>
+                            )}
+                            <button
+                              id={`question-detail-${q.id}`}
+                              type="button"
+                              onClick={() => handleShowRubric(q)}
+                              title="Xem chi tiết Rubric"
+                              className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-base">visibility</span>
+                            </button>
+                            <button
+                              id={`question-edit-${q.id}`}
+                              type="button"
+                              onClick={() => openEditQuestion(q.id)}
+                              title="Sửa câu hỏi & Rubric"
+                              className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-base">edit</span>
+                            </button>
+                            {q.status === 'ARCHIVED' ? (
+                              <button
+                                id={`question-restore-${q.id}`}
+                                type="button"
+                                onClick={() => handleChangeQuestionStatus(q, 'APPROVED')}
+                                title="Khôi phục vào ngân hàng"
+                                className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-base">unarchive</span>
+                              </button>
+                            ) : (
+                              <button
+                                id={`question-archive-${q.id}`}
+                                type="button"
+                                onClick={() => handleChangeQuestionStatus(q, 'ARCHIVED')}
+                                title={q.status === 'DRAFT' ? 'Loại bỏ (lưu trữ)' : 'Lưu trữ'}
+                                className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 cursor-pointer"
+                              >
+                                <span className="material-symbols-outlined text-base">archive</span>
+                              </button>
+                            )}
+                            <button
+                              id={`question-delete-${q.id}`}
+                              type="button"
+                              onClick={() => handleDeleteQuestion(q)}
+                              title="Xóa vĩnh viễn"
+                              className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 cursor-pointer"
+                            >
+                              <span className="material-symbols-outlined text-base">delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -931,7 +1147,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
               {examsList.map((ex) => (
                 <div key={ex.id} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono font-bold text-slate-400">{ex.id}</span>
+                    <span className="text-[10px] font-mono font-bold text-slate-400">{ex.displayId}</span>
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                         ex.status === 'ACTIVE'
@@ -960,7 +1176,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                     <div className="flex justify-between">
                       <span className="text-slate-400">Tiến độ chấm:</span>
                       <span className="font-bold text-blue-600">
-                        {ex.gradedCount}/{ex.totalCandidates} ({Math.round((ex.gradedCount / ex.totalCandidates) * 100)}%)
+                        {ex.gradedCount}/{ex.totalCandidates} ({ex.totalCandidates ? Math.round((ex.gradedCount / ex.totalCandidates) * 100) : 0}%)
                       </span>
                     </div>
                   </div>
@@ -992,9 +1208,9 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
               </div>
               <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
                 <span className="text-xs text-slate-500 font-medium">Đã chốt điểm (Finalized)</span>
-                <p className="text-2xl font-extrabold text-emerald-600 mt-1">71</p>
+                <p className="text-2xl font-extrabold text-emerald-600 mt-1">{gradedSessions.length}</p>
                 <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold inline-block mt-2">
-                  Tỷ lệ hoàn thành 84%
+                  Tỷ lệ hoàn thành {completionRate}%
                 </span>
               </div>
               <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
@@ -1006,9 +1222,9 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
               </div>
               <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
                 <span className="text-xs text-slate-500 font-medium">Điểm trung bình kỳ thi</span>
-                <p className="text-2xl font-extrabold text-indigo-600 mt-1">8.12</p>
+                <p className="text-2xl font-extrabold text-indigo-600 mt-1">{avgScore}</p>
                 <span className="text-[10px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full font-bold inline-block mt-2">
-                  Độ tin cậy AI: 94.2%
+                  Độ tin cậy AI: {aiReliability}{aiReliability !== '--' ? '%' : ''}
                 </span>
               </div>
             </div>
@@ -1041,33 +1257,15 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
         {activeTab === 'analytics' && (
           <div className="flex-1 p-6 overflow-y-auto space-y-6">
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-              <h3 className="font-extrabold text-sm text-slate-800">Phổ điểm Đánh giá Kỳ thi CS201</h3>
+              <h3 className="font-extrabold text-sm text-slate-800">Phổ điểm Đánh giá (tất cả bài đã chốt điểm: {gradedSessions.length})</h3>
               <div className="grid grid-cols-5 gap-3 text-center">
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <span className="text-xs text-slate-500 font-medium">Xuất sắc (9.0 - 10)</span>
-                  <p className="text-xl font-bold text-emerald-600 mt-1">12 thí sinh</p>
-                  <span className="text-[10px] text-slate-400">26.6%</span>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <span className="text-xs text-slate-500 font-medium">Giỏi (8.0 - 8.9)</span>
-                  <p className="text-xl font-bold text-blue-600 mt-1">18 thí sinh</p>
-                  <span className="text-[10px] text-slate-400">40.0%</span>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <span className="text-xs text-slate-500 font-medium">Khá (7.0 - 7.9)</span>
-                  <p className="text-xl font-bold text-cyan-600 mt-1">10 thí sinh</p>
-                  <span className="text-[10px] text-slate-400">22.2%</span>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <span className="text-xs text-slate-500 font-medium">Trung bình (5.0 - 6.9)</span>
-                  <p className="text-xl font-bold text-amber-600 mt-1">4 thí sinh</p>
-                  <span className="text-[10px] text-slate-400">8.8%</span>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <span className="text-xs text-slate-500 font-medium">Không đạt (&lt; 5.0)</span>
-                  <p className="text-xl font-bold text-rose-600 mt-1">1 thí sinh</p>
-                  <span className="text-[10px] text-slate-400">2.2%</span>
-                </div>
+                {scoreBands.map((b) => (
+                  <div key={b.label} className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-xs text-slate-500 font-medium">{b.label}</span>
+                    <p className={`text-xl font-bold ${b.color} mt-1`}>{b.count} thí sinh</p>
+                    <span className="text-[10px] text-slate-400">{b.pct}%</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -1077,25 +1275,29 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
       {/* ================= MODAL: THÊM CÂU HỎI & RUBRIC MỚI ================= */}
       {showAddQuestionModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                <span className="material-symbols-outlined text-blue-600">post_add</span>
-                Thêm Câu hỏi Vấn đáp &amp; Thiết lập Tiêu chí Rubric
+                <span className="material-symbols-outlined text-blue-600">{editingQuestionId ? 'edit_note' : 'post_add'}</span>
+                {editingQuestionId ? 'Sửa Câu hỏi Vấn đáp & Rubric' : 'Thêm Câu hỏi Vấn đáp & Thiết lập Tiêu chí Rubric'}
+                {newQuestion.isAiGenerated && (
+                  <span className="text-[10px] bg-violet-100 text-violet-700 px-2 py-0.5 rounded font-bold">AI sinh</span>
+                )}
               </h3>
               <button
                 type="button"
-                onClick={() => setShowAddQuestionModal(false)}
+                onClick={closeQuestionModal}
                 className="text-slate-400 hover:text-slate-700 cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleAddQuestion} className="py-4 space-y-3.5 text-xs">
+            <form id="question-form" onSubmit={handleSaveQuestion} className="py-4 space-y-3.5 text-xs overflow-y-auto pr-1">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Nội dung câu hỏi vấn đáp *</label>
                 <textarea
+                  id="question-form-content"
                   required
                   rows="3"
                   value={newQuestion.title}
@@ -1109,95 +1311,254 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Môn học</label>
                   <select
+                    id="question-form-subject"
                     value={newQuestion.subject}
                     onChange={(e) => setNewQuestion({ ...newQuestion, subject: e.target.value })}
                     className="w-full p-2 border border-slate-200 rounded-xl bg-slate-50"
                   >
-                    <option value="CS201">CS201 - Hệ điều hành</option>
-                    <option value="NET102">NET102 - Mạng máy tính</option>
-                    <option value="SWE301">SWE301 - KT Phần mềm</option>
+                    {subjects.map((s) => (
+                      <option key={s.id} value={s.id}>{s.code} - {s.name}</option>
+                    ))}
                   </select>
                 </div>
 
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Thang Bloom</label>
                   <select
+                    id="question-form-bloom"
                     value={newQuestion.bloom}
                     onChange={(e) => setNewQuestion({ ...newQuestion, bloom: e.target.value })}
                     className="w-full p-2 border border-slate-200 rounded-xl bg-slate-50"
                   >
-                    <option value="REMEMBER">Nhận biết</option>
-                    <option value="UNDERSTAND">Thông hiểu</option>
-                    <option value="APPLY">Vận dụng</option>
-                    <option value="ANALYZE">Phân tích</option>
-                    <option value="EVALUATE">Đánh giá</option>
-                    <option value="CREATE">Sáng tạo</option>
+                    <option value="REMEMBER">Nhớ (Remember)</option>
+                    <option value="UNDERSTAND">Hiểu (Understand)</option>
+                    <option value="APPLY">Vận dụng (Apply)</option>
+                    <option value="ANALYZE">Phân tích (Analyze)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Điểm tối đa</label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    value={newQuestion.maxScore}
-                    onChange={(e) => setNewQuestion({ ...newQuestion, maxScore: e.target.value })}
-                    className="w-full p-2 border border-slate-200 rounded-xl bg-slate-50 font-bold text-blue-700"
-                  />
+                  <label className="block font-bold text-slate-700 mb-1">Trạng thái</label>
+                  <select
+                    id="question-form-status"
+                    value={newQuestion.status}
+                    onChange={(e) => setNewQuestion({ ...newQuestion, status: e.target.value })}
+                    className="w-full p-2 border border-slate-200 rounded-xl bg-slate-50"
+                  >
+                    <option value="DRAFT">Chờ duyệt (Draft)</option>
+                    <option value="APPROVED">Đã duyệt (Approved)</option>
+                    <option value="ARCHIVED">Lưu trữ (Archived)</option>
+                  </select>
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Từ khóa cốt lõi (Keywords cho AI nhận dạng)</label>
-                <input
-                  type="text"
-                  value={newQuestion.keywords}
-                  onChange={(e) => setNewQuestion({ ...newQuestion, keywords: e.target.value })}
-                  placeholder="Cách nhau bằng dấu phẩy, e.g. SYN, ACK, Sequence Number"
-                  className="w-full p-2 border border-slate-200 rounded-xl bg-slate-50"
-                />
+                <label className="block font-bold text-slate-700 mb-1">Đáp án mẫu / Dàn ý gợi ý (căn cứ cho AI chấm)</label>
+                <textarea
+                  id="question-form-sample-answer"
+                  rows="3"
+                  value={newQuestion.sampleAnswer}
+                  onChange={(e) => setNewQuestion({ ...newQuestion, sampleAnswer: e.target.value })}
+                  placeholder="Các ý chính cần có, từ khóa cốt lõi (SYN, ACK, Sequence Number...)"
+                  className="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:border-blue-600"
+                ></textarea>
               </div>
 
               <div className="pt-2 border-t border-slate-100">
-                <label className="block font-bold text-slate-700 mb-2">Tiêu chí Rubric Đánh giá:</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="font-bold text-slate-700">Tiêu chí Rubric Đánh giá ({newQuestion.rubrics.length})</label>
+                  <span className="font-bold text-slate-600">
+                    Tổng điểm: <span className="text-blue-700 text-sm">{formRubricTotal}</span>
+                  </span>
+                </div>
+
                 <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={newQuestion.rubric1}
-                    onChange={(e) => setNewQuestion({ ...newQuestion, rubric1: e.target.value })}
-                    className="w-full p-2 border border-slate-200 rounded-xl bg-white"
-                  />
-                  <input
-                    type="text"
-                    value={newQuestion.rubric2}
-                    onChange={(e) => setNewQuestion({ ...newQuestion, rubric2: e.target.value })}
-                    className="w-full p-2 border border-slate-200 rounded-xl bg-white"
-                  />
-                  <input
-                    type="text"
-                    value={newQuestion.rubric3}
-                    onChange={(e) => setNewQuestion({ ...newQuestion, rubric3: e.target.value })}
-                    className="w-full p-2 border border-slate-200 rounded-xl bg-white"
-                  />
+                  <div className="grid grid-cols-12 gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">
+                    <span className="col-span-4">Tên tiêu chí *</span>
+                    <span className="col-span-2">Điểm tối đa *</span>
+                    <span className="col-span-5">Mô tả / mức đạt</span>
+                    <span className="col-span-1"></span>
+                  </div>
+                  {newQuestion.rubrics.map((r, idx) => (
+                    <div key={r.key} className="grid grid-cols-12 gap-2 items-start">
+                      <input
+                        id={`rubric-name-${idx}`}
+                        type="text"
+                        required
+                        value={r.criteriaName}
+                        onChange={(e) => updateRubricRow(r.key, 'criteriaName', e.target.value)}
+                        placeholder={`Tiêu chí #${idx + 1}`}
+                        className="col-span-4 p-2 border border-slate-200 rounded-xl bg-white focus:outline-none focus:border-blue-600"
+                      />
+                      <input
+                        id={`rubric-score-${idx}`}
+                        type="number"
+                        required
+                        min="0.25"
+                        step="0.25"
+                        value={r.maxScore}
+                        onChange={(e) => updateRubricRow(r.key, 'maxScore', e.target.value)}
+                        placeholder="0"
+                        className="col-span-2 p-2 border border-slate-200 rounded-xl bg-white font-bold text-blue-700 focus:outline-none focus:border-blue-600"
+                      />
+                      <input
+                        id={`rubric-desc-${idx}`}
+                        type="text"
+                        value={r.description}
+                        onChange={(e) => updateRubricRow(r.key, 'description', e.target.value)}
+                        placeholder="Mô tả yêu cầu để đạt điểm tối đa"
+                        className="col-span-5 p-2 border border-slate-200 rounded-xl bg-white focus:outline-none focus:border-blue-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeRubricRow(r.key)}
+                        disabled={newQuestion.rubrics.length <= 1}
+                        title="Xóa tiêu chí"
+                        className="col-span-1 p-2 rounded-xl text-rose-500 hover:bg-rose-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex justify-center"
+                      >
+                        <span className="material-symbols-outlined text-base">remove_circle</span>
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    id="rubric-add-row"
+                    type="button"
+                    onClick={addRubricRow}
+                    className="w-full py-2 border border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 rounded-xl font-bold flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-sm">add</span>
+                    Thêm tiêu chí
+                  </button>
                 </div>
               </div>
+            </form>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+            <div className="pt-3 border-t border-slate-100 flex justify-end gap-2 text-xs">
+              <button
+                type="button"
+                onClick={closeQuestionModal}
+                className="px-4 py-2 border border-slate-200 text-slate-600 font-bold rounded-xl cursor-pointer"
+              >
+                Hủy
+              </button>
+              <button
+                id="question-form-submit"
+                type="submit"
+                form="question-form"
+                disabled={savingQuestion}
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
+              >
+                {savingQuestion ? 'Đang lưu...' : editingQuestionId ? 'Lưu thay đổi' : 'Lưu vào Ngân hàng'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: CHI TIẾT CÂU HỎI & RUBRIC ================= */}
+      {detailQuestion && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in"
+          onClick={() => setDetailQuestion(null)}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto text-xs"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between pb-3 border-b border-slate-100 gap-3">
+              <div>
+                <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                  <span className="text-[10px] font-mono text-slate-400">{detailQuestion.displayId} • {detailQuestion.code}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${(STATUS_META[detailQuestion.status] || {}).cls || ''}`}>
+                    {(STATUS_META[detailQuestion.status] || {}).label || detailQuestion.status}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full font-bold text-[10px] bg-indigo-50 text-indigo-700">
+                    {BLOOM_LABELS[detailQuestion.bloom] || detailQuestion.bloom}
+                  </span>
+                  {detailQuestion.isAiGenerated && (
+                    <span className="text-[10px] bg-violet-100 text-violet-700 px-2 py-0.5 rounded font-bold">AI sinh</span>
+                  )}
+                </div>
+                <h3 className="font-extrabold text-sm text-slate-900">{detailQuestion.title}</h3>
+                <p className="text-slate-400 mt-0.5">{detailQuestion.subject}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetailQuestion(null)}
+                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="py-4 space-y-4">
+              <div>
+                <p className="font-bold text-slate-700 mb-1">Đáp án mẫu / Dàn ý gợi ý</p>
+                <p className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 whitespace-pre-wrap">
+                  {detailQuestion.sampleAnswer || <span className="text-slate-400 italic">Chưa có đáp án mẫu.</span>}
+                </p>
+              </div>
+
+              <div>
+                <p className="font-bold text-slate-700 mb-1">
+                  Rubric chấm điểm ({detailQuestion.rubricCount} tiêu chí – tổng {detailQuestion.maxScore} điểm)
+                </p>
+                <table className="w-full border border-slate-200 rounded-xl overflow-hidden">
+                  <thead>
+                    <tr className="bg-slate-50 text-slate-500 font-bold text-[10px] uppercase tracking-wider">
+                      <th className="py-2 px-3 text-left w-8">#</th>
+                      <th className="py-2 px-3 text-left">Tiêu chí</th>
+                      <th className="py-2 px-3 text-left">Mô tả</th>
+                      <th className="py-2 px-3 text-right">Điểm</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {detailQuestion.rubrics.length === 0 && (
+                      <tr>
+                        <td colSpan="4" className="py-4 text-center text-slate-400">Chưa có tiêu chí.</td>
+                      </tr>
+                    )}
+                    {detailQuestion.rubrics.map((r, i) => (
+                      <tr key={r.id || i}>
+                        <td className="py-2 px-3 text-slate-400">{i + 1}</td>
+                        <td className="py-2 px-3 font-semibold text-slate-800">{r.criteriaName}</td>
+                        <td className="py-2 px-3 text-slate-600">{r.description || '—'}</td>
+                        <td className="py-2 px-3 text-right font-bold text-blue-700">{r.maxScore}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex flex-wrap justify-end gap-2">
+              {detailQuestion.status === 'DRAFT' && (
                 <button
                   type="button"
-                  onClick={() => setShowAddQuestionModal(false)}
-                  className="px-4 py-2 border border-slate-200 text-slate-600 font-bold rounded-xl cursor-pointer"
+                  onClick={() => handleChangeQuestionStatus(detailQuestion, 'APPROVED')}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl cursor-pointer flex items-center gap-1"
                 >
-                  Hủy
+                  <span className="material-symbols-outlined text-sm">check_circle</span>
+                  Duyệt
                 </button>
+              )}
+              {detailQuestion.status !== 'ARCHIVED' && (
                 <button
-                  type="submit"
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl cursor-pointer shadow-md shadow-blue-500/20"
+                  type="button"
+                  onClick={() => handleChangeQuestionStatus(detailQuestion, 'ARCHIVED')}
+                  className="px-4 py-2 border border-amber-300 text-amber-700 hover:bg-amber-50 font-bold rounded-xl cursor-pointer"
                 >
-                  Lưu vào Ngân hàng
+                  {detailQuestion.status === 'DRAFT' ? 'Loại bỏ' : 'Lưu trữ'}
                 </button>
-              </div>
-            </form>
+              )}
+              <button
+                type="button"
+                onClick={() => openEditQuestion(detailQuestion.id)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl cursor-pointer"
+              >
+                Sửa câu hỏi &amp; Rubric
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1236,13 +1597,13 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Môn học</label>
                 <select
-                  value={newExam.subject}
+                  value={newExam.subject || subjects[0]?.id || ''}
                   onChange={(e) => setNewExam({ ...newExam, subject: e.target.value })}
                   className="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50"
                 >
-                  <option value="Kiến trúc máy tính & HĐH">Kiến trúc máy tính &amp; HĐH (CS201)</option>
-                  <option value="Mạng máy tính căn bản">Mạng máy tính căn bản (NET102)</option>
-                  <option value="Kỹ thuật Phần mềm Chuyên sâu">Kỹ thuật Phần mềm Chuyên sâu (SWE301)</option>
+                  {subjects.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                  ))}
                 </select>
               </div>
 
@@ -1272,11 +1633,13 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Ngày thi</label>
+                <label className="block font-bold text-slate-700 mb-1">Số câu hỏi đào sâu tối đa / câu chính</label>
                 <input
-                  type="text"
-                  value={newExam.date}
-                  onChange={(e) => setNewExam({ ...newExam, date: e.target.value })}
+                  type="number"
+                  min="0"
+                  max="5"
+                  value={newExam.maxFollowupQuestions}
+                  onChange={(e) => setNewExam({ ...newExam, maxFollowupQuestions: e.target.value })}
                   className="w-full p-2 border border-slate-200 rounded-xl bg-slate-50"
                 />
               </div>

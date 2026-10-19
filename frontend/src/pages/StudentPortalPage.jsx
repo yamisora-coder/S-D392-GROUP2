@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import DeviceCheckModal from '../components/DeviceCheckModal.jsx';
 import VivaRoomModal from '../components/VivaRoomModal.jsx';
+import { api, formatDate, formatTime, formatDateTime } from '../services/api.js';
 
 export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdmin, onSwitchToLecturer }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,105 +37,106 @@ export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdm
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Mock data for upcoming exams from Stitch design
-  const [upcomingExams, setUpcomingExams] = useState([
-    {
-      id: 'ENG-106',
-      title: 'Unit 6 Final Exam: English Level 6',
-      subjectCode: 'ENG-106',
-      format: 'Vấn đáp AI',
-      status: 'active',
-      statusLabel: 'Đang mở phòng thi',
-      deviceStatus: '🟢 Đã kiểm tra',
-      questionsCount: '3 câu chính + hỏi xoáy',
-      timeSlot: '08:15 - 08:35 (STT: 04)',
-      duration: '20 phút',
-      passingScore: '40/50 điểm',
-      canEnter: true,
-      deviceChecked: true,
-    },
-    {
-      id: 'CS-302',
-      title: 'Advanced Database Systems Midterm',
-      subjectCode: 'CS-302',
-      format: 'Vấn đáp AI',
-      status: 'upcoming',
-      statusLabel: 'Sắp diễn ra',
-      deviceStatus: '🟠 Chưa kiểm tra',
-      questionsCount: '3 câu chính + hỏi xoáy',
-      timeSlot: '10:20 - 10:40 (STT: 12)',
-      duration: '20 phút',
-      passingScore: '40/50 điểm',
-      canEnter: false,
-      deviceChecked: false,
-    },
-  ]);
+  // ================= DỮ LIỆU CA THI CỦA THÍ SINH (PostgreSQL) =================
+  const [upcomingExams, setUpcomingExams] = useState([]);
+  const [examHistory, setExamHistory] = useState([]);
+  const [examsLoading, setExamsLoading] = useState(true);
+  const [examsError, setExamsError] = useState('');
 
-  // Mock data for exam history from Stitch design
-  const initialHistory = [
-    {
-      id: 'WEB-101',
-      title: 'Web Development Fundamentals',
-      code: 'WEB-101',
-      status: 'graded',
-      statusText: '🟢 Đã chốt điểm',
-      statusBadgeClass: 'bg-emerald-50 text-emerald-600',
-      score: '45/50',
-      percentage: '90%',
-      rating: 'Tuyệt vời',
-      ratingClass: 'text-emerald-600',
-      duration: '20 phút',
-      submittedAt: '20 Oct 2023, 11:30 AM',
-      feedback: 'Sinh viên nắm vững DOM, React component lifecycle và tối ưu hóa CSS. Trả lời tự tin, logic rõ ràng.',
-    },
-    {
-      id: 'ENG-106-MID',
-      title: 'English Level 6 - Midterm Test',
-      code: 'ENG-106',
-      status: 'graded',
-      statusText: '🟢 Đã chốt điểm',
-      statusBadgeClass: 'bg-emerald-50 text-emerald-600',
-      score: '42/50',
-      percentage: '84%',
-      rating: 'Excellent',
-      ratingClass: 'text-emerald-600',
-      duration: '20 phút',
-      submittedAt: '09 Nov 2019, 9:00 AM',
-      feedback: 'Phát âm chuẩn xác, phản xạ hội thoại linh hoạt, từ vựng học thuật phong phú.',
-    },
-    {
-      id: 'MATH-202',
-      title: 'Advanced Mathematics - Final Exam',
-      code: 'MATH-202',
-      status: 'pending',
-      statusText: '🟡 Chờ duyệt',
-      statusBadgeClass: 'bg-amber-50 text-amber-700',
-      score: '35/50',
-      percentage: '68%',
-      rating: 'Average',
-      ratingClass: 'text-blue-600',
-      duration: '20 phút',
-      submittedAt: '15 Oct 2019, 2:30 PM',
-      feedback: 'AI đã đề xuất 35/50. Giảng viên phụ trách đang rà soát lại câu hỏi số 3 về ma trận trực giao.',
-    },
-    {
-      id: 'PHY-101',
-      title: 'Physics 101 - Practical Quiz',
-      code: 'PHY-101',
-      status: 'dispute',
-      statusText: '🔵 Đang phúc khảo',
-      statusBadgeClass: 'bg-blue-50 text-blue-700',
-      score: 'Đang phúc khảo',
-      percentage: null,
-      rating: '-',
-      ratingClass: 'text-slate-400',
-      duration: '20 phút',
-      submittedAt: '01 Nov 2023, 10:15 AM',
-      feedback: 'Hội đồng khảo thí đang nghe lại bản ghi âm để đánh giá câu trả lời về quang hình học.',
-    },
-  ];
+  const ratingOf = (score) => {
+    if (score >= 9) return { rating: 'Xuất sắc', ratingClass: 'text-emerald-600' };
+    if (score >= 8) return { rating: 'Giỏi', ratingClass: 'text-emerald-600' };
+    if (score >= 6.5) return { rating: 'Khá', ratingClass: 'text-blue-600' };
+    if (score >= 5) return { rating: 'Trung bình', ratingClass: 'text-amber-600' };
+    return { rating: 'Không đạt', ratingClass: 'text-rose-600' };
+  };
 
-  const filteredHistory = initialHistory.filter((item) => {
+  useEffect(() => {
+    const load = async () => {
+      if (!currentUser?.dbId) {
+        setExamsLoading(false);
+        setExamsError('Phiên đăng nhập cũ không có mã tài khoản hệ thống. Vui lòng đăng xuất và đăng nhập lại.');
+        return;
+      }
+      setExamsLoading(true);
+      setExamsError('');
+      try {
+        const [sessions, exams] = await Promise.all([api.getSessionsByStudent(currentUser.dbId), api.getExams()]);
+        const examById = new Map((exams || []).map((e) => [e.id, e]));
+        const now = Date.now();
+
+        const upcoming = (sessions || [])
+          .filter((s) => s.status === 'SCHEDULED' || (s.status === 'IN_PROGRESS' && s.aiSuggestedScore == null))
+          .sort((a, b) => new Date(a.scheduledStartTime) - new Date(b.scheduledStartTime))
+          .map((s) => {
+            const exam = examById.get(s.examId);
+            const mins = exam?.durationPerStudentMins ?? 15;
+            const start = new Date(s.scheduledStartTime).getTime();
+            const end = start + mins * 60000;
+            const isActive = s.status === 'IN_PROGRESS' || (now >= start - 15 * 60000 && now <= end);
+            return {
+              id: s.id,
+              examId: s.examId,
+              title: s.examTitle,
+              subjectCode: exam?.subjectCode || '',
+              subjectId: exam?.subjectId,
+              maxMainQuestions: exam?.maxMainQuestions ?? 3,
+              format: 'Vấn đáp AI',
+              status: isActive ? 'active' : 'upcoming',
+              statusLabel: isActive ? 'Đang mở phòng thi' : 'Sắp diễn ra',
+              deviceStatus: '🟠 Chưa kiểm tra',
+              questionsCount: `${exam?.maxMainQuestions ?? 3} câu chính + ${exam?.maxFollowupQuestions ?? 2} câu hỏi xoáy`,
+              timeSlot: `${formatTime(start)} - ${formatTime(end)} • ${formatDate(start)}`,
+              duration: `${mins} phút`,
+              passingScore: '5.0/10 điểm',
+              canEnter: false,
+              deviceChecked: false,
+            };
+          });
+
+        const history = (sessions || [])
+          .filter((s) => s.status === 'COMPLETED' || s.finalTeacherScore != null || s.aiSuggestedScore != null)
+          .sort((a, b) => new Date(b.scheduledStartTime) - new Date(a.scheduledStartTime))
+          .map((s) => {
+            const exam = examById.get(s.examId);
+            const graded = s.finalTeacherScore != null;
+            const score = graded ? s.finalTeacherScore : s.aiSuggestedScore;
+            const r = graded ? ratingOf(score) : { rating: 'Chờ duyệt', ratingClass: 'text-blue-600' };
+            return {
+              id: s.id,
+              title: s.examTitle,
+              code: exam?.subjectCode || s.subjectName || '',
+              status: graded ? 'graded' : 'pending',
+              statusText: graded ? '🟢 Đã chốt điểm' : '🟡 Chờ duyệt',
+              statusBadgeClass: graded ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-700',
+              score: score != null ? `${score}/10` : '--',
+              percentage: score != null ? `${Math.round(score * 10)}%` : null,
+              numericScore: graded ? score : null,
+              rating: r.rating,
+              ratingClass: r.ratingClass,
+              duration: `${exam?.durationPerStudentMins ?? '--'} phút`,
+              submittedAt: formatDateTime(s.scheduledStartTime),
+              feedback: graded
+                ? s.teacherFeedback || 'Giảng viên chưa để lại nhận xét.'
+                : `AI đã đề xuất ${s.aiSuggestedScore ?? '--'}/10. Giảng viên phụ trách đang rà soát để chốt điểm.`,
+            };
+          });
+
+        setUpcomingExams(upcoming);
+        setExamHistory(history);
+      } catch (err) {
+        setExamsError(err.message);
+      } finally {
+        setExamsLoading(false);
+      }
+    };
+    load();
+  }, [currentUser?.dbId]);
+
+  const gradedScores = examHistory.filter((h) => h.numericScore != null).map((h) => h.numericScore);
+  const gpa = gradedScores.length ? (gradedScores.reduce((a, b) => a + b, 0) / gradedScores.length).toFixed(1) : null;
+
+  const filteredHistory = examHistory.filter((item) => {
     const matchesFilter =
       historyFilter === 'all' || item.status === historyFilter;
     const matchesSearch =
@@ -491,7 +493,7 @@ export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdm
               </div>
               <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl text-xs font-semibold border border-blue-100 flex items-center shadow-2xs self-start md:self-auto transition-transform hover:scale-105">
                 <i className="fa-regular fa-calendar-days mr-2"></i>
-                Hôm nay: Thứ Ba, 24/10/2023
+                Hôm nay: {new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}
               </div>
             </div>
 
@@ -514,9 +516,9 @@ export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdm
                 </div>
                 <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs interactive-card">
                   <span className="text-xs text-slate-500 font-medium">Điểm trung bình (GPA)</span>
-                  <p className="text-2xl font-extrabold text-indigo-600 mt-1">8.4 / 10</p>
+                  <p className="text-2xl font-extrabold text-indigo-600 mt-1">{gpa ? `${gpa} / 10` : '--'}</p>
                   <span className="text-[10px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full font-bold inline-block mt-2">
-                    Xếp loại Giỏi
+                    {gpa ? `Xếp loại ${ratingOf(Number(gpa)).rating}` : 'Chưa có điểm chốt'}
                   </span>
                 </div>
                 <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs interactive-card">
@@ -543,6 +545,11 @@ export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdm
                 </div>
 
                 {/* Grid 2 Cards */}
+                {(examsLoading || examsError || upcomingExams.length === 0) && (
+                  <div className={`p-6 rounded-2xl border text-center text-sm font-semibold ${examsError ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-white border-slate-200 text-slate-500'}`}>
+                    {examsLoading ? 'Đang tải lịch thi từ máy chủ...' : examsError ? `Không tải được lịch thi: ${examsError}` : 'Bạn chưa được xếp ca thi nào.'}
+                  </div>
+                )}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {upcomingExams.map((exam) => (
                     <div
@@ -742,7 +749,7 @@ export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdm
               </div>
 
               <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100 text-xs text-slate-500">
-                <div>Hiển thị {filteredHistory.length} trong tổng số 4 bài thi</div>
+                <div>Hiển thị {filteredHistory.length} trong tổng số {examHistory.length} bài thi</div>
                 <div className="flex items-center space-x-1">
                   <button className="px-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-400 cursor-not-allowed">
                     Trước

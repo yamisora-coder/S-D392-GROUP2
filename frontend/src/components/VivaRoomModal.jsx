@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { api } from '../services/api.js';
 
 export default function VivaRoomModal({ isOpen, onClose, exam, currentUser }) {
   const [timer, setTimer] = useState(100); // 1:40
@@ -11,23 +12,29 @@ export default function VivaRoomModal({ isOpen, onClose, exam, currentUser }) {
   const videoRef = useRef(null);
   const timerRef = useRef(null);
 
-  const questions = [
-    {
-      round: 'CÂU 1/3 • VÒNG HỎI SÂU (ADAPTIVE FOLLOW-UP)',
-      text: '“Bạn vừa nhắc đến cơ chế Phân trang (Paging), vậy hiện tượng Phân mảnh nội vi (Internal Fragmentation) xảy ra như thế nào trong cơ chế này?”',
-      transcript: '“Thưa thầy cô, phân mảnh nội vi xảy ra khi kích thước tiến trình không chia hết cho kích thước của khung trang (page frame)... do đó trang cuối cùng được cấp phát chỉ sử dụng một phần dữ liệu, để thừa khoảng trống không dùng đến...”',
-    },
-    {
-      round: 'CÂU 2/3 • CÂU HỎI THỰC HÀNH HỆ THỐNG',
-      text: '“Làm thế nào để hệ điều hành giải quyết tranh chấp (Race Condition) khi nhiều tiến trình cùng truy cập vào Vùng găng (Critical Section)?”',
-      transcript: '“Dạ, để giải quyết Race condition, hệ điều hành áp dụng các cơ chế đồng bộ như Mutex, Semaphore hoặc các chỉ thị phần cứng nguyên tử như Test-and-Set...”',
-    },
-    {
-      round: 'CÂU 3/3 • VẤN ĐÁP NÂNG CAO & TỔNG KẾT',
-      text: '“So sánh cơ chế lập lịch CPU Round Robin (RR) và Shortest Job First (SJF) trong điều kiện tải cao?”',
-      transcript: '“Dạ với Round Robin thì đảm bảo tính công bằng và thời gian đáp ứng tốt cho các ứng dụng tương tác, còn SJF tối ưu thời gian chờ trung bình nhưng dễ dẫn đến đói tài nguyên (Starvation)...”',
-    },
-  ];
+  // Câu hỏi lấy từ Ngân hàng câu hỏi (đã duyệt) của môn học thuộc kỳ thi
+  const [questions, setQuestions] = useState([]);
+  const [questionsError, setQuestionsError] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setCurrentQuestionIndex(0);
+    setQuestions([]);
+    setQuestionsError('');
+    api
+      .getQuestions({ subjectId: exam?.subjectId, status: 'APPROVED' })
+      .then((list) => {
+        const picked = (list || []).slice(0, exam?.maxMainQuestions || 3);
+        setQuestions(
+          picked.map((q, idx) => ({
+            round: `CÂU ${idx + 1}/${picked.length} • THANG BLOOM: ${q.bloomLevel}`,
+            text: `“${q.content}”`,
+            transcript: 'Hệ thống đang lắng nghe câu trả lời của bạn...',
+          }))
+        );
+      })
+      .catch((err) => setQuestionsError(err.message));
+  }, [isOpen, exam?.subjectId, exam?.maxMainQuestions]);
 
   // Browser reload/leave confirmation prevention
   useEffect(() => {
@@ -115,7 +122,11 @@ export default function VivaRoomModal({ isOpen, onClose, exam, currentUser }) {
 
   if (!isOpen) return null;
 
-  const currentQ = questions[currentQuestionIndex];
+  const currentQ = questions[currentQuestionIndex] || {
+    round: questionsError ? 'LỖI TẢI CÂU HỎI' : 'ĐANG TẢI CÂU HỎI',
+    text: questionsError ? `Không tải được câu hỏi: ${questionsError}` : 'Hệ thống đang chuẩn bị câu hỏi từ Ngân hàng câu hỏi...',
+    transcript: '',
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-slate-900/95 backdrop-blur-md animate-fade-in overflow-y-auto">
@@ -264,10 +275,10 @@ export default function VivaRoomModal({ isOpen, onClose, exam, currentUser }) {
           {/* Bottom Step Actions */}
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
             <div className="text-xs text-slate-500 font-semibold">
-              Câu hỏi <span className="text-blue-600 font-bold">{currentQuestionIndex + 1}</span> trên 3
+              Câu hỏi <span className="text-blue-600 font-bold">{currentQuestionIndex + 1}</span> trên {questions.length || '--'}
             </div>
             <div className="flex gap-2">
-              {currentQuestionIndex < 2 ? (
+              {currentQuestionIndex < questions.length - 1 ? (
                 <button
                   type="button"
                   onClick={() => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { mockAuthService } from '../services/auth.js';
+import { authService } from '../services/auth.js';
 
 export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStudent, onSwitchToLecturer }) {
   const [activeTab, setActiveTab] = useState('users'); // 'users' | 'config' | 'audit'
@@ -17,51 +17,23 @@ export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStude
     setTimeout(() => setToastMessage(''), 3500);
   };
 
-  // ================= 1. DANH SÁCH NGƯỜI DÙNG & PHÂN QUYỀN =================
-  const [users, setUsers] = useState(() => {
-    const list = mockAuthService.getAllUsers();
-    return list.map((u) => ({
-      ...u,
-      status: u.status || 'ACTIVE',
-      lastLogin: u.lastLogin || 'Gần đây',
-    }));
-  });
+  // ================= 1. DANH SÁCH NGƯỜI DÙNG & PHÂN QUYỀN (PostgreSQL) =================
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(true);
 
-  // Đồng bộ người dùng từ Backend PostgreSQL nếu đang chạy
+  const loadUsers = async () => {
+    setUsersLoading(true);
+    try {
+      setUsers(await authService.getAllUsers());
+    } catch (err) {
+      showNotification(`Lỗi tải danh sách người dùng: ${err.message}`);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const syncBackend = async () => {
-      try {
-        const res = await fetch('http://localhost:8080/api/users');
-        if (res.ok) {
-          const dbUsers = await res.json();
-          if (Array.isArray(dbUsers) && dbUsers.length > 0) {
-            setUsers((prev) => {
-              const userMap = new Map();
-              prev.forEach((u) => userMap.set((u.id || u.email).toLowerCase(), u));
-              dbUsers.forEach((dbU) => {
-                const key = (dbU.code || dbU.email).toLowerCase();
-                const existing = userMap.get(key) || {};
-                userMap.set(key, {
-                  ...existing,
-                  id: dbU.code || dbU.id,
-                  dbId: dbU.id,
-                  fullName: dbU.fullName,
-                  email: dbU.email,
-                  role: dbU.role,
-                  department: existing.department || 'Bộ môn / Khoa FPT',
-                  status: existing.status || 'ACTIVE',
-                  lastLogin: existing.lastLogin || 'Gần đây',
-                });
-              });
-              return Array.from(userMap.values());
-            });
-          }
-        }
-      } catch (e) {
-        // Fallback vào dữ liệu LocalStorage / Mock
-      }
-    };
-    syncBackend();
+    loadUsers();
   }, []);
 
   const [newUser, setNewUser] = useState({
@@ -90,19 +62,17 @@ export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStude
       fullName: newUser.fullName,
       email: newUser.email,
       role: newUser.role,
-      department: newUser.department,
       password: newUser.password || 'Password@123',
-      status: 'ACTIVE',
-      lastLogin: 'Chưa đăng nhập',
     };
 
     try {
-      await mockAuthService.register(created);
+      const res = await authService.register(created, { autoLogin: false });
+      setUsers((prev) => [{ ...res.user, department: newUser.department, lastLogin: 'Chưa đăng nhập' }, ...prev]);
     } catch (err) {
-      console.warn('Lỗi lưu auth service:', err);
+      showNotification(`Lỗi tạo tài khoản: ${err.message}`);
+      return;
     }
 
-    setUsers((prev) => [created, ...prev.filter((u) => u.id !== created.id)]);
     setShowAddUserModal(false);
     showNotification(`Đã tạo tài khoản cho ${created.fullName} (${created.role}) thành công!`);
     setNewUser({
@@ -121,7 +91,7 @@ export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStude
     setIsUpdatingRole(true);
 
     try {
-      await mockAuthService.updateUserRole(targetUser.id, newRole);
+      await authService.updateUserRole(targetUser.dbId || targetUser.id, newRole);
 
       setUsers((prev) =>
         prev.map((u) => (u.id === targetUser.id ? { ...u, role: newRole } : u))
@@ -159,16 +129,16 @@ export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStude
     setSelectedModalRole(user.role);
   };
 
-  const handleToggleStatus = (id) => {
-    mockAuthService.toggleUserStatus(id);
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id !== id) return u;
-        const newStatus = u.status === 'ACTIVE' ? 'LOCKED' : 'ACTIVE';
-        showNotification(`Đã ${newStatus === 'ACTIVE' ? 'mở khóa' : 'khóa'} tài khoản ${u.fullName}!`);
-        return { ...u, status: newStatus };
-      })
-    );
+  const handleToggleStatus = async (id) => {
+    const target = users.find((u) => u.id === id);
+    if (!target) return;
+    try {
+      const updated = await authService.toggleUserStatus(target.dbId || target.id);
+      setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, status: updated.status } : u)));
+      showNotification(`Đã ${updated.status === 'ACTIVE' ? 'mở khóa' : 'khóa'} tài khoản ${target.fullName}!`);
+    } catch (err) {
+      showNotification(`Lỗi cập nhật trạng thái: ${err.message}`);
+    }
   };
 
   const filteredUsers = users.filter((u) => {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { mockAuthService } from '../services/auth.js';
+import { authService } from '../services/auth.js';
 
 export default function LoginPage({ onNavigate, onLoginSuccess }) {
   // Tab phân hệ nhanh: 'all' (Tự động nhận diện) | 'student' (Thí sinh) | 'instructor' (Giảng viên)
@@ -42,7 +42,7 @@ export default function LoginPage({ onNavigate, onLoginSuccess }) {
     setErrorMessage('');
 
     try {
-      const res = await mockAuthService.login({ emailOrId, password });
+      const res = await authService.login({ emailOrId, password });
       if (res.success) {
         onLoginSuccess(res.user);
       }

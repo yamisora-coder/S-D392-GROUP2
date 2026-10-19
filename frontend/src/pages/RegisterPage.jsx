@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { mockAuthService } from '../services/auth.js';
+import { authService } from '../services/auth.js';
 
 export default function RegisterPage({ onNavigate, onRegisterSuccess }) {
   const [fullName, setFullName] = useState('');
@@ -62,8 +62,8 @@ export default function RegisterPage({ onNavigate, onRegisterSuccess }) {
     setLoading(true);
 
     try {
-      // Lưu trực tiếp vào Mock Storage LocalStorage
-      const res = await mockAuthService.register({
+      // Lưu vào PostgreSQL qua Backend API
+      const res = await authService.register({
         id: institutionId.trim().toUpperCase(),
         fullName: fullName.trim(),
         email: email.trim(),
@@ -475,7 +475,7 @@ export default function RegisterPage({ onNavigate, onRegisterSuccess }) {
               disabled={loading}
               className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-60"
             >
-              <span>{loading ? 'Đang lưu vào Mock Storage...' : 'Đăng ký tài khoản Thí sinh'}</span>
+              <span>{loading ? 'Đang tạo tài khoản trên hệ thống...' : 'Đăng ký tài khoản Thí sinh'}</span>
               <span className="material-symbols-outlined text-lg">arrow_forward</span>
             </button>
           </form>
