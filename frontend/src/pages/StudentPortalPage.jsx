@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import RecordingViewer from '../components/RecordingViewer.jsx';
 import DeviceCheckModal from '../components/DeviceCheckModal.jsx';
 import VivaRoomModal from '../components/VivaRoomModal.jsx';
-import { api, formatDate, formatTime, formatDateTime } from '../services/api.js';
+import { api, downloadArtifact, formatDate, formatTime, formatDateTime } from '../services/api.js';
 
 export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdmin, onSwitchToLecturer }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,6 +18,7 @@ export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdm
   const [showDeviceModal, setShowDeviceModal] = useState(false);
   const [deviceCheckTargetExam, setDeviceCheckTargetExam] = useState(null);
   const [activeVivaRoomExam, setActiveVivaRoomExam] = useState(null);
+  const [refreshKey,setRefreshKey]=useState(0);
 
   // User menu dropdown state (topbar & sidebar)
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -66,14 +68,14 @@ export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdm
         const now = Date.now();
 
         const upcoming = (sessions || [])
-          .filter((s) => s.status === 'SCHEDULED' || (s.status === 'IN_PROGRESS' && s.aiSuggestedScore == null))
+          .filter((s) => !s.submittedAt && (s.status === 'SCHEDULED' || (s.status === 'IN_PROGRESS' && s.aiSuggestedScore == null)))
           .sort((a, b) => new Date(a.scheduledStartTime) - new Date(b.scheduledStartTime))
           .map((s) => {
             const exam = examById.get(s.examId);
             const mins = exam?.durationPerStudentMins ?? 15;
             const start = new Date(s.scheduledStartTime).getTime();
             const end = start + mins * 60000;
-            const isActive = s.status === 'IN_PROGRESS' || (now >= start - 15 * 60000 && now <= end);
+            const isActive = s.status === 'IN_PROGRESS' || (now >= start && now <= end);
             return {
               id: s.id,
               examId: s.examId,
@@ -95,7 +97,7 @@ export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdm
           });
 
         const history = (sessions || [])
-          .filter((s) => s.status === 'COMPLETED' || s.finalTeacherScore != null || s.aiSuggestedScore != null)
+          .filter((s) => s.submittedAt || s.status === 'COMPLETED' || s.finalTeacherScore != null || s.aiSuggestedScore != null)
           .sort((a, b) => new Date(b.scheduledStartTime) - new Date(a.scheduledStartTime))
           .map((s) => {
             const exam = examById.get(s.examId);
@@ -131,7 +133,7 @@ export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdm
       }
     };
     load();
-  }, [currentUser?.dbId]);
+  }, [currentUser?.dbId, refreshKey]);
 
   const gradedScores = examHistory.filter((h) => h.numericScore != null).map((h) => h.numericScore);
   const gpa = gradedScores.length ? (gradedScores.reduce((a, b) => a + b, 0) / gradedScores.length).toFixed(1) : null;
@@ -920,6 +922,7 @@ export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdm
               </div>
             </div>
 
+            <div className="px-5 py-3"><RecordingViewer sessionId={selectedExamDetails.id} canDelete/></div>
             {/* Modal Footer Actions */}
             <div className="pt-3 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
               <button
@@ -936,10 +939,10 @@ export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdm
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => alert('Đang tạo và tải bản ghi âm & transcript đối thoại AI định dạng PDF...')}
+                  onClick={async()=>{try{await downloadArtifact(`/api/sessions/${selectedExamDetails.id}/transcript`,`transcript-${selectedExamDetails.id}.txt`);}catch(e){setAppealToast(e.message);}}}
                   className="px-3.5 py-2 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl cursor-pointer"
                 >
-                  Tải Transcript AI
+                  Tải transcript (.txt)
                 </button>
                 <button
                   type="button"
@@ -1002,7 +1005,7 @@ export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdm
               </div>
 
               <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-[11px] text-amber-900">
-                Lưu ý: Giảng viên sẽ nghe lại toàn bộ bản ghi video &amp; transcript đối thoại của bạn để đưa ra quyết định phúc khảo chính thức.
+                Lưu ý: Giảng viên sẽ xem lại transcript và bản ghi âm đã được bạn đồng ý lưu để đưa ra quyết định phúc khảo chính thức.
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
@@ -1038,7 +1041,7 @@ export default function StudentPortalPage({ currentUser, onLogout, onSwitchToAdm
         isOpen={Boolean(activeVivaRoomExam)}
         exam={activeVivaRoomExam}
         currentUser={currentUser}
-        onClose={() => setActiveVivaRoomExam(null)}
+        onClose={() => {setActiveVivaRoomExam(null);setRefreshKey(v=>v+1);}}
       />
     </div>
   );

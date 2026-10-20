@@ -19,6 +19,7 @@ public class ExamResponse {
     private Integer durationPerStudentMins;
     private Integer maxMainQuestions;
     private Integer maxFollowupQuestions;
+    private Integer answerTimeSeconds;
     private int sessionCount;
     private LocalDateTime createdAt;
 }

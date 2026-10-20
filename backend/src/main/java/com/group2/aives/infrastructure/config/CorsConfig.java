@@ -12,14 +12,17 @@ import java.util.List;
 public class CorsConfig {
 
     @Bean
-    public CorsFilter corsFilter() {
+    public org.springframework.boot.web.servlet.FilterRegistrationBean<CorsFilter> corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedOrigins(List.of("http://localhost:5173", "http://127.0.0.1:5173"));
         config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Content-Disposition"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
+        var registration=new org.springframework.boot.web.servlet.FilterRegistrationBean<>(new CorsFilter(source));
+        registration.setOrder(org.springframework.core.Ordered.HIGHEST_PRECEDENCE);
+        return registration;
     }
 }

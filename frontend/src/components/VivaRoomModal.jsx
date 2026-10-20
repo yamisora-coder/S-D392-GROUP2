@@ -1,351 +1,113 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { api } from '../services/api.js';
-
-export default function VivaRoomModal({ isOpen, onClose, exam, currentUser }) {
-  const [timer, setTimer] = useState(100); // 1:40
-  const [isAnswering, setIsAnswering] = useState(true);
-  const [audioStream, setAudioStream] = useState(null);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [showExitWarningModal, setShowExitWarningModal] = useState(false);
-  const [examSubmitted, setExamSubmitted] = useState(false);
-
-  const videoRef = useRef(null);
-  const timerRef = useRef(null);
-
-  // Câu hỏi lấy từ Ngân hàng câu hỏi (đã duyệt) của môn học thuộc kỳ thi
-  const [questions, setQuestions] = useState([]);
-  const [questionsError, setQuestionsError] = useState('');
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setCurrentQuestionIndex(0);
-    setQuestions([]);
-    setQuestionsError('');
-    api
-      .getQuestions({ subjectId: exam?.subjectId, status: 'APPROVED' })
-      .then((list) => {
-        const picked = (list || []).slice(0, exam?.maxMainQuestions || 3);
-        setQuestions(
-          picked.map((q, idx) => ({
-            round: `CÂU ${idx + 1}/${picked.length} • THANG BLOOM: ${q.bloomLevel}`,
-            text: `“${q.content}”`,
-            transcript: 'Hệ thống đang lắng nghe câu trả lời của bạn...',
-          }))
-        );
-      })
-      .catch((err) => setQuestionsError(err.message));
-  }, [isOpen, exam?.subjectId, exam?.maxMainQuestions]);
-
-  // Browser reload/leave confirmation prevention
-  useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      if (isOpen && !examSubmitted) {
-        e.preventDefault();
-        e.returnValue = 'Bạn đang trong ca thi vấn đáp AI. Nếu thoát bây giờ, toàn bộ kết quả bài thi sẽ bị hủy bỏ!';
-        return e.returnValue;
+import AttemptRecorder from './AttemptRecorder.jsx';
+import { request } from '../services/api.js';
+export default function VivaRoomModal({isOpen,onClose,exam,currentUser}) {
+  const [attempt,setAttempt]=useState(null),[answers,setAnswers]=useState({}),[index,setIndex]=useState(0);
+  const [error,setError]=useState(''),[busy,setBusy]=useState(false),[seconds,setSeconds]=useState(0),[saved,setSaved]=useState(false);
+  const audioRecorder=useRef(null);
+  const video=useRef(null),stream=useRef(null),speech=useRef(null),submitting=useRef(false),latestAnswers=useRef({}),expired=useRef(false);
+  const [interim,setInterim]=useState(''),[replySeconds,setReplySeconds]=useState(null),[voices,setVoices]=useState([]),[voice,setVoice]=useState('');
+  const timedOut=useRef(new Set());
+  const [listening,setListening]=useState(false),[followupDrafts,setFollowupDrafts]=useState({});
+  const latestDrafts=useRef({}),latestAttempt=useRef(null),requesting=useRef(false);
+  function apply(a){latestAttempt.current=a;setAttempt(a);const sent=Object.fromEntries(a.answers.map(x=>[x.questionId,x.text]));latestAnswers.current={...latestAnswers.current,...sent};setAnswers({...latestAnswers.current});}
+  function draft(id,text){latestDrafts.current={...latestDrafts.current,[id]:text};setFollowupDrafts({...latestDrafts.current});}
+  function read(text){if(!window.speechSynthesis)return;window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang='vi-VN';utterance.voice=window.speechSynthesis.getVoices().find(v=>v.voiceURI===voice)||window.speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('vi'))||null;window.speechSynthesis.speak(utterance);}
+  async function send(qid){
+    if(requesting.current || submitting.current)return;requesting.current=true;setBusy(true);setError('');speech.current?.stop();
+    try{
+      let a=latestAttempt.current;const pending=(a.followups||[]).find(t=>t.questionId===qid && t.answer===null);
+      const sent=a.answers.some(x=>x.questionId===qid);
+      if(pending || !sent){
+        const text=pending?latestDrafts.current[pending.id]:latestAnswers.current[qid];
+        if(!text?.trim())throw new Error('Vui lòng nhập câu trả lời.');
+        a=await request(`/api/sessions/${exam.id}/responses`,{method:'POST',body:{questionId:qid,text,...(pending?{followupId:pending.id}:{})}});apply(a);
       }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isOpen, examSubmitted]);
-
-  useEffect(() => {
-    if (isOpen) {
-      setTimer(100);
-      setIsAnswering(true);
-      setShowExitWarningModal(false);
-      setExamSubmitted(false);
-      startWebcam();
-      timerRef.current = setInterval(() => {
-        setTimer((prev) => {
-          if (prev <= 1) {
-            return 100;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      stopWebcam();
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
-
-    return () => {
-      stopWebcam();
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isOpen]);
-
-  const startWebcam = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 480 } },
-        audio: false,
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+      if(submitting.current || expired.current)return;
+      const count=(a.followups||[]).filter(t=>t.questionId===qid).length;
+      if(count<a.maxFollowupsPerQuestion){
+        a=await request(`/api/sessions/${exam.id}/follow-up`,{method:'POST',body:{questionId:qid}});
+        if(!submitting.current && !expired.current){apply(a);const turn=a.followups.filter(t=>t.questionId===qid).at(-1);if(turn)read(turn.question);}
       }
-      setAudioStream(stream);
-    } catch (e) {
-      console.warn('Webcam not accessible in room:', e);
-    }
-  };
-
-  const stopWebcam = () => {
-    if (audioStream) {
-      audioStream.getTracks().forEach((t) => t.stop());
-      setAudioStream(null);
-    }
-  };
-
-  const formatTimer = (secs) => {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
-  const handleExitClick = () => {
-    setShowExitWarningModal(true);
-  };
-
-  const handleConfirmExit = () => {
-    setShowExitWarningModal(false);
-    stopWebcam();
-    onClose();
-  };
-
-  const handleSubmitExam = () => {
-    setExamSubmitted(true);
-    alert('Chúc mừng bạn đã hoàn thành bài thi vấn đáp AI!\nBài thi đã được ghi nhận và gửi đến Hội đồng Khảo thí.');
-    stopWebcam();
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
-  const currentQ = questions[currentQuestionIndex] || {
-    round: questionsError ? 'LỖI TẢI CÂU HỎI' : 'ĐANG TẢI CÂU HỎI',
-    text: questionsError ? `Không tải được câu hỏi: ${questionsError}` : 'Hệ thống đang chuẩn bị câu hỏi từ Ngân hàng câu hỏi...',
-    transcript: '',
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-slate-900/95 backdrop-blur-md animate-fade-in overflow-y-auto">
-      {/* Top Header Bar */}
-      <header className="sticky top-0 z-30 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 px-6 py-3 flex items-center justify-between shadow-xs">
-        {/* Left: Exam Info */}
-        <div className="flex flex-col">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-            {exam?.subjectCode || 'CS201'} • {exam?.title || 'Phòng thi vấn đáp AI'}
-          </span>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-slate-900">{currentUser?.fullName || 'Trần Hoàng Phúc'}</span>
-            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[11px] font-mono">
-              {currentUser?.id || 'SE180123'}
-            </span>
-          </div>
-        </div>
-
-        {/* Center: Timer */}
-        <div className="bg-amber-50 border border-amber-200 px-4 py-1.5 rounded-xl flex items-center gap-3 shadow-xs">
-          <div className="flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-amber-700 text-base">timer</span>
-            <span className="text-[11px] font-bold text-amber-900 uppercase">Thời gian trả lời:</span>
-          </div>
-          <span className="font-mono text-lg font-bold text-amber-700 border-l border-amber-200 pl-2">
-            {formatTimer(timer)}
-          </span>
-        </div>
-
-        {/* Right: Exit / Status */}
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Đường truyền ổn định</span>
-          </div>
-          <button
-            type="button"
-            onClick={handleExitClick}
-            className="border border-rose-200 hover:bg-rose-50 text-rose-700 text-xs font-bold px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all shadow-2xs hover:shadow-xs active:scale-95"
-            title="Thoát ca thi"
-          >
-            <span className="material-symbols-outlined text-base text-rose-600">logout</span>
-            <span>Thoát phòng thi</span>
-          </button>
-        </div>
-      </header>
-
-      {/* Main Examination Stage */}
-      <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 flex flex-col items-center justify-center">
-        <div className="w-full bg-white rounded-3xl shadow-2xl border border-slate-200 p-6 md:p-8 flex flex-col gap-6">
-          {/* Top Stage Row: AI Examiner Info & Student Live Camera Stream */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-100 gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 shadow-md text-white shrink-0">
-                <span className="material-symbols-outlined text-2xl animate-pulse">psychology</span>
-                <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white"></span>
-                </span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-bold text-slate-900">Giám khảo AI (AIVES Viva Examiner)</h3>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 uppercase">
-                    v2.4 Adaptive
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Đang lắng nghe thí sinh
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Live Proctoring Webcam */}
-            <div className="w-52 aspect-video rounded-2xl overflow-hidden border border-slate-300 shadow-sm relative bg-slate-950 shrink-0">
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-cover scale-x-[-1]"
-              />
-              <div className="absolute top-2 left-2 bg-slate-900/80 text-rose-400 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 backdrop-blur-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
-                <span>REC • Trực tiếp Viva</span>
-              </div>
-              <div className="absolute bottom-2 left-2 bg-slate-900/80 text-emerald-400 text-[9px] font-semibold px-1.5 py-0.5 rounded backdrop-blur-xs flex items-center gap-1">
-                <span className="material-symbols-outlined text-[11px]">verified</span>
-                <span>Hình ảnh rõ nét • Đã kết nối</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Question Section */}
-          <div className="flex flex-col items-center text-center px-4 pt-1">
-            <span className="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full w-fit mx-auto uppercase tracking-wide">
-              {currentQ.round}
-            </span>
-            <h2 className="text-lg md:text-xl font-bold text-slate-900 text-center max-w-2xl mx-auto leading-relaxed pt-3">
-              {currentQ.text}
-            </h2>
-
-            {/* Dynamic Soundwave Visualizer */}
-            <div className="flex items-center justify-center gap-1.5 h-10 my-4">
-              <span className="w-1.5 rounded-full bg-blue-600 h-3 animate-pulse" style={{ animationDuration: '800ms' }}></span>
-              <span className="w-1.5 rounded-full bg-blue-600 h-5 animate-pulse" style={{ animationDuration: '650ms' }}></span>
-              <span className="w-1.5 rounded-full bg-blue-600 h-7 animate-pulse" style={{ animationDuration: '900ms' }}></span>
-              <span className="w-1.5 rounded-full bg-blue-600 h-6 animate-pulse" style={{ animationDuration: '720ms' }}></span>
-              <span className="w-1.5 rounded-full bg-blue-600 h-8 animate-pulse" style={{ animationDuration: '500ms' }}></span>
-              <span className="w-1.5 rounded-full bg-blue-600 h-6 animate-pulse" style={{ animationDuration: '750ms' }}></span>
-              <span className="w-1.5 rounded-full bg-blue-600 h-7 animate-pulse" style={{ animationDuration: '600ms' }}></span>
-              <span className="w-1.5 rounded-full bg-blue-600 h-5 animate-pulse" style={{ animationDuration: '850ms' }}></span>
-              <span className="w-1.5 rounded-full bg-blue-600 h-4 animate-pulse" style={{ animationDuration: '700ms' }}></span>
-            </div>
-
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-600 text-xs font-semibold">
-                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                <span>Micro đang thu âm trả lời</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Realtime STT Transcript Box */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 max-w-3xl mx-auto w-full text-left">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-base text-blue-600">record_voice_over</span>
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  Bản ghi giọng nói thời gian thực (Speech-to-Text)
-                </span>
-              </div>
-              <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                Độ tin cậy: 98.6%
-              </span>
-            </div>
-            <p className="text-slate-800 text-sm md:text-base leading-relaxed">
-              {currentQ.transcript}
-              <span className="inline-block w-0.5 h-4 ml-0.5 bg-blue-600 align-middle animate-pulse"></span>
-            </p>
-          </div>
-
-          {/* Bottom Step Actions */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-            <div className="text-xs text-slate-500 font-semibold">
-              Câu hỏi <span className="text-blue-600 font-bold">{currentQuestionIndex + 1}</span> trên {questions.length || '--'}
-            </div>
-            <div className="flex gap-2">
-              {currentQuestionIndex < questions.length - 1 ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentQuestionIndex((prev) => prev + 1);
-                    setTimer(100);
-                  }}
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-sm flex items-center gap-1.5 cursor-pointer transition-all"
-                >
-                  <span>Chuyển câu tiếp theo</span>
-                  <span className="material-symbols-outlined text-base">arrow_forward</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleSubmitExam}
-                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-500/25 flex items-center gap-1.5 cursor-pointer transition-all"
-                >
-                  <span className="material-symbols-outlined text-base">check</span>
-                  <span>Nộp bài &amp; Kết thúc</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Confirmation Notification Modal when Exit Clicked */}
-      {showExitWarningModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-center animate-fade-in-up">
-            <div className="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4 font-bold shadow-xs">
-              <span className="material-symbols-outlined text-3xl">warning</span>
-            </div>
-
-            <h3 className="text-base font-extrabold text-slate-900 mb-2">
-              Cảnh báo: Bạn có chắc chắn muốn rời phòng thi?
-            </h3>
-
-            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 text-left mb-5 space-y-1.5 leading-relaxed">
-              <p className="font-bold flex items-center gap-1.5 text-rose-900">
-                <span className="material-symbols-outlined text-base">error</span>
-                <span>Hủy bỏ kết quả bài thi</span>
-              </p>
-              <p>
-                Nếu bạn rời khỏi phòng thi lúc này, <strong>toàn bộ kết quả câu trả lời của bạn sẽ bị hủy bỏ</strong> và hệ thống sẽ ghi nhận ca thi chưa hoàn thành hoặc bị gián đoạn.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => setShowExitWarningModal(false)}
-                className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
-              >
-                Tiếp tục làm bài thi
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmExit}
-                className="flex-1 py-2.5 px-4 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-rose-600/25 cursor-pointer"
-              >
-                Xác nhận thoát
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+    }catch(e){setError(e.message);}finally{setBusy(false);requesting.current=false;}
+  }
+  useEffect(()=>{
+    if(!isOpen)return;
+    let alive=true;latestAnswers.current={};latestDrafts.current={};latestAttempt.current=null;setFollowupDrafts({});setAnswers({});setAttempt(null);setError('');setSaved(false);setIndex(0);expired.current=false;timedOut.current=new Set();
+    request(`/api/sessions/${exam.id}/start`,{method:'POST'}).then(a=>{if(!alive)return;apply(a);setSaved(a.submitted);}).catch(e=>{if(alive)setError(e.message);});
+    navigator.mediaDevices?.getUserMedia({video:true,audio:false}).then(s=>{if(!alive){s.getTracks().forEach(t=>t.stop());return;}stream.current=s;if(video.current)video.current.srcObject=s;}).catch(()=>{});
+    return ()=>{alive=false;stream.current?.getTracks().forEach(t=>t.stop());stream.current=null;speech.current?.stop();window.speechSynthesis?.cancel();};
+  },[isOpen,exam?.id]);
+  useEffect(()=>{
+    if(!attempt || saved)return;
+    const tick=()=>{const left=Math.max(0,Math.ceil((new Date(attempt.deadline).getTime()-Date.now())/1000));setSeconds(left);if(!left && !expired.current){expired.current=true;submit(attempt);}};
+    tick();const id=setInterval(tick,1000);return ()=>clearInterval(id);
+  },[attempt,saved]);
+  useEffect(()=>{if(!window.speechSynthesis)return;const update=()=>setVoices(window.speechSynthesis.getVoices().filter(v=>v.lang.toLowerCase().startsWith('vi')));update();window.speechSynthesis.addEventListener('voiceschanged',update);return()=>window.speechSynthesis.removeEventListener('voiceschanged',update);},[]);
+  useEffect(()=>{
+    const a=latestAttempt.current,qid=a?.questions[index]?.id;
+    if(!isOpen||!qid||saved||!a.answerTimeSeconds||a.answerDeadlines?.[qid])return;
+    let alive=true;setBusy(true);request(`/api/sessions/${exam.id}/question`,{method:'POST',body:{questionId:qid}}).then(next=>{if(alive)apply(next);}).catch(e=>{if(alive)setError(e.message);}).finally(()=>{if(alive)setBusy(false);});return()=>{alive=false;};
+  },[isOpen,index,attempt?.sessionId,saved]);
+  useEffect(()=>{
+    if(!attempt||saved||!attempt.answerTimeSeconds){setReplySeconds(null);return;}
+    const qid=attempt.questions[index]?.id,turn=attempt.followups?.find(t=>t.questionId===qid&&t.answer===null);
+    const mainSent=attempt.answers.some(a=>a.questionId===qid),deadline=turn?.answerDeadline||(!mainSent?attempt.answerDeadlines?.[qid]:null);
+    if(!deadline){setReplySeconds(null);return;}
+    const key=turn?.id||qid;
+    const tick=()=>{const left=Math.max(0,Math.ceil((new Date(deadline).getTime()-Date.now())/1000));setReplySeconds(left);
+      if(!left&&!timedOut.current.has(key)&&!requesting.current&&!submitting.current){timedOut.current.add(key);speech.current?.stop();const text=turn?(latestDrafts.current[turn.id]||''):(latestAnswers.current[qid]||'');
+        request(`/api/sessions/${exam.id}/responses`,{method:'POST',body:{questionId:qid,text,...(turn?{followupId:turn.id}:{})}}).then(apply).catch(e=>setError(e.message));}
+    };tick();const id=setInterval(tick,1000);return()=>clearInterval(id);
+  },[attempt,index,saved]);
+  useEffect(()=>{const leave=e=>{if(isOpen && attempt && !saved){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',leave);return ()=>window.removeEventListener('beforeunload',leave);},[isOpen,attempt,saved]);
+  async function submit(a=attempt){
+    if(!a || submitting.current)return;submitting.current=true;setBusy(true);setError('');speech.current?.stop();
+    try{
+      await audioRecorder.current?.stop();
+      const current=latestAttempt.current||a;
+      if(current.answerTimeSeconds)for(const question of current.questions)if(!current.answers.some(x=>x.questionId===question.id)&&latestAnswers.current[question.id]?.trim()){
+        try{apply(await request(`/api/sessions/${exam.id}/responses`,{method:'POST',body:{questionId:question.id,text:latestAnswers.current[question.id]}}));}
+        catch(e){if(e.status===409){latestAnswers.current[question.id]='';}else throw e;}
+      }
+      for(const turn of current.followups||[])if(turn.answer===null && latestDrafts.current[turn.id]?.trim()){try{await request(`/api/sessions/${exam.id}/responses`,{method:'POST',body:{questionId:turn.questionId,followupId:turn.id,text:latestDrafts.current[turn.id]}});}catch(e){if(e.status!==409)throw e;}}
+      await request(`/api/sessions/${exam.id}/answers`,{method:'POST',body:{answers:a.questions.map(q=>({questionId:q.id,text:latestAnswers.current[q.id]||''}))}});setSaved(true);window.speechSynthesis?.cancel();stream.current?.getTracks().forEach(t=>t.stop());}
+    catch(e){setError(e.message);}finally{setBusy(false);submitting.current=false;}
+  }
+  async function grade(){setBusy(true);setError('');try{await request(`/api/sessions/${exam.id}/ai-grade`,{method:'POST'});setError('AI đã chấm xong. Bài thi đang chờ giảng viên duyệt.');}catch(e){setError(`Bài đã lưu. ${e.message}. Có thể thử chấm lại sau.`);}finally{setBusy(false);}}
+  function change(id,text){setAnswers(prev=>{const next={...prev,[id]:text};latestAnswers.current=next;return next;});}
+  function dictate(){
+    if(listening){speech.current?.stop();return;}
+    window.speechSynthesis?.cancel();
+    const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!Recognition){setError('Trình duyệt không hỗ trợ nhập giọng nói. Vui lòng nhập câu trả lời bằng văn bản.');return;}
+    const recognizer=new Recognition();recognizer.lang='vi-VN';recognizer.continuous=true;recognizer.interimResults=true;
+    const id=attempt.questions[index].id;const pending=(attempt.followups||[]).find(t=>t.questionId===id && t.answer===null);
+    recognizer.onresult=e=>{const current=latestAttempt.current;if(pending?current?.followups?.find(t=>t.id===pending.id)?.answer!==null:current?.answers?.some(a=>a.questionId===id))return;let extra='',preview='';for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)extra+=e.results[i][0].transcript+' ';else preview+=e.results[i][0].transcript+' ';}setInterim(preview);if(!extra)return;if(pending)draft(pending.id,(latestDrafts.current[pending.id]||'')+' '+extra);else change(id,(latestAnswers.current[id]||'')+' '+extra);};
+    recognizer.onend=()=>{setListening(false);setInterim('');};recognizer.onerror=e=>setError(`Nhập giọng nói: ${e.error}. Bạn vẫn có thể nhập văn bản.`);speech.current=recognizer;recognizer.start();setListening(true);
+  }
+  if(!isOpen)return null;
+  const q=attempt?.questions[index];
+  const turns=(attempt?.followups||[]).filter(t=>t.questionId===q?.id),pending=turns.find(t=>t.answer===null);
+  const mainSent=attempt?.answers.some(x=>x.questionId===q?.id),limit=attempt?.maxFollowupsPerQuestion||0;
+  const finished=mainSent && !pending && (turns.length>=limit||!answers[q?.id]?.trim());
+  const responseValue=pending?(followupDrafts[pending.id]||''):(answers[q?.id]||'');
+  return <div className="fixed inset-0 z-50 bg-slate-100 overflow-y-auto p-5"><div className="max-w-4xl mx-auto bg-white rounded-2xl p-6 space-y-5">
+    <header className="flex justify-between gap-4"><div><h2 className="font-bold text-xl">{exam?.title}</h2><p>{currentUser?.fullName}</p></div><strong>{saved?'Đã lưu bài':`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`}</strong><button onClick={()=>{if(saved || !attempt || confirm('Câu trả lời chưa nộp sẽ không được lưu. Rời phòng thi?')){speech.current?.stop();window.speechSynthesis?.cancel();onClose();}}}>Đóng</button></header>
+    <video ref={video} autoPlay muted playsInline className="w-48 rounded-xl bg-slate-900" />
+    {attempt&&<AttemptRecorder ref={audioRecorder} sessionId={exam.id} disabled={saved}/>}
+    <p role="alert" className="text-rose-700">{error}</p>
+    {!attempt && !error && <p>Đang chuẩn bị đề thi…</p>}
+    {saved ? <section><h3 className="font-bold text-emerald-700">Bài thi đã được lưu trên hệ thống.</h3><p>Chấm AI là điểm đề xuất, giảng viên sẽ duyệt kết quả.</p><button className="bg-blue-700 text-white p-3 rounded mt-3 disabled:opacity-50" disabled={busy} onClick={grade}>{busy?'Đang chấm…':'Gửi AI chấm / Thử lại'}</button></section> : q && <>
+      <div className="flex flex-wrap gap-3 items-center"><span className="text-sm text-slate-600">{replySeconds!==null?`Thời gian trả lời: ${replySeconds}s`:attempt.answerTimeSeconds?`Mỗi lượt: ${attempt.answerTimeSeconds}s`:''}</span><select aria-label="Giọng đọc tiếng Việt" className="border rounded p-2 text-sm" value={voice} onChange={e=>setVoice(e.target.value)}><option value="">Giọng tiếng Việt mặc định</option>{voices.map(v=><option value={v.voiceURI} key={v.voiceURI}>{v.name}</option>)}</select></div>
+      <p>Câu {index+1}/{attempt.questions.length} · Bloom {q.bloomLevel} · {q.difficulty}</p><h3 className="text-lg font-bold">{q.content}</h3>
+      <button className="text-blue-700" onClick={()=>read(q.content)}>Đọc câu hỏi</button>
+      {mainSent && <div className="rounded-xl bg-slate-50 p-4 whitespace-pre-wrap"><strong>Bạn</strong><p>{answers[q.id]}</p></div>}
+      {turns.map((t,i)=><section key={t.id} className="space-y-3"><div className="rounded-xl bg-blue-50 p-4"><strong>AI · Hỏi xoáy {i+1}/{limit}</strong><p>{t.question}</p><button className="text-blue-700 mt-2" onClick={()=>read(t.question)}>Đọc câu hỏi</button></div>{t.answer!==null && <div className="rounded-xl bg-slate-50 p-4 whitespace-pre-wrap"><strong>Bạn</strong><p>{t.answer}</p></div>}</section>)}
+      {(!mainSent || pending) && <textarea aria-label={pending?'Trả lời câu hỏi phụ':'Câu trả lời'} maxLength={20000} className="w-full border rounded-xl p-4 min-h-40" disabled={busy || seconds===0 || replySeconds===0} value={responseValue} onChange={e=>pending?draft(pending.id,e.target.value):change(q.id,e.target.value)} placeholder="Nhập hoặc dùng giọng nói, sau đó gửi câu trả lời." />}
+      {interim&&<p role="status" className="text-slate-500 italic">Đang nhận giọng nói: {interim}</p>}
+      {finished?<p className="text-emerald-700">Đã hoàn thành câu này. Chọn câu tiếp hoặc nộp bài.</p>:<button className="bg-blue-700 text-white p-3 rounded disabled:opacity-50" disabled={busy || seconds===0 || (replySeconds===0&&(!mainSent||!!pending))} onClick={()=>send(q.id)}>{busy?'Đang xử lý…':mainSent&&!pending?'Thử hỏi tiếp':'Gửi câu trả lời'}</button>}
+      <div className="flex flex-wrap gap-3"><button className="border p-3 rounded" disabled={busy || seconds===0 || replySeconds===0 || (mainSent&&!pending)} onClick={dictate}>{listening?'Dừng nhập giọng nói':'Nhập bằng giọng nói'}</button><button disabled={index===0 || busy} onClick={()=>{speech.current?.stop();window.speechSynthesis?.cancel();setError('');setIndex(i=>i-1);}}>Câu trước</button><button disabled={index===attempt.questions.length-1 || busy} onClick={()=>{speech.current?.stop();window.speechSynthesis?.cancel();setError('');setIndex(i=>i+1);}}>Câu tiếp</button><button className="bg-emerald-700 text-white p-3 rounded disabled:opacity-50" disabled={busy} onClick={()=>submit()}>{busy?'Đang lưu…':'Nộp bài'}</button></div>
+    </>}
+  </div></div>;
 }

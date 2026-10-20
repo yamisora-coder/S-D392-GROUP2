@@ -20,7 +20,7 @@ import java.util.UUID;
 @RequestMapping("/api/questions")
 @RequiredArgsConstructor
 @Tag(name = "2. Ngân hàng câu hỏi & Rubric (Questions)", description = "CRUD Câu hỏi vấn đáp theo thang Bloom & Rubric chấm điểm")
-@CrossOrigin(origins = "*")
+
 public class QuestionController {
 
     private final QuestionService questionService;

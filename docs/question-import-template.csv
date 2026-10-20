@@ -1,0 +1,4 @@
+question_code,chapter_id,content,bloom,difficulty,sample_answer,rubric_name,max_score,scoring_description
+SWD-001,REPLACE_WITH_CHAPTER_UUID,Explain layered architecture,UNDERSTAND,EASY,Presentation domain persistence,Knowledge,4,0 incorrect; 2 partial; 4 complete
+SWD-001,REPLACE_WITH_CHAPTER_UUID,Explain layered architecture,UNDERSTAND,EASY,Presentation domain persistence,Reasoning,3,0 absent; 1.5 partial; 3 correct
+SWD-001,REPLACE_WITH_CHAPTER_UUID,Explain layered architecture,UNDERSTAND,EASY,Presentation domain persistence,Application,3,0 absent; 1.5 weak example; 3 relevant example

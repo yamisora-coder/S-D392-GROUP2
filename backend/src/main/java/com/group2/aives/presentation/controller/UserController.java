@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 @Tag(name = "5. Người dùng (Users)", description = "Quản lý tài khoản Giảng viên và Sinh viên")
-@CrossOrigin(origins = "*")
+
 public class UserController {
 
     private final UserService userService;
@@ -32,7 +32,8 @@ public class UserController {
     @PostMapping("/register")
     @Operation(summary = "Đăng ký tài khoản người dùng mới (Lưu trực tiếp vào PostgreSQL)")
     public ResponseEntity<UserResponse> register(@RequestBody @jakarta.validation.Valid com.group2.aives.application.dto.request.RegisterRequest request) {
-        return ResponseEntity.ok(userService.registerUser(request));
+        request.setRole(Role.STUDENT);
+        return ResponseEntity.status(201).body(userService.registerUser(request));
     }
 
     @PutMapping("/{idOrCode}/role")

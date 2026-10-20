@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name="aives.demo.enabled", havingValue="true")
 @RequiredArgsConstructor
 @Slf4j
 public class DataInitializer implements CommandLineRunner {

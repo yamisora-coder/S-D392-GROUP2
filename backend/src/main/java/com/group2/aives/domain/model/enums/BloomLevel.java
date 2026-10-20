@@ -4,5 +4,7 @@ public enum BloomLevel {
     REMEMBER,    // Nhớ (Nhận biết)
     UNDERSTAND,  // Thông hiểu
     APPLY,       // Vận dụng
-    ANALYZE      // Phân tích
+    ANALYZE,     // Phân tích
+    EVALUATE,
+    CREATE
 }

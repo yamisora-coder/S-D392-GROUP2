@@ -31,4 +31,7 @@ public class ExamRequest {
     @NotNull(message = "Số câu hỏi đào sâu tối đa không được để trống")
     @Min(value = 0, message = "Số câu hỏi đào sâu không âm")
     private Integer maxFollowupQuestions;
+
+    @Min(15) @jakarta.validation.constraints.Max(600)
+    private Integer answerTimeSeconds;
 }

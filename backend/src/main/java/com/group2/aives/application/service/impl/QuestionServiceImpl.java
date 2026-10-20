@@ -29,6 +29,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionRepository questionRepository;
     private final SubjectRepository subjectRepository;
     private final UserRepository userRepository;
+    private final com.group2.aives.infrastructure.persistence.jpa.ChapterJpaRepository chapters;
 
     @Override
     @Transactional(readOnly = true)
@@ -50,6 +51,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     @Transactional
     public QuestionResponse createQuestion(QuestionRequest request) {
+        validateMetadata(request);
         Subject subject = subjectRepository.findById(request.getSubjectId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học với ID: " + request.getSubjectId()));
 
@@ -62,6 +64,8 @@ public class QuestionServiceImpl implements QuestionService {
                 .subject(subject)
                 .content(request.getContent().trim())
                 .sampleAnswer(request.getSampleAnswer())
+                .chapterId(request.getChapterId()).difficulty(request.getDifficulty() == null ? com.group2.aives.domain.model.enums.Difficulty.MEDIUM : request.getDifficulty())
+                .materialId(request.getMaterialId()).sourceReference(request.getSourceReference())
                 .bloomLevel(request.getBloomLevel())
                 .isAiGenerated(request.getIsAiGenerated() != null ? request.getIsAiGenerated() : false)
                 .status(request.getStatus() != null ? request.getStatus() : QuestionStatus.DRAFT)
@@ -80,6 +84,7 @@ public class QuestionServiceImpl implements QuestionService {
             }
         }
 
+        if(question.getStatus() == QuestionStatus.APPROVED) validateApproval(question);
         Question saved = questionRepository.save(question);
         return mapToResponse(saved);
     }
@@ -96,6 +101,10 @@ public class QuestionServiceImpl implements QuestionService {
             question.setSubject(newSubject);
         }
 
+        validateMetadata(request);
+        question.setChapterId(request.getChapterId());
+        question.setDifficulty(request.getDifficulty() == null ? com.group2.aives.domain.model.enums.Difficulty.MEDIUM : request.getDifficulty());
+        question.setMaterialId(request.getMaterialId());question.setSourceReference(request.getSourceReference());
         question.setContent(request.getContent().trim());
         question.setSampleAnswer(request.getSampleAnswer());
         question.setBloomLevel(request.getBloomLevel());
@@ -116,6 +125,7 @@ public class QuestionServiceImpl implements QuestionService {
             }
         }
 
+        if(question.getStatus() == QuestionStatus.APPROVED) validateApproval(question);
         Question updated = questionRepository.save(question);
         return mapToResponse(updated);
     }
@@ -134,11 +144,29 @@ public class QuestionServiceImpl implements QuestionService {
     public QuestionResponse updateStatus(UUID id, QuestionStatus status) {
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy câu hỏi với ID: " + id));
+        if (status == QuestionStatus.APPROVED) validateApproval(question);
         question.setStatus(status);
+        if(question.getStatus() == QuestionStatus.APPROVED) validateApproval(question);
         Question updated = questionRepository.save(question);
         return mapToResponse(updated);
     }
 
+    private void validateMetadata(QuestionRequest request) {
+        if(request.getChapterId()!=null) {
+            var chapter=chapters.findById(request.getChapterId()).orElseThrow(() -> new IllegalArgumentException("Chương không tồn tại"));
+            if(!chapter.getSubjectId().equals(request.getSubjectId())) throw new IllegalArgumentException("Chương không thuộc môn học");
+        }
+    }
+    private void validateApproval(Question question) {
+        if(question.getRubrics()==null || question.getRubrics().isEmpty()) throw new IllegalArgumentException("Phải tạo rubric trước khi duyệt câu hỏi");
+        double total=0;
+        for(var r:question.getRubrics()) {
+            if(r.getCriteriaName()==null || r.getCriteriaName().isBlank() || r.getDescription()==null || r.getDescription().isBlank() || r.getMaxScore()==null || !Double.isFinite(r.getMaxScore()) || r.getMaxScore()<=0)
+                throw new IllegalArgumentException("Mỗi rubric cần tên, mô tả mức điểm và điểm tối đa dương");
+            total+=r.getMaxScore();
+        }
+        if(Math.abs(total-10)>0.001) throw new IllegalArgumentException("Tổng điểm rubric phải bằng 10");
+    }
     private QuestionResponse mapToResponse(Question question) {
         List<RubricResponse> rubricResponses = question.getRubrics() != null
                 ? question.getRubrics().stream()
@@ -162,6 +190,8 @@ public class QuestionServiceImpl implements QuestionService {
                 .subjectName(question.getSubject().getName())
                 .content(question.getContent())
                 .sampleAnswer(question.getSampleAnswer())
+                .chapterId(question.getChapterId()).difficulty(question.getDifficulty())
+                .materialId(question.getMaterialId()).sourceReference(question.getSourceReference())
                 .bloomLevel(question.getBloomLevel())
                 .isAiGenerated(question.getIsAiGenerated())
                 .status(question.getStatus())

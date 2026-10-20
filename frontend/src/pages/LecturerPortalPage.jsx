@@ -1,5 +1,7 @@
+import LearningWorkspace from '../components/LearningWorkspace.jsx';
+import RecordingViewer from '../components/RecordingViewer.jsx';
 import React, { useState, useEffect, useMemo } from 'react';
-import { api, shortId, formatDate, formatDateTime } from '../services/api.js';
+import { request, api, shortId, formatDate, formatDateTime } from '../services/api.js';
 
 const round2 = (n) => Math.round(n * 100) / 100;
 const roundQuarter = (n) => Math.round(n * 4) / 4;
@@ -8,8 +10,8 @@ const roundQuarter = (n) => Math.round(n * 4) / 4;
 // Backend hiện chỉ lưu điểm tổng (AI gợi ý & điểm chốt), nên điểm từng tiêu chí được
 // phân bổ theo tỷ lệ điểm tổng và thang rubric được quy đổi để tổng bài = 10 điểm.
 function buildSubmission(session, exam, subjectQuestions) {
-  const pool = subjectQuestions.filter((q) => q.status === 'APPROVED');
-  const picked = pool.slice(0, Math.max(1, exam?.maxMainQuestions || 3));
+  const pool = subjectQuestions;
+  const picked = pool;
   const aiScore = session.aiSuggestedScore ?? 0;
   const lecturerTotal = session.finalTeacherScore ?? aiScore;
   const perQuestionMax = picked.length ? 10 / picked.length : 10;
@@ -23,8 +25,8 @@ function buildSubmission(session, exam, subjectQuestions) {
         title: r.criteriaName,
         desc: r.description || '',
         max,
-        ai: roundQuarter(max * (aiScore / 10)),
-        lecturer: roundQuarter(max * (lecturerTotal / 10)),
+        ai: Math.min(max, round2(max * (aiScore / 10))),
+        lecturer: Math.min(max, round2(max * (lecturerTotal / 10))),
         aiFeedback: 'Ước tính theo điểm AI tổng (backend chưa lưu điểm từng tiêu chí).',
       };
     });
@@ -35,6 +37,7 @@ function buildSubmission(session, exam, subjectQuestions) {
       aiScore: round2(rubrics.reduce((a, r) => a + r.ai, 0)),
       lecturerScore: round2(rubrics.reduce((a, r) => a + r.lecturer, 0)),
       bloom: q.bloomLevel,
+      chapterId: q.chapterId || '', difficulty: q.difficulty || 'MEDIUM', materialId: q.materialId, sourceReference: q.sourceReference || '',
       rubrics,
       dialogue: [],
     };
@@ -85,6 +88,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
   const [rawQuestions, setRawQuestions] = useState([]);
   const [rawExams, setRawExams] = useState([]);
   const [rawSessions, setRawSessions] = useState([]);
+  const [attempts, setAttempts] = useState({});
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
@@ -102,6 +106,8 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
       setRawQuestions(qs || []);
       setRawExams(exs || []);
       setRawSessions(ss || []);
+      const details = await Promise.all((ss || []).filter(s => s.hasAttempt).map(async s => { try { return [s.id, await request(`/api/sessions/${s.id}/attempt`)]; } catch { return [s.id, null]; } }));
+      setAttempts(Object.fromEntries(details));
     } catch (err) {
       setLoadError(err.message);
       showNotification(`Lỗi tải dữ liệu: ${err.message}`);
@@ -120,20 +126,24 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
   useEffect(() => {
     const examById = new Map(rawExams.map((e) => [e.id, e]));
     const built = rawSessions
-      .filter((s) => s.status === 'IN_PROGRESS' || s.status === 'COMPLETED' || s.aiSuggestedScore != null)
+      .filter((s) => attempts[s.id]?.submitted)
       .sort((a, b) => (a.finalTeacherScore != null) - (b.finalTeacherScore != null))
       .map((s) => {
         const exam = examById.get(s.examId);
-        const subjectQuestions = rawQuestions.filter((q) => q.subjectId === exam?.subjectId);
-        return buildSubmission(s, exam, subjectQuestions);
+        const snapshot = attempts[s.id];
+        const built = buildSubmission(s, exam, snapshot.questions);
+        built.questions = built.questions.map(q => { const answer = snapshot.answers.find(a => a.questionId === q.id); const marks = snapshot.grading?.questions?.find(g => g.questionId === q.id); return {...q, dialogue: [...(answer ? [{ role: 'student', text: answer.text, content: answer.text, speaker: 'Thí sinh' }] : []), ...(snapshot.followups || []).filter(t => t.questionId === q.id).flatMap(t => [{ isAi: true, role: 'assistant', text: t.question, speaker: 'AI · Hỏi xoáy', time: t.askedAt }, ...(t.answer ? [{ role: 'student', text: t.answer, speaker: 'Thí sinh', time: t.answeredAt }] : [])])], rubrics: q.rubrics.map(r => { const mark=marks?.criteria?.find(c=>c.rubricId===r.id); const original=snapshot.questions.find(x=>x.id===q.id)?.rubrics.find(x=>x.id===r.id); return {...r, ai: mark ? round2(mark.score * r.max / original.maxScore) : 0, aiFeedback: mark ? `${mark.explanation} Bằng chứng: ${mark.evidence}` : 'Chưa có kết quả AI'}; })}; });
+        return built;
       });
     setSubmissions(built);
-  }, [rawSessions, rawExams, rawQuestions]);
+  }, [rawSessions, rawExams, attempts]);
 
+  const [showGradingList, setShowGradingList] = useState(true);
+  const [gradingFilter, setGradingFilter] = useState('PENDING_APPROVAL');
   const [selectedSubIdx, setSelectedSubIdx] = useState(0);
   const [selectedQuestionTab, setSelectedQuestionTab] = useState(0);
   const [isFinalizing, setIsFinalizing] = useState(false);
-  const currentSubmission = submissions[selectedSubIdx] || submissions[0];
+  const currentSubmission = showGradingList ? null : submissions[selectedSubIdx] || submissions[0];
   const activeQuestion = currentSubmission?.questions?.[selectedQuestionTab] || currentSubmission?.questions?.[0];
 
   // Adjust score handlers
@@ -162,12 +172,16 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
   };
 
   const handleApproveGrade = async () => {
-    if (!currentSubmission) return;
+    if (!currentSubmission || currentSubmission.status === 'GRADED' || isFinalizing) return;
     setIsFinalizing(true);
     try {
       const score = Math.max(0, Math.min(10, Number(currentSubmission.lecturerScore) || 0));
       const updated = await api.finalizeGrade(currentSubmission.id, score, currentSubmission.feedback || null);
       setRawSessions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+      setShowGradingList(true);
+      setGradingFilter('PENDING_APPROVAL');
+      setSelectedSubIdx(0);
+      setSelectedQuestionTab(0);
       showNotification(`Đã duyệt & chốt điểm bài thi của thí sinh ${currentSubmission.studentName} thành công! Điểm: ${score}/10.0`);
     } catch (err) {
       showNotification(`Lỗi chốt điểm: ${err.message}`);
@@ -182,6 +196,8 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
     UNDERSTAND: 'Hiểu (Understand)',
     APPLY: 'Vận dụng (Apply)',
     ANALYZE: 'Phân tích (Analyze)',
+    EVALUATE: 'Đánh giá (Evaluate)',
+    CREATE: 'Sáng tạo (Create)',
   };
   const STATUS_META = {
     DRAFT: { label: 'Chờ duyệt', cls: 'bg-amber-100 text-amber-800' },
@@ -201,6 +217,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
         code: q.subjectCode,
         title: q.content,
         bloom: q.bloomLevel,
+      chapterId: q.chapterId || '', difficulty: q.difficulty || 'MEDIUM', materialId: q.materialId, sourceReference: q.sourceReference || '',
         status: q.status,
         maxScore: q.totalRubricScore ?? 0,
         keywords: q.isAiGenerated ? ['AI Generated'] : [],
@@ -223,9 +240,9 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
   };
 
   const questionStatusTabs = [
-    { key: 'ACTIVE', label: 'Đang sử dụng' },
+    { key: 'ACTIVE', label: 'Đang dùng' },
     { key: 'DRAFT', label: 'Chờ duyệt' },
-    { key: 'AI_DRAFT', label: 'AI sinh – chờ duyệt' },
+    { key: 'AI_DRAFT', label: 'AI đề xuất' },
     { key: 'APPROVED', label: 'Đã duyệt' },
     { key: 'ARCHIVED', label: 'Lưu trữ' },
     { key: 'ALL', label: 'Tất cả' },
@@ -252,8 +269,9 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
     title: '',
     subject: subjects[0]?.id || '',
     bloom: 'UNDERSTAND',
+    chapterId: '', difficulty: 'MEDIUM', materialId: null, sourceReference: '',
     sampleAnswer: '',
-    status: 'APPROVED',
+    status: 'DRAFT',
     isAiGenerated: false,
     rubrics: [
       makeRubricRow('Kiến thức lý thuyết cốt lõi', 4, 'Trình bày đúng, đủ khái niệm/định nghĩa then chốt'),
@@ -264,6 +282,10 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
 
   // Add/Edit Question Form State
   const [newQuestion, setNewQuestion] = useState(defaultQuestionForm);
+  const [questionChapters, setQuestionChapters] = useState([]);
+  const [rubricTemplates, setRubricTemplates] = useState([]);
+  useEffect(()=>{if(showAddQuestionModal)request('/api/rubric-templates').then(setRubricTemplates).catch(e=>showNotification(e.message));},[showAddQuestionModal]);
+  useEffect(() => { let live=true; if(newQuestion.subject) request('/api/chapters', {params:{subjectId:newQuestion.subject}}).then(v=>{if(live)setQuestionChapters(v);}).catch(()=>{if(live)setQuestionChapters([]);}); return ()=>{live=false;}; }, [newQuestion.subject]);
 
   useEffect(() => {
     if (!newQuestion.subject && subjects.length) {
@@ -289,6 +311,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
       title: q.content || '',
       subject: q.subjectId,
       bloom: q.bloomLevel,
+      chapterId: q.chapterId || '', difficulty: q.difficulty || 'MEDIUM', materialId: q.materialId, sourceReference: q.sourceReference || '',
       sampleAnswer: q.sampleAnswer || '',
       status: q.status,
       isAiGenerated: !!q.isAiGenerated,
@@ -336,6 +359,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
 
     const payload = {
       subjectId: newQuestion.subject,
+      chapterId: newQuestion.chapterId || null, difficulty: newQuestion.difficulty, materialId: newQuestion.materialId, sourceReference: newQuestion.sourceReference,
       content: newQuestion.title.trim(),
       sampleAnswer: newQuestion.sampleAnswer.trim() || null,
       bloomLevel: newQuestion.bloom,
@@ -436,6 +460,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
     durationMinutes: 15,
     totalQuestionsAi: 3,
     maxFollowupQuestions: 2,
+    answerTimeSeconds: 120,
   });
 
   const handleCreateExam = async (e) => {
@@ -449,6 +474,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
         durationPerStudentMins: Number(newExam.durationMinutes),
         maxMainQuestions: Number(newExam.totalQuestionsAi),
         maxFollowupQuestions: Number(newExam.maxFollowupQuestions),
+        answerTimeSeconds: Number(newExam.answerTimeSeconds),
       });
       setRawExams((prev) => [created, ...prev]);
       setShowCreateExamModal(false);
@@ -494,7 +520,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
       )}
 
       {/* ================= LEFT SIDEBAR (Stitch Design) ================= */}
-      <aside className="w-72 bg-white border-r border-slate-200 flex flex-col z-20 shrink-0">
+      <aside className="w-56 bg-white border-r border-slate-200 flex flex-col z-20 shrink-0">
         {/* Brand */}
         <div className="h-16 px-6 flex items-center justify-between border-b border-slate-100">
           <div className="flex items-center gap-2.5">
@@ -522,11 +548,11 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
             }`}
           >
             <span className="material-symbols-outlined text-[18px] mr-2.5 text-blue-600">grid_view</span>
-            <span>Dashboard Tổng quan</span>
+            <span>Tổng quan</span>
           </button>
 
           <button
-            onClick={() => setActiveTab('grading')}
+            onClick={() => { setActiveTab('grading'); setShowGradingList(true); }}
             className={`w-full flex items-center justify-between px-3 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'grading'
                 ? 'bg-blue-700 text-white shadow-xs'
@@ -535,7 +561,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
           >
             <div className="flex items-center">
               <span className={`material-symbols-outlined text-[18px] mr-2.5 ${activeTab === 'grading' ? 'text-white' : 'text-blue-600'}`}>fact_check</span>
-              <span>Chấm điểm &amp; Duyệt (Split)</span>
+              <span>Chấm bài</span>
             </div>
             {pendingApprovalCount > 0 && (
               <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${activeTab === 'grading' ? 'bg-amber-400 text-slate-900' : 'bg-amber-100 text-amber-800'}`}>
@@ -553,7 +579,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
             }`}
           >
             <span className="material-symbols-outlined text-[18px] mr-2.5 text-indigo-600">menu_book</span>
-            <span>Ngân hàng &amp; Rubric AI</span>
+            <span>Ngân hàng câu hỏi</span>
           </button>
 
           <button
@@ -565,7 +591,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
             }`}
           >
             <span className="material-symbols-outlined text-[18px] mr-2.5 text-cyan-600">calendar_month</span>
-            <span>Quản lý Kỳ thi &amp; Lịch</span>
+            <span>Kỳ thi</span>
           </button>
 
           <button
@@ -577,25 +603,25 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
             }`}
           >
             <span className="material-symbols-outlined text-[18px] mr-2.5 text-emerald-600">monitoring</span>
-            <span>Báo cáo &amp; Phổ điểm</span>
+            <span>Báo cáo</span>
           </button>
 
           {/* Quick Portal Switchers */}
           <div className="pt-4 mt-4 border-t border-slate-100">
-            <p className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Chuyển đổi phân hệ nhanh</p>
+            <p className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Không gian làm việc</p>
             <button
               onClick={() => onSwitchPortal('student_home')}
               className="w-full flex items-center px-3 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px] mr-2 text-blue-600">school</span>
-              <span>Cổng Thí sinh</span>
+              <span>Thí sinh</span>
             </button>
             <button
               onClick={() => onSwitchPortal('admin_home')}
               className="w-full flex items-center px-3 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[16px] mr-2 text-amber-600">shield_person</span>
-              <span>Cổng Quản trị (Admin)</span>
+              <span>Quản trị</span>
             </button>
           </div>
         </nav>
@@ -625,23 +651,23 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
       </aside>
 
       {/* ================= MAIN CONTENT WORKSPACE ================= */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 z-10 shrink-0">
+        <header className="min-h-16 bg-white border-b border-slate-200 flex flex-wrap gap-3 items-center justify-between px-6 py-3 z-10 shrink-0">
           <div className="flex items-center gap-3">
             <h1 className="text-base font-extrabold text-slate-900 tracking-tight">
-              {activeTab === 'grading' && 'Không gian Chấm điểm & Duyệt kết quả Vấn đáp AI (Human-in-the-loop)'}
-              {activeTab === 'questions' && 'Ngân hàng Câu hỏi & Tiêu chí Rubric Khảo thí'}
-              {activeTab === 'exams' && 'Quản lý Kỳ thi & Lập lịch Ca thi'}
-              {activeTab === 'dashboard' && 'Dashboard Giảng viên & Tổng quan kỳ thi'}
-              {activeTab === 'analytics' && 'Báo cáo Thống kê & Phổ điểm Đánh giá'}
+              {activeTab === 'grading' && 'Chấm bài'}
+              {activeTab === 'questions' && 'Ngân hàng câu hỏi'}
+              {activeTab === 'exams' && 'Kỳ thi'}
+              {activeTab === 'dashboard' && 'Tổng quan'}
+              {activeTab === 'analytics' && 'Báo cáo'}
             </h1>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 border border-slate-200">
               <span className={`w-2 h-2 rounded-full ${loadError ? 'bg-rose-500' : loading ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'}`}></span>
-              <span>PostgreSQL aives_db: {loadError ? 'Mất kết nối' : loading ? 'Đang tải...' : 'Đồng bộ'}</span>
+              <span>{loadError ? 'Mất kết nối' : loading ? 'Đang tải' : 'Đã đồng bộ'}</span>
             </div>
             {activeTab === 'questions' && (
               <button
@@ -649,7 +675,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                 className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
               >
                 <span className="material-symbols-outlined text-base">add</span>
-                <span>Thêm câu hỏi mới</span>
+                <span>Thêm câu hỏi</span>
               </button>
             )}
             {activeTab === 'exams' && (
@@ -666,22 +692,23 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
 
         {/* ================= TAB 1: SPLIT-VIEW GRADING WORKSPACE ================= */}
         {activeTab === 'grading' && !currentSubmission && (
-          <div className="flex-1 flex items-center justify-center p-10">
-            <div className="text-center bg-white border border-slate-200 rounded-2xl p-8 shadow-2xs max-w-md">
-              <span className="material-symbols-outlined text-4xl text-slate-300">inbox</span>
-              <p className="text-sm font-bold text-slate-700 mt-2">
-                {loading ? 'Đang tải bài thi từ máy chủ...' : loadError ? `Không tải được dữ liệu: ${loadError}` : 'Chưa có bài thi nào cần chấm.'}
-              </p>
-              {!loading && (
-                <button onClick={loadAll} className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl cursor-pointer">
-                  Tải lại
-                </button>
-              )}
+          <section className="flex-1 overflow-y-auto p-6 space-y-5">
+            <div className="flex items-center gap-2">
+              {[['PENDING_APPROVAL', 'Chờ duyệt'], ['GRADED', 'Đã duyệt']].map(([status, label]) => <button type="button" key={status} onClick={() => setGradingFilter(status)} aria-pressed={gradingFilter === status} className={`px-4 py-2 rounded-xl text-sm font-medium ${gradingFilter === status ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600'}`}>{label} <span className="ml-1 opacity-70">{submissions.filter(s => s.status === status).length}</span></button>)}
+              <button type="button" onClick={loadAll} disabled={loading} className="ml-auto text-sm text-blue-700 disabled:opacity-40">{loading ? 'Đang tải…' : 'Tải lại'}</button>
             </div>
-          </div>
+            {loadError && <p role="alert" className="text-sm text-rose-700">{loadError}</p>}
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+              <table className="w-full text-left text-sm"><thead className="bg-slate-50 text-slate-500"><tr><th className="p-4 font-medium">Thí sinh</th><th className="p-4 font-medium">Kỳ thi</th><th className="p-4 font-medium">Điểm AI</th><th className="p-4 font-medium">Điểm chốt</th><th className="p-4 font-medium"><span className="sr-only">Thao tác</span></th></tr></thead>
+                <tbody className="divide-y divide-slate-100">{submissions.filter(sub => sub.status === gradingFilter).map(sub => <tr key={sub.id}><td className="p-4"><p className="font-semibold text-slate-800">{sub.studentName}</p><p className="text-xs text-slate-400">{sub.studentId}</p></td><td className="p-4">{sub.examTitle}</td><td className="p-4">{sub.aiScore}</td><td className="p-4">{sub.status === 'GRADED' ? sub.lecturerScore : '—'}</td><td className="p-4 text-right"><button type="button" className="text-blue-700 font-medium whitespace-nowrap" onClick={() => {setSelectedSubIdx(submissions.findIndex(s => s.id === sub.id));setSelectedQuestionTab(0);setShowGradingList(false);}}>{sub.status === 'GRADED' ? 'Xem bài' : 'Chấm bài'}</button></td></tr>)}</tbody>
+              </table>
+              {!submissions.some(sub => sub.status === gradingFilter) && <p className="p-10 text-center text-sm text-slate-400">{loading ? 'Đang tải bài thi…' : gradingFilter === 'GRADED' ? 'Chưa có bài đã duyệt.' : 'Không còn bài chờ duyệt.'}</p>}
+            </div>
+          </section>
         )}
         {activeTab === 'grading' && currentSubmission && (
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+            <button type="button" onClick={() => setShowGradingList(true)} className="shrink-0 self-start px-6 py-3 text-sm text-blue-700 inline-flex items-center gap-2"><span aria-hidden="true" className="material-symbols-outlined text-base">arrow_back</span>Danh sách</button>
             {/* Student Candidate Navigation Sub-header */}
             <div className="h-12 bg-white border-b border-slate-200 px-6 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-3">
@@ -727,46 +754,16 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
             </div>
 
             {/* Split View Body */}
+            <>
+            <div className="px-5 py-3 bg-white border-b"><RecordingViewer sessionId={currentSubmission.id}/></div>
+            <div className="px-5 py-2 bg-white border-b flex items-center gap-3 text-sm"><button className="bg-blue-700 text-white px-3 py-2 rounded disabled:opacity-50" disabled={isFinalizing} onClick={async()=>{setIsFinalizing(true);try{await request(`/api/sessions/${currentSubmission.id}/ai-grade`,{method:'POST'});await loadAll();showNotification('Đã nhận kết quả AI theo rubric.');}catch(e){showNotification(e.message);}finally{setIsFinalizing(false);}}}>Chấm AI / Thử lại</button><span>Điểm AI là đề xuất; giảng viên duyệt trước khi công bố.</span></div>
             <main className="flex-1 flex gap-5 p-5 overflow-hidden bg-slate-50">
+
+
               {/* Left Pane (42%): Video & AI Dialog Transcript */}
               <div className="w-[42%] flex flex-col gap-3.5 h-full overflow-hidden">
                 {/* Media Player Mock */}
-                <div className="bg-slate-900 rounded-2xl overflow-hidden shadow-sm relative aspect-video flex-shrink-0 border border-slate-800 flex flex-col justify-between p-3">
-                  <div className="flex items-center justify-between z-10">
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/80 backdrop-blur-sm text-emerald-400 font-mono text-[10px] font-bold border border-slate-700">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                      Tín hiệu ghi hình: Ổn định
-                    </div>
-                    <span className="px-2 py-0.5 rounded bg-slate-900/80 text-slate-300 font-mono text-[10px] border border-slate-700">
-                      Ghi hình Viva CAM-01 • 1080p
-                    </span>
-                  </div>
-
-                  {/* Candidate Video Simulation */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-slate-950/80 via-slate-900/50 to-slate-950/80">
-                    <div className="text-center">
-                      <div className="w-16 h-16 rounded-full bg-blue-600/30 text-blue-400 mx-auto flex items-center justify-center text-2xl font-bold mb-2 border border-blue-400/40">
-                        {currentSubmission.studentName.charAt(0)}
-                      </div>
-                      <p className="text-xs font-bold text-white">{currentSubmission.studentName}</p>
-                      <p className="text-[10px] text-slate-400 font-mono">{currentSubmission.studentId}</p>
-                    </div>
-                  </div>
-
-                  {/* Player Controls Bar */}
-                  <div className="z-10 bg-slate-950/80 backdrop-blur-md px-3 py-2 rounded-xl flex items-center justify-between border border-slate-800">
-                    <div className="flex items-center gap-2">
-                      <button className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-500 cursor-pointer">
-                        <span className="material-symbols-outlined text-sm">play_arrow</span>
-                      </button>
-                      <span className="font-mono text-xs text-slate-300">04:12 / {currentSubmission.duration}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
-                      <span className="px-1.5 py-0.5 bg-slate-800 rounded text-slate-200">1.25x</span>
-                      <span className="material-symbols-outlined text-base text-slate-300">volume_up</span>
-                    </div>
-                  </div>
-                </div>
+                <div className="bg-white rounded-2xl border border-slate-200 p-4"><p className="font-bold text-slate-800">{currentSubmission.studentName}</p><p className="text-sm text-slate-500">{currentSubmission.studentId}</p><p className="text-xs text-slate-500 mt-2">Xem hội thoại bên dưới và bản ghi âm đã lưu ở phần trên.</p></div>
 
                 {/* AI Dialog Transcript Timeline */}
                 <div className="flex-1 bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs flex flex-col overflow-hidden">
@@ -775,7 +772,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                       <span className="material-symbols-outlined text-sm text-blue-600">forum</span>
                       Bản ghi đối thoại AI &amp; Thí sinh (Transcript)
                     </span>
-                    <span className="text-[10px] font-mono text-slate-400">Tự động nhận diện STT</span>
+                    <span className="text-[10px] font-mono text-slate-400">Nội dung đã lưu</span>
                   </div>
 
                   <div className="flex-1 overflow-y-auto space-y-3 pr-1 text-xs">
@@ -919,22 +916,24 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                     <button
                       type="button"
                       onClick={handleApproveGrade}
-                      disabled={isFinalizing}
+                      disabled={isFinalizing || currentSubmission.status === 'GRADED'}
                       className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-500/20 cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-sm">verified</span>
-                      <span>Duyệt &amp; Chốt Điểm (Finalize Grade)</span>
+                      <span>{isFinalizing ? 'Đang lưu…' : currentSubmission.status === 'GRADED' ? 'Đã duyệt' : 'Duyệt điểm'}</span>
                     </button>
                   </div>
                 </div>
               </div>
             </main>
+            </>
           </div>
         )}
 
         {/* ================= TAB 2: NGÂN HÀNG CÂU HỎI & RUBRIC AI ================= */}
         {activeTab === 'questions' && (
           <div className="flex-1 p-6 overflow-y-auto space-y-5">
+            <LearningWorkspace subjects={subjects} onChanged={loadAll} />
             {/* Status Tabs: Đang dùng / Chờ duyệt / AI chờ duyệt / Đã duyệt / Lưu trữ */}
             <div className="flex flex-wrap items-center gap-2">
               {questionStatusTabs.map((t) => {
@@ -968,20 +967,20 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
 
             {/* Filter Bar */}
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap min-w-0 flex-1 items-center gap-3">
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Tìm kiếm nội dung câu hỏi, từ khóa..."
-                  className="w-72 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500"
+                  placeholder="Tìm câu hỏi…"
+                  className="w-full sm:w-56 min-w-0 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-blue-500"
                 />
                 <select
                   value={questionSubjectFilter}
                   onChange={(e) => setQuestionSubjectFilter(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none"
+                  className="min-w-0 max-w-full sm:max-w-56 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none"
                 >
-                  <option value="ALL">Tất cả Môn học</option>
+                  <option value="ALL">Mọi môn học</option>
                   {subjects.map((s) => (
                     <option key={s.id} value={s.code}>{s.name} ({s.code})</option>
                   ))}
@@ -989,32 +988,34 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                 <select
                   value={questionBloomFilter}
                   onChange={(e) => setQuestionBloomFilter(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none"
+                  className="min-w-0 max-w-full sm:max-w-56 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none"
                 >
-                  <option value="ALL">Thang Bloom: Tất cả</option>
+                  <option value="ALL">Mọi mức Bloom</option>
                   <option value="REMEMBER">Nhớ (Remember)</option>
                   <option value="UNDERSTAND">Hiểu (Understand)</option>
                   <option value="APPLY">Vận dụng (Apply)</option>
                   <option value="ANALYZE">Phân tích (Analyze)</option>
+                    <option value="EVALUATE">Đánh giá (Evaluate)</option>
+                    <option value="CREATE">Sáng tạo (Create)</option>
                 </select>
               </div>
 
               <div className="text-xs text-slate-500 font-semibold">
-                Hiển thị: <strong className="text-slate-800">{filteredQuestions.length} câu hỏi</strong>
+                <strong className="text-slate-800">{filteredQuestions.length} câu hỏi</strong>
               </div>
             </div>
 
             {/* Questions Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 font-bold text-slate-500 uppercase tracking-wider">
-                    <th className="py-3 px-4">Mã &amp; Môn học</th>
-                    <th className="py-3 px-4">Nội dung câu hỏi vấn đáp</th>
-                    <th className="py-3 px-4">Thang Bloom</th>
-                    <th className="py-3 px-4">Điểm &amp; Rubric</th>
+                    <th className="py-3 px-4">Môn học</th>
+                    <th className="py-3 px-4">Câu hỏi</th>
+                    <th className="py-3 px-4">Bloom</th>
+                    <th className="py-3 px-4">Rubric</th>
                     <th className="py-3 px-4">Trạng thái</th>
-                    <th className="py-3 px-4 text-right">Thao tác</th>
+                    <th className="py-3 px-4 text-right"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -1294,8 +1295,13 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
             </div>
 
             <form id="question-form" onSubmit={handleSaveQuestion} className="py-4 space-y-3.5 text-xs overflow-y-auto pr-1">
+              <label className="block">Áp dụng rubric mẫu<select className="border rounded p-2 w-full" defaultValue="" onChange={e=>{const template=rubricTemplates.find(t=>t.id===e.target.value);if(template)setNewQuestion(v=>({...v,rubrics:JSON.parse(template.criteriaJson).map(r=>makeRubricRow(r.criteriaName,r.maxScore,r.description))}));}}><option value="">Chọn mẫu</option>{rubricTemplates.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
+              <label className="block">Chương<select className="border rounded p-2 w-full" value={newQuestion.chapterId} onChange={e=>setNewQuestion(v=>({...v,chapterId:e.target.value}))}><option value="">Chưa gán chương</option>{questionChapters.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label>
+              <label className="block">Độ khó<select className="border rounded p-2 w-full" value={newQuestion.difficulty} onChange={e=>setNewQuestion(v=>({...v,difficulty:e.target.value}))}><option value="EASY">Dễ</option><option value="MEDIUM">Trung bình</option><option value="HARD">Khó</option></select></label>
+              {newQuestion.sourceReference && <p className="p-2 bg-blue-50">Nguồn: {newQuestion.sourceReference}</p>}
+
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Nội dung câu hỏi vấn đáp *</label>
+                <label className="block font-bold text-slate-700 mb-1">Câu hỏi *</label>
                 <textarea
                   id="question-form-content"
                   required
@@ -1313,7 +1319,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                   <select
                     id="question-form-subject"
                     value={newQuestion.subject}
-                    onChange={(e) => setNewQuestion({ ...newQuestion, subject: e.target.value })}
+                    onChange={(e) => setNewQuestion({ ...newQuestion, subject: e.target.value, chapterId: '', materialId: null, sourceReference: '' })}
                     className="w-full p-2 border border-slate-200 rounded-xl bg-slate-50"
                   >
                     {subjects.map((s) => (
@@ -1334,6 +1340,8 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
                     <option value="UNDERSTAND">Hiểu (Understand)</option>
                     <option value="APPLY">Vận dụng (Apply)</option>
                     <option value="ANALYZE">Phân tích (Analyze)</option>
+                    <option value="EVALUATE">Đánh giá (Evaluate)</option>
+                    <option value="CREATE">Sáng tạo (Create)</option>
                   </select>
                 </div>
 
@@ -1633,6 +1641,7 @@ export default function LecturerPortalPage({ currentUser, onLogout, onSwitchPort
               </div>
 
               <div>
+                <label className="block font-bold text-slate-700 mb-1">Thời gian mỗi lượt trả lời (giây)</label><input aria-label="Thời gian mỗi lượt trả lời" className="w-full p-2 border rounded-xl mb-3" type="number" min="15" max="600" value={newExam.answerTimeSeconds} onChange={e=>setNewExam({...newExam,answerTimeSeconds:e.target.value})}/>
                 <label className="block font-bold text-slate-700 mb-1">Số câu hỏi đào sâu tối đa / câu chính</label>
                 <input
                   type="number"

@@ -45,3 +45,7 @@ dist/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Local browser verification artifacts
+.playwright-cli/
+output/playwright/

@@ -1,7 +1,7 @@
 // Lớp gọi REST API tới Backend Spring Boot (AIVES)
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/$/, '');
 
-async function request(path, { method = 'GET', body, params } = {}) {
+export async function request(path, { method = 'GET', body, params } = {}) {
   let url = `${API_BASE_URL}${path}`;
   if (params) {
     const query = new URLSearchParams(
@@ -10,15 +10,21 @@ async function request(path, { method = 'GET', body, params } = {}) {
     if (query) url += `?${query}`;
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90000);
   let response;
   try {
     response = await fetch(url, {
       method,
-      headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+      headers: { ...(body !== undefined && !(body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}), ...(localStorage.getItem('aives_token') ? { Authorization: `Bearer ${localStorage.getItem('aives_token')}` } : {}) },
+      body: body instanceof FormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch (networkErr) {
+    if (networkErr.name === 'AbortError') throw new Error('Yêu cầu chờ quá lâu. Hãy tải lại danh sách câu hỏi để kiểm tra kết quả trước khi thử lại.');
     throw new Error('Không thể kết nối tới máy chủ Backend. Vui lòng kiểm tra server đang chạy.');
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   if (response.status === 204) return null;
@@ -26,7 +32,7 @@ async function request(path, { method = 'GET', body, params } = {}) {
   const data = await response.json().catch(() => null);
   if (!response.ok) {
     const details = data?.details ? Object.values(data.details).join('; ') : '';
-    throw new Error(details || data?.message || `Lỗi máy chủ (HTTP ${response.status})`);
+    const error=new Error(details || data?.message || `Lỗi máy chủ (HTTP ${response.status})`);error.status=response.status;throw error;
   }
   return data;
 }
@@ -34,7 +40,10 @@ async function request(path, { method = 'GET', body, params } = {}) {
 export const api = {
   // Auth & Users
   login: (emailOrCode, password) => request('/api/auth/login', { method: 'POST', body: { emailOrCode, password } }),
-  register: (payload) => request('/api/users/register', { method: 'POST', body: payload }),
+  register: (payload) => request('/api/auth/register', { method: 'POST', body: payload }),
+  createUser: (payload) => request(payload.role === 'ADMIN' ? '/api/admin/users/admins' : '/api/admin/users', { method: 'POST', body: payload }),
+  me: () => request('/api/auth/me'),
+  logout: () => request('/api/auth/logout', { method: 'POST' }),
   getUsers: (role) => request('/api/users', { params: { role } }),
   updateUserRole: (idOrCode, role) => request(`/api/users/${encodeURIComponent(idOrCode)}/role`, { method: 'PUT', body: { role } }),
   toggleUserStatus: (idOrCode) => request(`/api/users/${encodeURIComponent(idOrCode)}/status`, { method: 'PATCH' }),
@@ -78,3 +87,9 @@ export const formatTime = (iso) => {
   if (!iso) return '';
   return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 };
+
+export async function downloadArtifact(path,filename) {
+ const response=await fetch(`${API_BASE_URL}${path}`,{headers:{Authorization:`Bearer ${localStorage.getItem('aives_token')}`}});
+ if(!response.ok){const error=await response.json().catch(()=>null);throw new Error(error?.message||`HTTP ${response.status}`);}
+ const url=URL.createObjectURL(await response.blob());const link=document.createElement('a');link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}

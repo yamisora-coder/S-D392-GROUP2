@@ -24,6 +24,11 @@ public class QuestionRequest {
     private String content;
 
     private String sampleAnswer;
+    private UUID chapterId;
+    private com.group2.aives.domain.model.enums.Difficulty difficulty;
+    private UUID materialId;
+    private String sourceReference;
+
 
     @NotNull(message = "Mức độ nhận thức Bloom không được để trống")
     private BloomLevel bloomLevel;
@@ -34,6 +39,7 @@ public class QuestionRequest {
 
     private UUID createdById;
 
+    @jakarta.validation.Valid
     @Builder.Default
     private List<RubricRequest> rubrics = new ArrayList<>();
 }

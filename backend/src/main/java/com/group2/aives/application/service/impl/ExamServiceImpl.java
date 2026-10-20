@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ExamServiceImpl implements ExamService {
 
+    private final com.group2.aives.application.service.SystemSettingsService settings;
     private final ExamRepository examRepository;
     private final SubjectRepository subjectRepository;
 
@@ -50,6 +51,7 @@ public class ExamServiceImpl implements ExamService {
                 .durationPerStudentMins(request.getDurationPerStudentMins())
                 .maxMainQuestions(request.getMaxMainQuestions())
                 .maxFollowupQuestions(request.getMaxFollowupQuestions())
+                .answerTimeSeconds(request.getAnswerTimeSeconds()==null?settings.get().answerTimeSeconds():request.getAnswerTimeSeconds())
                 .build();
 
         Exam saved = examRepository.save(exam);
@@ -72,6 +74,7 @@ public class ExamServiceImpl implements ExamService {
         exam.setDurationPerStudentMins(request.getDurationPerStudentMins());
         exam.setMaxMainQuestions(request.getMaxMainQuestions());
         exam.setMaxFollowupQuestions(request.getMaxFollowupQuestions());
+        exam.setAnswerTimeSeconds(request.getAnswerTimeSeconds()==null?settings.get().answerTimeSeconds():request.getAnswerTimeSeconds());
 
         Exam updated = examRepository.save(exam);
         return mapToResponse(updated);
@@ -96,6 +99,7 @@ public class ExamServiceImpl implements ExamService {
                 .durationPerStudentMins(exam.getDurationPerStudentMins())
                 .maxMainQuestions(exam.getMaxMainQuestions())
                 .maxFollowupQuestions(exam.getMaxFollowupQuestions())
+                .answerTimeSeconds(exam.getAnswerTimeSeconds())
                 .sessionCount(exam.getSessions() != null ? exam.getSessions().size() : 0)
                 .createdAt(exam.getCreatedAt())
                 .build();

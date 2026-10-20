@@ -1,0 +1,8 @@
+import React, { useEffect, useState } from 'react';
+import { request } from '../services/api.js';
+export default function AdminResults() {
+  const [rows,setRows]=useState([]),[error,setError]=useState('');
+  const load=()=>request('/api/admin/ai-results').then(setRows).catch(e=>setError(e.message));
+  useEffect(()=>{load();},[]);
+  return <section className="bg-white border rounded-2xl p-5 mb-5"><div className="flex justify-between"><h2 className="font-bold">Kết quả chấm AI và giảng viên</h2><button onClick={load} className="text-blue-700">Làm mới</button></div><p role="alert">{error}</p>{!rows.length && <p className="text-sm py-3">Chưa có kết quả AI.</p>}<div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr><th className="text-left p-2">Thí sinh / Kỳ thi</th><th>Điểm AI</th><th>Điểm chốt</th><th>Tiêu chí và bằng chứng</th></tr></thead><tbody>{rows.map(r=><tr key={r.sessionId} className="border-t"><td className="p-2">{r.student}<br/>{r.exam}</td><td className="text-center">{r.aiScore}</td><td className="text-center">{r.teacherScore ?? 'Chờ duyệt'}</td><td className="p-2"><details><summary>Xem chi tiết</summary>{r.grading ? JSON.parse(r.grading).questions?.map((q,i)=><div key={q.questionId} className="py-2"><strong>Câu {i+1}</strong>{q.criteria?.map(c=><div key={c.rubricId} className="border-l pl-2 my-1"><p>Điểm: {c.score}</p><p>{c.explanation}</p><blockquote className="text-slate-500">Bằng chứng: {c.evidence || 'Không có câu trả lời'}</blockquote></div>)}</div>) : 'Chưa có chi tiết rubric'}<p>{r.feedback}</p></details></td></tr>)}</tbody></table></div></section>;
+}

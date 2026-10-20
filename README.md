@@ -94,3 +94,8 @@ Mật khẩu mặc định cho tất cả tài khoản: `Password@123`
    - Quản lý toàn diện tài khoản người dùng: Khóa/Mở khóa, Thêm người dùng, Phân quyền vai trò.
    - Cấu hình tham số AI Engine (LLM Core, Whisper STT, TTS Voice, Ngưỡng trễ phản xạ).
    - Nhật ký kiểm toán & Giám sát minh bạch phòng thi (Audit Logs).
+
+
+## Updated Admin / Question Bank workflows
+
+See [implementation and setup](docs/IMPLEMENTATION.md), [API contract](docs/API-WORKFLOWS.md), and [CSV import template](docs/question-import-template.csv). Demo accounts now require `AIVES_DEMO_ENABLED=true`; production uses environment-configured bootstrap Admin.

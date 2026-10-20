@@ -19,6 +19,7 @@ export function toClientUser(dbUser) {
     fullName: dbUser.fullName,
     email: dbUser.email,
     role: dbUser.role,
+    isAdmin: dbUser.isAdmin === true,
     status: dbUser.status || 'ACTIVE',
     department: DEPARTMENT_BY_ROLE[dbUser.role] || 'Khoa / Bộ môn',
     createdAt: dbUser.createdAt,
@@ -39,7 +40,8 @@ export const authService = {
 
   // Đăng nhập bằng MSSV / Mã GV / Email
   login: async ({ emailOrId, password }) => {
-    const dbUser = await api.login((emailOrId || '').trim(), (password || '').trim());
+    const dbUser = await api.login((emailOrId || '').trim(), (password || ''));
+    localStorage.setItem('aives_token', dbUser.accessToken);
     const user = { ...toClientUser(dbUser), lastLogin: 'Vừa xong' };
     saveSession(user);
     return { success: true, user };
@@ -47,7 +49,7 @@ export const authService = {
 
   // Đăng ký tài khoản (lưu vào PostgreSQL). `autoLogin=false` khi Admin tạo hộ.
   register: async (userData, { autoLogin = true } = {}) => {
-    const dbUser = await api.register({
+    const dbUser = await (autoLogin ? api.register : api.createUser)({
       code: userData.id,
       fullName: userData.fullName,
       email: userData.email,
@@ -55,7 +57,7 @@ export const authService = {
       role: userData.role || 'STUDENT',
     });
     const user = toClientUser(dbUser);
-    if (autoLogin) saveSession(user);
+    if (autoLogin) return authService.login({ emailOrId: userData.email, password: userData.password });
     return { success: true, user };
   },
 
@@ -69,6 +71,8 @@ export const authService = {
   },
 
   logout: () => {
+    api.logout().catch(() => {});
+    localStorage.removeItem('aives_token');
     localStorage.removeItem(STORAGE_CURRENT_USER_KEY);
   },
 

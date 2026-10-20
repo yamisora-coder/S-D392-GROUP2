@@ -4,10 +4,12 @@ import RegisterPage from './pages/RegisterPage.jsx';
 import StudentPortalPage from './pages/StudentPortalPage.jsx';
 import AdminPortalPage from './pages/AdminPortalPage.jsx';
 import LecturerPortalPage from './pages/LecturerPortalPage.jsx';
+import { api } from './services/api.js';
 import { authService } from './services/auth.js';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('login');
+  const [authReady, setAuthReady] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -18,15 +20,19 @@ export default function App() {
   };
 
   useEffect(() => {
-    // Kiểm tra phiên đăng nhập đã lưu trong LocalStorage
+    let active = true;
     const user = authService.getCurrentUser();
-    
-    if (user) {
-      setCurrentUser(user);
-      setCurrentPage(getTargetPage(user.role));
-    } else {
-      setCurrentPage('login');
+    if (!user || !localStorage.getItem('aives_token')) {
+      setAuthReady(true);
+      return () => { active = false; };
     }
+    api.me().then(db => {
+      if (!active) return;
+      const fresh = { ...user, role: db.role, isAdmin: db.isAdmin };
+      setCurrentUser(fresh); setCurrentPage(getTargetPage(fresh.role));
+    }).catch(() => { if (active) authService.logout(); })
+      .finally(() => { if (active) setAuthReady(true); });
+    return () => { active = false; };
   }, []);
 
   const showToast = (msg) => {
@@ -53,6 +59,8 @@ export default function App() {
     showToast('Đã đăng xuất tài khoản an toàn.');
     setCurrentPage('login');
   };
+
+  if (!authReady) return <p className="p-8">Đang kiểm tra phiên đăng nhập…</p>;
 
   return (
     <div className="min-h-screen bg-slate-100 font-sans text-slate-800">

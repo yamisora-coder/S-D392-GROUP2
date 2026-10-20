@@ -67,7 +67,7 @@ export default function RegisterPage({ onNavigate, onRegisterSuccess }) {
         id: institutionId.trim().toUpperCase(),
         fullName: fullName.trim(),
         email: email.trim(),
-        password: password.trim(),
+        password,
         role: 'STUDENT',
         department,
         phone: phone.trim()

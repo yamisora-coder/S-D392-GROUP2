@@ -13,6 +13,8 @@ import java.util.UUID;
 @Builder
 public class SessionResponse {
     private UUID id;
+    private boolean hasAttempt;
+    private LocalDateTime submittedAt;
     private UUID examId;
     private String examTitle;
     private String subjectName;

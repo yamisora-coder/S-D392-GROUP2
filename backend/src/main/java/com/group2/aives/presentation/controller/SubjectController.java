@@ -18,7 +18,7 @@ import java.util.UUID;
 @RequestMapping("/api/subjects")
 @RequiredArgsConstructor
 @Tag(name = "1. Môn học (Subjects)", description = "CRUD Môn học & Quản lý chương trình")
-@CrossOrigin(origins = "*")
+
 public class SubjectController {
 
     private final SubjectService subjectService;

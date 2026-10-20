@@ -33,7 +33,15 @@ public class Question {
     private String content; // Nội dung câu hỏi vấn đáp
 
     @Column(columnDefinition = "TEXT")
-    private String sampleAnswer; // Đáp án mẫu / dàn ý gợi ý cho giám khảo & AI
+    private String sampleAnswer;
+    private UUID chapterId;
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private com.group2.aives.domain.model.enums.Difficulty difficulty = com.group2.aives.domain.model.enums.Difficulty.MEDIUM;
+    private UUID materialId;
+    @Column(columnDefinition="TEXT")
+    private String sourceReference;
+ // Đáp án mẫu / dàn ý gợi ý cho giám khảo & AI
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

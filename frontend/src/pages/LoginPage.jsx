@@ -53,6 +53,7 @@ export default function LoginPage({ onNavigate, onLoginSuccess }) {
     }
   };
 
+  const quickLogin = async (code) => { setLoading(true); setErrorMessage(''); try { const result = await authService.login({emailOrId: code, password: 'Password@123'}); onLoginSuccess(result.user); } catch(e) { setErrorMessage(e.message); } finally { setLoading(false); } };
   const handleQuickFill = (id, pwd, role) => {
     setEmailOrId(id);
     setPassword(pwd);
@@ -332,15 +333,7 @@ export default function LoginPage({ onNavigate, onLoginSuccess }) {
         <div className="grid grid-cols-3 gap-2 mb-6">
           <button
             type="button"
-            onClick={() =>
-              onLoginSuccess({
-                id: 'SE180123',
-                fullName: 'Trần Hoàng Phúc',
-                email: 'phuctran5635@gmail.com',
-                role: 'STUDENT',
-                department: 'Khoa Công nghệ Thông tin',
-              })
-            }
+            onClick={() => quickLogin('SE180123')}
             className="py-2.5 px-2 border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-blue-50/60 hover:border-blue-300 transition-all duration-200 flex items-center justify-center space-x-1 shadow-2xs hover:shadow-xs cursor-pointer active:scale-[0.99]"
           >
             <i className="fa-solid fa-graduation-cap text-blue-600 text-xs"></i>
@@ -349,15 +342,7 @@ export default function LoginPage({ onNavigate, onLoginSuccess }) {
 
           <button
             type="button"
-            onClick={() =>
-              onLoginSuccess({
-                id: 'GV001',
-                fullName: 'ThS. Nguyễn Văn Giảng',
-                email: 'gv.nguyen@fpt.edu.vn',
-                role: 'INSTRUCTOR',
-                department: 'Bộ môn Kỹ thuật Phần mềm',
-              })
-            }
+            onClick={() => quickLogin('GV001')}
             className="py-2.5 px-2 border border-indigo-200/90 rounded-xl text-xs font-semibold text-indigo-800 bg-indigo-50/60 hover:bg-indigo-100/70 hover:border-indigo-300 transition-all duration-200 flex items-center justify-center space-x-1 shadow-2xs hover:shadow-xs cursor-pointer active:scale-[0.99]"
           >
             <i className="fa-solid fa-chalkboard-user text-indigo-600 text-xs"></i>
@@ -366,15 +351,7 @@ export default function LoginPage({ onNavigate, onLoginSuccess }) {
 
           <button
             type="button"
-            onClick={() =>
-              onLoginSuccess({
-                id: 'ADMIN01',
-                fullName: 'Quản trị viên Hệ thống',
-                email: 'admin@aives.edu.vn',
-                role: 'ADMIN',
-                department: 'Phòng Khảo thí & Đảm bảo Chất lượng',
-              })
-            }
+            onClick={() => quickLogin('ADMIN01')}
             className="py-2.5 px-2 border border-amber-200/90 rounded-xl text-xs font-semibold text-amber-800 bg-amber-50/60 hover:bg-amber-100/70 hover:border-amber-300 transition-all duration-200 flex items-center justify-center space-x-1 shadow-2xs hover:shadow-xs cursor-pointer active:scale-[0.99]"
           >
             <i className="fa-solid fa-shield-halved text-amber-600 text-xs"></i>

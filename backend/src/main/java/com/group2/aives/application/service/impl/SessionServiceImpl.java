@@ -26,6 +26,8 @@ public class SessionServiceImpl implements SessionService {
     private final ExamSessionRepository sessionRepository;
     private final ExamRepository examRepository;
     private final UserRepository userRepository;
+    private final com.group2.aives.infrastructure.persistence.jpa.AttemptJpaRepository attempts;
+    private final com.group2.aives.infrastructure.persistence.jpa.AttemptRecordingJpaRepository recordings;
 
     @Override
     @Transactional(readOnly = true)
@@ -76,6 +78,8 @@ public class SessionServiceImpl implements SessionService {
         ExamSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy ca thi"));
 
+        var attempt=attempts.findById(sessionId).orElseThrow(() -> new IllegalArgumentException("Chưa có bài thi để chấm"));
+        if(attempt.getSubmittedAt()==null)throw new IllegalArgumentException("Thí sinh chưa nộp bài");
         session.setFinalTeacherScore(request.getFinalTeacherScore());
         session.setTeacherFeedback(request.getTeacherFeedback());
         session.setStatus(ExamSessionStatus.COMPLETED);
@@ -90,12 +94,15 @@ public class SessionServiceImpl implements SessionService {
         if (!sessionRepository.existsById(sessionId)) {
             throw new RuntimeException("Không tìm thấy ca thi");
         }
+        recordings.removeSession(sessionId);attempts.findById(sessionId).ifPresent(attempts::delete);
         sessionRepository.deleteById(sessionId);
     }
 
     private SessionResponse mapToResponse(ExamSession session) {
         return SessionResponse.builder()
                 .id(session.getId())
+                .hasAttempt(attempts.existsById(session.getId()))
+                .submittedAt(attempts.findById(session.getId()).map(a -> a.getSubmittedAt()).orElse(null))
                 .examId(session.getExam().getId())
                 .examTitle(session.getExam().getTitle())
                 .subjectName(session.getExam().getSubject().getName())

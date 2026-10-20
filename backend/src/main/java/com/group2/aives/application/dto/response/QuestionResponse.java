@@ -21,6 +21,11 @@ public class QuestionResponse {
     private String subjectName;
     private String content;
     private String sampleAnswer;
+    private UUID chapterId;
+    private com.group2.aives.domain.model.enums.Difficulty difficulty;
+    private UUID materialId;
+    private String sourceReference;
+
     private BloomLevel bloomLevel;
     private Boolean isAiGenerated;
     private QuestionStatus status;

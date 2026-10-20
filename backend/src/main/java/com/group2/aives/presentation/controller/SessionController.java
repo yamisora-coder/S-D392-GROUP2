@@ -19,7 +19,7 @@ import java.util.UUID;
 @RequestMapping("/api/sessions")
 @RequiredArgsConstructor
 @Tag(name = "4. Ca thi & Chấm điểm (Sessions & Grading)", description = "Lập lịch ca thi cho sinh viên & Giảng viên chốt điểm (Human-in-the-loop)")
-@CrossOrigin(origins = "*")
+
 public class SessionController {
 
     private final SessionService sessionService;

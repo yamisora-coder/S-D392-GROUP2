@@ -13,6 +13,9 @@ import java.util.UUID;
 @Builder
 public class UserResponse {
     private UUID id;
+    @com.fasterxml.jackson.annotation.JsonProperty("isAdmin")
+    private boolean isAdmin;
+    private String accessToken;
     private String email;
     private String fullName;
     private Role role;

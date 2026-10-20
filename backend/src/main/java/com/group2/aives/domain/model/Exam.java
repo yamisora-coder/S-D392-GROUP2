@@ -42,6 +42,8 @@ public class Exam {
     @Column(nullable = false)
     private Integer maxFollowupQuestions = 2; // Số câu hỏi đào sâu tối đa mỗi câu chính
 
+    private Integer answerTimeSeconds;
+
     @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     @Builder.Default

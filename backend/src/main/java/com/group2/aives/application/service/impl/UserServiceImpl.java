@@ -44,10 +44,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponse registerUser(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail().trim().toLowerCase()).isPresent()) {
-            throw new IllegalArgumentException("Email " + request.getEmail() + " đã tồn tại trên hệ thống!");
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT, "Email " + request.getEmail() + " đã tồn tại trên hệ thống!");
         }
         if (userRepository.findByCode(request.getCode().trim().toUpperCase()).isPresent()) {
-            throw new IllegalArgumentException("Mã số sinh viên (MSSV) " + request.getCode() + " đã tồn tại trên hệ thống!");
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT, "Mã số sinh viên (MSSV) " + request.getCode() + " đã tồn tại trên hệ thống!");
         }
 
         User user = User.builder()
@@ -119,6 +119,7 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .role(user.getRole())
+                .isAdmin(user.getRole() == Role.ADMIN)
                 .code(user.getCode())
                 .status(user.isAccountActive() ? "ACTIVE" : "LOCKED")
                 .createdAt(user.getCreatedAt())

@@ -18,7 +18,7 @@ import java.util.UUID;
 @RequestMapping("/api/exams")
 @RequiredArgsConstructor
 @Tag(name = "3. Kỳ thi vấn đáp (Exams)", description = "CRUD Kỳ thi & Cấu hình số câu hỏi")
-@CrossOrigin(origins = "*")
+
 public class ExamController {
 
     private final ExamService examService;

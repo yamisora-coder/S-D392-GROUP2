@@ -23,6 +23,7 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Mật khẩu không được để trống")
+    @jakarta.validation.constraints.Size(min=8, max=128, message="Mật khẩu cần từ 8 đến 128 ký tự")
     private String password;
 
     private Role role; // Mặc định là STUDENT nếu null

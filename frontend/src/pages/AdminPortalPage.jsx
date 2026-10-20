@@ -1,3 +1,5 @@
+import AdminOperations from '../components/AdminOperations.jsx';
+import AdminResults from '../components/AdminResults.jsx';
 import React, { useState, useEffect } from 'react';
 import { authService } from '../services/auth.js';
 
@@ -105,17 +107,6 @@ export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStude
 
       showNotification(`Đã cập nhật vai trò của "${targetUser.fullName}" thành ${roleLabels[newRole] || newRole}!`);
 
-      // Ghi nhận vào nhật ký kiểm toán (Audit Logs)
-      const auditEntry = {
-        id: `AUD-${Date.now().toString().slice(-4)}`,
-        timestamp: 'Vừa xong',
-        actor: `${currentUser?.fullName || 'Quản trị viên'} (${currentUser?.email || 'admin@aives.edu.vn'})`,
-        action: 'PHÂN QUYỀN VAI TRÒ (ASSIGN ROLE)',
-        target: `${targetUser.fullName} (${targetUser.id}) -> ${newRole}`,
-        ip: '127.0.0.1 (Admin Console)',
-        status: 'SUCCESS',
-      };
-      setAuditLogs((prev) => [auditEntry, ...prev]);
     } catch (err) {
       showNotification(`Lỗi cập nhật vai trò: ${err.message}`);
     } finally {
@@ -149,65 +140,6 @@ export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStude
       u.id.toLowerCase().includes(searchTerm.toLowerCase());
     return matchRole && matchSearch;
   });
-
-  // ================= 2. CẤU HÌNH HỆ THỐNG & AI ENGINE (Stitch Design) =================
-  const [aiConfig, setAiConfig] = useState({
-    model: 'gemini-1.5-pro',
-    temperature: 0.3,
-    latencyThresholdMs: 1500,
-    silenceTimeoutSec: 5.0,
-    sttModel: 'AIVES-Vi-STT v2.4 (Whisper Fine-tuned - Mặc định)',
-    ttsVoice: 'Giọng Nữ - Miền Nam (Tự nhiên & Chuẩn khảo thí)',
-    bilingualSupport: true,
-    antiCheatSensitivity: 'HIGH',
-    maxConcurrentSessions: 50,
-    postgresHost: 'localhost:5432/aives_db',
-    storageBucket: 'minio-s3://aives-recordings',
-  });
-
-  const handleSaveConfig = () => {
-    showNotification('Đã lưu cấu hình AI Engine & Tham số hệ thống lên PostgreSQL!');
-  };
-
-  // ================= 3. NHẬT KÝ & KIỂM TOÁN MINH BẠCH (AUDIT LOGS) =================
-  const [auditLogs, setAuditLogs] = useState([
-    {
-      id: 'AUD-8801',
-      timestamp: '14:25:10 - Hôm nay',
-      actor: 'Quản trị viên Hệ thống (admin@aives.edu.vn)',
-      action: 'CẬP NHẬT CẤU HÌNH AI',
-      target: 'Ngưỡng Max Latency đổi thành 1500ms',
-      ip: '192.168.1.15',
-      status: 'SUCCESS',
-    },
-    {
-      id: 'AUD-8802',
-      timestamp: '14:22:04 - Hôm nay',
-      actor: 'ThS. Nguyễn Văn Giảng (gv.nguyen@fpt.edu.vn)',
-      action: 'CHỐT ĐIỂM BÀI THI (Finalize Grade)',
-      target: 'Thí sinh SE180123 - Điểm 8.75/10',
-      ip: '118.69.182.42',
-      status: 'SUCCESS',
-    },
-    {
-      id: 'AUD-8803',
-      timestamp: '14:15:33 - Hôm nay',
-      actor: 'Hệ thống Khảo thí Tự động (AI Engine)',
-      action: 'KIỂM SOÁT PHÒNG THI',
-      target: 'Ca thi CS201-01: Đường truyền 28ms, kết nối ổn định',
-      ip: 'AIVES-Core-Service',
-      status: 'SUCCESS',
-    },
-    {
-      id: 'AUD-8804',
-      timestamp: '13:50:18 - Hôm nay',
-      actor: 'Hệ thống Khảo thí',
-      action: 'XÁC THỰC THIẾT BỊ',
-      target: 'Thí sinh SE170002 kiểm tra camera & mic OK',
-      ip: '14.161.22.9',
-      status: 'SUCCESS',
-    },
-  ]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-100 text-slate-800 font-sans antialiased">
@@ -346,22 +278,12 @@ export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStude
                 <span>Thêm người dùng</span>
               </button>
             )}
-            {activeTab === 'config' && (
-              <button
-                type="button"
-                onClick={handleSaveConfig}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-sm">save</span>
-                <span>Lưu Cấu hình AI</span>
-              </button>
-            )}
           </div>
         </header>
-
         {/* ================= TAB 1: QUẢN LÝ NGƯỜI DÙNG & PHÂN QUYỀN ================= */}
         {activeTab === 'users' && (
           <main className="flex-1 p-6 overflow-y-auto space-y-5">
+            <AdminResults/>
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
@@ -509,196 +431,7 @@ export default function AdminPortalPage({ currentUser, onLogout, onSwitchToStude
           </main>
         )}
 
-        {/* ================= TAB 2: CẤU HÌNH HỆ THỐNG & AI ENGINE (Stitch Design) ================= */}
-        {activeTab === 'config' && (
-          <main className="flex-1 p-6 overflow-y-auto space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* LLM Model & Speech */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                  <span className="material-symbols-outlined text-blue-600">psychology</span>
-                  <h3 className="font-extrabold text-sm text-slate-800 uppercase tracking-wider">Cấu hình Mô hình Khảo thí AI</h3>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Mô hình AI Đánh giá chính (LLM Core)</label>
-                  <select
-                    value={aiConfig.model}
-                    onChange={(e) => setAiConfig({ ...aiConfig, model: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none"
-                  >
-                    <option value="gemini-1.5-pro">Google Gemini 1.5 Pro (Multimodal Video + Voice, 1M context)</option>
-                    <option value="gpt-4o">OpenAI GPT-4o Realtime Engine</option>
-                    <option value="claude-3-5-sonnet">Anthropic Claude 3.5 Sonnet</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Mô hình Nhận diện Giọng nói (STT Model)</label>
-                  <input
-                    type="text"
-                    value={aiConfig.sttModel}
-                    onChange={(e) => setAiConfig({ ...aiConfig, sttModel: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
-                  />
-                  <p className="text-[10px] text-slate-400 mt-1">Độ chính xác nhận diện tiếng Việt chuyên ngành: 98.4%</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Giọng đọc AI Viva (TTS Voice)</label>
-                  <select
-                    value={aiConfig.ttsVoice}
-                    onChange={(e) => setAiConfig({ ...aiConfig, ttsVoice: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none"
-                  >
-                    <option value="Giọng Nữ - Miền Nam (Tự nhiên & Chuẩn khảo thí)">Giọng Nữ - Miền Nam (Tự nhiên &amp; Chuẩn khảo thí)</option>
-                    <option value="Giọng Nữ - Miền Bắc (Hà Nội Academy Standard)">Giọng Nữ - Miền Bắc (Hà Nội Academy Standard)</option>
-                    <option value="Giọng Nam - Miền Trung (Âm lượng chuẩn hóa)">Giọng Nam - Miền Trung (Âm lượng chuẩn hóa)</option>
-                  </select>
-                </div>
-
-                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <div>
-                    <span className="text-xs font-bold text-slate-800 block">Hỗ trợ thuật ngữ song ngữ Anh - Việt</span>
-                    <span className="text-[10px] text-slate-500">Tự động nhận diện từ viết tắt IT, Thuật toán và Y khoa</span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={aiConfig.bilingualSupport}
-                    onChange={(e) => setAiConfig({ ...aiConfig, bilingualSupport: e.target.checked })}
-                    className="w-4 h-4 text-blue-600 rounded cursor-pointer"
-                  />
-                </div>
-              </div>
-
-              {/* Thresholds & Infrastructure */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                  <span className="material-symbols-outlined text-indigo-600">timer</span>
-                  <h3 className="font-extrabold text-sm text-slate-800 uppercase tracking-wider">Ngưỡng Phản xạ &amp; Hạ tầng</h3>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="font-bold text-slate-700">Thời gian chờ phản hồi tối đa (Max Latency)</span>
-                    <span className="font-mono font-bold text-blue-600">{aiConfig.latencyThresholdMs} ms</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="500"
-                    max="3000"
-                    step="100"
-                    value={aiConfig.latencyThresholdMs}
-                    onChange={(e) => setAiConfig({ ...aiConfig, latencyThresholdMs: Number(e.target.value) })}
-                    className="w-full accent-blue-600 cursor-pointer"
-                  />
-                  <p className="text-[10px] text-slate-400 mt-1">Khuyến nghị 1200ms - 1800ms để đảm bảo nhịp đối thoại tự nhiên.</p>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="font-bold text-slate-700">Ngưỡng phát hiện im lặng (Silence Timeout)</span>
-                    <span className="font-mono font-bold text-indigo-600">{aiConfig.silenceTimeoutSec} giây</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="2"
-                    max="10"
-                    step="0.5"
-                    value={aiConfig.silenceTimeoutSec}
-                    onChange={(e) => setAiConfig({ ...aiConfig, silenceTimeoutSec: Number(e.target.value) })}
-                    className="w-full accent-indigo-600 cursor-pointer"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Cơ sở dữ liệu lưu trữ kết quả thi</label>
-                  <input
-                    type="text"
-                    disabled
-                    value={aiConfig.postgresHost}
-                    className="w-full p-2 bg-slate-100 border border-slate-200 rounded-xl text-xs font-mono text-slate-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Lưu trữ Video bài thi (Object Storage)</label>
-                  <input
-                    type="text"
-                    value={aiConfig.storageBucket}
-                    onChange={(e) => setAiConfig({ ...aiConfig, storageBucket: e.target.value })}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono"
-                  />
-                </div>
-              </div>
-            </div>
-          </main>
-        )}
-
-        {/* ================= TAB 3: NHẬT KÝ & KIỂM TOÁN MINH BẠCH (AUDIT LOGS) ================= */}
-        {activeTab === 'audit' && (
-          <main className="flex-1 p-6 overflow-y-auto space-y-5 animate-fade-in-up">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs interactive-card">
-                <span className="text-xs text-slate-500 font-medium">Ca thi đang online thời gian thực</span>
-                <p className="text-2xl font-extrabold text-blue-600 mt-1">2 phòng thi</p>
-                <span className="text-[10px] text-emerald-600 font-bold block mt-1">Đường truyền ổn định &lt; 30ms</span>
-              </div>
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs interactive-card">
-                <span className="text-xs text-slate-500 font-medium">Trạng thái kết nối phòng thi</span>
-                <p className="text-2xl font-extrabold text-emerald-600 mt-1">Ổn định 100%</p>
-                <span className="text-[10px] text-slate-400 block mt-1">Tín hiệu Video &amp; Audio chuẩn 1080p</span>
-              </div>
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs interactive-card">
-                <span className="text-xs text-slate-500 font-medium">Uptime máy chủ AIVES</span>
-                <p className="text-2xl font-extrabold text-slate-900 mt-1">99.98%</p>
-                <span className="text-[10px] text-emerald-600 font-bold block mt-1">PostgreSQL &amp; AI Worker hoạt động</span>
-              </div>
-            </div>
-
-            {/* Audit Logs Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-              <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 className="font-extrabold text-xs text-slate-800 uppercase tracking-wider">
-                  Nhật ký can thiệp &amp; Hành động hệ thống (System Audit Trail)
-                </h3>
-                <span className="text-xs text-slate-400 font-mono">Bất biến (Immutable)</span>
-              </div>
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 font-bold text-slate-500 uppercase tracking-wider">
-                    <th className="py-3 px-4">Thời gian</th>
-                    <th className="py-3 px-4">Tác nhân (Actor)</th>
-                    <th className="py-3 px-4">Hành động</th>
-                    <th className="py-3 px-4">Chi tiết thao tác</th>
-                    <th className="py-3 px-4">Địa chỉ IP</th>
-                    <th className="py-3 px-4">Trạng thái</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {auditLogs.map((log) => (
-                    <tr key={log.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3.5 px-4 font-mono text-slate-500">{log.timestamp}</td>
-                      <td className="py-3.5 px-4 font-semibold text-slate-800">{log.actor}</td>
-                      <td className="py-3.5 px-4">
-                        <span className="px-2 py-0.5 rounded font-bold text-[10px] bg-slate-100 text-slate-800">
-                          {log.action}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-slate-700">{log.target}</td>
-                      <td className="py-3.5 px-4 font-mono text-slate-400">{log.ip}</td>
-                      <td className="py-3.5 px-4">
-                        <span className="px-2 py-0.5 rounded-full font-bold text-[10px] bg-emerald-100 text-emerald-800">
-                          {log.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </main>
-        )}
+        {(activeTab==='config'||activeTab==='audit')&&<main className="flex-1 p-6 overflow-y-auto"><AdminOperations mode={activeTab}/></main>}
       </div>
 
       {/* ================= MODAL: THÊM NGƯỜI DÙNG & PHÂN QUYỀN ================= */}
